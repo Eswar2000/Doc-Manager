@@ -1,11 +1,11 @@
-import Sidebar from './Sidebar/Sidebar';
+import Sidebar from './sidebar/Sidebar';
 import {
     Puzzle,
     Receipt,
     Boxes,
     Settings
 } from 'lucide-react';
-import { SidebarItem } from './Sidebar/SidebarItem';
+import { SidebarItem } from './sidebar/SidebarItem';
 
 export default function MainLayout({ }) {
     return (
