@@ -13,7 +13,6 @@ export function DataTableToolbar<TData>({
   facetedFilters = [],
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
-  console.log("Filter column key in Toolbar:", filterColumnKey);
 
   return (
     <div className="flex flex-wrap items-center justify-between">
@@ -23,7 +22,6 @@ export function DataTableToolbar<TData>({
             placeholder={`Filter by ${filterColumnKey} column...`}
             value={(table.getColumn(filterColumnKey)?.getFilterValue() as string) ?? ""}
             onChange={(event) => {
-              console.log("Filtering on column:", filterColumnKey, "with value:", event.target.value);
               table.getColumn(filterColumnKey)?.setFilterValue(event.target.value);
             }}
             className="h-8 w-[150px] lg:w-[250px]"
