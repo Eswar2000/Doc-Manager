@@ -1,13 +1,14 @@
 import type { ColumnDef, Table } from "@tanstack/react-table";
 
-export interface ExpenseProps {
-    "id": number,
-    "label": string,
-    "note": string,
-    "category": string,
-    "type": string,
-    "amount": number,
-    "date": string
+export type AttributeType = "number" | "text" | "date" | "email";
+
+export interface AttributeProps {
+  id: number,
+  name: string,
+  description: string,
+  type: AttributeType,
+  createdAt: string,
+  updatedAt: string
 }
 
 export interface DataTableProps<TData, TValue> {
