@@ -6,9 +6,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import type { DataTableRowActionsProps } from "@/types/table-types";
 
 
-export function DataTableRowActions() {
+export function DataTableRowActions({ row, onDelete, onEdit }: DataTableRowActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -21,8 +22,8 @@ export function DataTableRowActions() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEdit(row)}>Edit</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onDelete(row)}>
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>

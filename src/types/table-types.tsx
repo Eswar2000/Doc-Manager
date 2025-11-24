@@ -1,6 +1,7 @@
 import type { ColumnDef, Table } from "@tanstack/react-table";
 
 export interface ExpenseProps {
+    "id": number,
     "label": string,
     "note": string,
     "category": string,
@@ -31,4 +32,10 @@ export interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filterColumnKey?: string;
   facetedFilters?: FacetedFilterConfig[];
+}
+
+export interface DataTableRowActionsProps {
+  row: any;
+  onDelete: (row: any) => void;
+  onEdit: (row: any) => void;
 }
