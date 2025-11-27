@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { DynamicDialogProps } from "@/types/table-types";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export default function DynamicDialog({
     open,
@@ -48,16 +51,11 @@ export default function DynamicDialog({
                             <label className="text-sm font-medium">{field.label}</label>
 
                             {/* Text Input */}
-                            {field.type === "text" && (
-                                <input
-                                    type="text"
+                            {(field.type === "text") && (
+                                <Input
                                     disabled={field.disabled}
                                     value={formValues[field.name] ?? ""}
                                     onChange={(e) => handleChange(field.name, e.target.value)}
-                                    className={`border rounded-md px-3 py-2 ${field.disabled
-                                        ? "bg-gray-100 cursor-not-allowed"
-                                        : "bg-white"
-                                        }`}
                                 />
                             )}
 
@@ -79,35 +77,35 @@ export default function DynamicDialog({
 
                             {/* Textarea */}
                             {field.type === "textarea" && (
-                                <textarea
+                                <Textarea
                                     disabled={field.disabled}
                                     value={formValues[field.name] ?? ""}
                                     onChange={(e) => handleChange(field.name, e.target.value)}
-                                    className={`border rounded-md px-3 py-2 h-24 ${field.disabled
-                                        ? "bg-gray-100 cursor-not-allowed"
-                                        : "bg-white"
-                                        }`}
+                                    className="min-h-[100px]"
                                 />
                             )}
 
                             {/* Select */}
                             {field.type === "select" && (
-                                <select
+                                <Select
                                     disabled={field.disabled}
                                     value={formValues[field.name] ?? ""}
-                                    onChange={(e) => handleChange(field.name, e.target.value)}
-                                    className={`border rounded-md px-3 py-2 ${field.disabled
-                                        ? "bg-gray-100 cursor-not-allowed"
-                                        : "bg-white"
-                                        }`}
+                                    onValueChange={(value) => handleChange(field.name, value)}
                                 >
-                                    <option value="">Select...</option>
-                                    {field.options?.map((opt) => (
-                                        <option key={opt} value={opt}>
-                                            {opt}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger
+                                        className={`w-full ${field.disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                                    >
+                                        <SelectValue placeholder="Select..." />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {field.options?.map((opt) => (
+                                            <SelectItem key={opt} value={opt}>
+                                                {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             )}
                         </div>
                     ))}
