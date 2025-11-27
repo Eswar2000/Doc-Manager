@@ -5,6 +5,8 @@ import type { AttributeProps } from "../../types/table-types";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useState } from "react";
+import type { DynamicField } from "../../types/table-types";
+import DynamicDialog from "../dialog-box/dynamic-dialog";
 
 export default function AttributesPage() {
   const [data, setData] = useState<AttributeProps[]>([
@@ -242,7 +244,7 @@ export default function AttributesPage() {
     {
       id: "actions",
       accessorKey: "actions",
-      cell: ({ row }) => <DataTableRowActions row={row} onDelete={() => setData(prev => prev.filter(item => item.id !== row.original.id))} onEdit={() => console.log("You just clicked the edit button")} />,
+      cell: ({ row }) => <DataTableRowActions row={row} onDelete={() => setData(prev => prev.filter(item => item.id !== row.original.id))} onEdit={() => openEdit(row.original)} />,
     }
   ])
 
@@ -259,6 +261,36 @@ export default function AttributesPage() {
     },
   ]
 
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const editFormFields: DynamicField[] = [
+    { name: "name", label: "Name", type: "text", disabled: true },
+    { name: "description", label: "Description", type: "textarea" },
+    { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"], disabled: true },
+  ]
+
+  const openEdit = (item: AttributeProps) => {
+    setEditingItem(item);
+    setDialogOpen(true);
+  };
+
+  const updateRow = (updated: any) => {
+    setData(prev =>
+      // Update the record's description and updated at timestamp. name and type are kept unchanged. created at is also kept unchanged - not shown for edit.
+      prev.map(item =>
+        item.id === editingItem.id
+          ? {
+            ...item,
+            ...updated,
+            updatedAt: new Date().toISOString(),
+          }
+          : item
+      )
+    );
+    setDialogOpen(false);
+  };
+
   return (
     <div className="h-full flex-1 flex-col space-y-2 p-8 md:flex">
       <div className="flex items-center justify-between">
@@ -267,6 +299,19 @@ export default function AttributesPage() {
         </h2>
       </div>
       <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} />
+
+      {editingItem && (
+        <DynamicDialog
+          key={editingItem.id}
+          open={dialogOpen}
+          title="Edit Attribute"
+          description="Modify the details of the attribute below."
+          fields={editFormFields}
+          initialValues={editingItem}
+          onUpdate={updateRow}
+          onCancel={() => setDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }
