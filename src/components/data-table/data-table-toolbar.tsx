@@ -1,4 +1,4 @@
-import { Cross2Icon } from "@radix-ui/react-icons";
+import { Cross2Icon, PlusIcon } from "@radix-ui/react-icons";
 import type { DataTableToolbarProps } from "@/types/table-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ export function DataTableToolbar<TData>({
   table,
   filterColumnKey = "",
   facetedFilters = [],
+  showCreateButton = false,
+  onCreate,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -50,6 +52,13 @@ export function DataTableToolbar<TData>({
       </div>
 
       <div className="flex items-center gap-2">
+        {showCreateButton && (
+          <Button onClick={onCreate} className="h-8" variant="outline" size="sm">
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create
+          </Button>
+        )}
+
         <DataTableViewOptions table={table} />
       </div>
     </div>

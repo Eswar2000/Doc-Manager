@@ -16,6 +16,8 @@ export default function DynamicDialog({
     description,
     fields,
     initialValues = {},
+    submitButtonText = "Submit",
+    cancelButtonText = "Cancel",
     onUpdate,
     onCancel
 }: DynamicDialogProps) {
@@ -111,8 +113,8 @@ export default function DynamicDialog({
                     ))}
                 </div>
                 <DialogFooter className="mt-6">
-                    <Button variant="outline" onClick={onCancel}>Cancel</Button>
-                    <Button onClick={handleSubmit}>Update</Button>
+                    <Button variant="outline" onClick={onCancel}>{cancelButtonText}</Button>
+                    <Button onClick={handleSubmit}>{submitButtonText}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

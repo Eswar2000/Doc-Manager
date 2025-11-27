@@ -32,6 +32,8 @@ export function DataTable<TData, TValue>({
   data,
   filterColumnKey,
   facetedFilters,
+  showCreateButton,
+  onCreate
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -65,7 +67,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} filterColumnKey={filterColumnKey} facetedFilters={facetedFilters} />
+      <DataTableToolbar table={table} filterColumnKey={filterColumnKey} facetedFilters={facetedFilters} showCreateButton={showCreateButton} onCreate={onCreate} />
       <div className="overflow-y-auto rounded-md border">
         <Table>
           <TableHeader>

@@ -18,6 +18,8 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   filterColumnKey?: string;
   facetedFilters?: FacetedFilterConfig[];
+  showCreateButton?: boolean;
+  onCreate?: () => void;
 }
 
 export interface FacetedFilterOption {
@@ -35,6 +37,8 @@ export interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filterColumnKey?: string;
   facetedFilters?: FacetedFilterConfig[];
+  showCreateButton?: boolean;
+  onCreate?: () => void;
 }
 
 export interface DataTableRowActionsProps {
@@ -57,6 +61,8 @@ export interface DynamicDialogProps {
   description?: string;
   fields: DynamicField[];
   initialValues?: Record<string, any>;
+  submitButtonText?: string;
+  cancelButtonText?: string;
   onUpdate: (values: Record<string, any>) => void;
   onCancel: () => void;
 }

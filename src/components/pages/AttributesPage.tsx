@@ -263,6 +263,7 @@ export default function AttributesPage() {
 
   const [editingItem, setEditingItem] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const editFormFields: DynamicField[] = [
     { name: "name", label: "Name", type: "text", disabled: true },
@@ -270,10 +271,29 @@ export default function AttributesPage() {
     { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"], disabled: true },
   ]
 
+  const createFormFields: DynamicField[] = [
+    { name: "name", label: "Name", type: "text" },
+    { name: "description", label: "Description", type: "textarea" },
+    { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"] },
+  ]
+
   const openEdit = (item: AttributeProps) => {
     setEditingItem(item);
     setDialogOpen(true);
   };
+
+  const createRow = (newItem: any) => {
+    const newAttr: AttributeProps = {
+      id: data.length + 1,
+      name: newItem.name,
+      description: newItem.description,
+      type: newItem.type,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    setData(prev => [...prev, newAttr]);
+    setCreateDialogOpen(false);
+  }
 
   const updateRow = (updated: any) => {
     setData(prev =>
@@ -298,7 +318,7 @@ export default function AttributesPage() {
           <span>Manage Attributes</span>
         </h2>
       </div>
-      <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} />
+      <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => setCreateDialogOpen(true)} />
 
       {editingItem && (
         <DynamicDialog
@@ -308,8 +328,23 @@ export default function AttributesPage() {
           description="Modify the details of the attribute below."
           fields={editFormFields}
           initialValues={editingItem}
+          submitButtonText="Update"
           onUpdate={updateRow}
           onCancel={() => setDialogOpen(false)}
+        />
+      )}
+
+      {createDialogOpen && (
+        <DynamicDialog
+          key="create-attribute"
+          open={createDialogOpen}
+          title="Create Attribute"
+          description="Enter details for the new attribute."
+          fields={createFormFields}
+          initialValues={{}}
+          submitButtonText="Create"
+          onUpdate={createRow}
+          onCancel={() => setCreateDialogOpen(false)}
         />
       )}
     </div>
