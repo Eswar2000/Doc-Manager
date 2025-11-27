@@ -52,6 +52,8 @@ export interface DynamicField {
   label: string;
   type: FormFieldType;
   disabled?: boolean;
+  required?: boolean;
+  maxLength?: number; // for text and textarea
   options?: string[]; // for select
 }
 
