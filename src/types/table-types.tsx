@@ -68,3 +68,8 @@ export interface DynamicDialogProps {
   onUpdate: (values: Record<string, any>) => void;
   onCancel: () => void;
 }
+
+export type Placeholder = {
+  id: string;
+  label: string;
+};

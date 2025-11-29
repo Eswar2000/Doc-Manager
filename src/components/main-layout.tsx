@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { SidebarItem } from './sidebar/sidebar-item';
 import AttributesPage from './pages/attributes-page';
+import TemplateEditPage from './pages/editor-page';
 
 export default function MainLayout({ }) {
     return (
@@ -19,7 +20,8 @@ export default function MainLayout({ }) {
                 <SidebarItem icon={<Settings />} text="Settings" />
             </Sidebar>
             <main className="flex flex-1 justify-center">
-                <AttributesPage />
+                {/* <AttributesPage /> */}
+                <TemplateEditPage />
             </main>
         </div>
     )
