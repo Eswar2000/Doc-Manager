@@ -74,7 +74,12 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   initialContent = "",
   onChange,
 }) => {
+
   const [version, setVersion] = useState(0);
+  const [selectedFontSize, setSelectedFontSize] = useState("16px");
+  const [currentBlock, setCurrentBlock] = useState("p");
+
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -107,8 +112,18 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           "outline-none min-h-screen p-12 prose max-w-none [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-6 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-4 [&_h3]:text-2xl [&_h3]:font-bold",
       },
     },
-    onUpdate: ({ editor }) => {onChange?.(editor.getHTML()); setVersion((v) => v + 1);},
-    onSelectionUpdate: () => setVersion((v) => v + 1),
+    onUpdate: ({ editor }) => { onChange?.(editor.getHTML()); setVersion((v) => v + 1); },
+    onSelectionUpdate: ({ editor }) => {
+      setVersion((v) => v + 1);
+
+      const fontSizeAttrs = editor.getAttributes('fontSize');
+      setSelectedFontSize(fontSizeAttrs.fontSize || "16px");
+
+      if (editor.isActive("heading", { level: 1 })) setCurrentBlock("h1");
+      else if (editor.isActive("heading", { level: 2 })) setCurrentBlock("h2");
+      else if (editor.isActive("heading", { level: 3 })) setCurrentBlock("h3");
+      else setCurrentBlock("p");
+    }
   });
 
   if (!editor) return null;
@@ -133,6 +148,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
   const setFontSize = (size: string) => {
     editor.chain().focus().setFontSize(size).run();
+    setSelectedFontSize(size);
   };
 
   const insertTable = () => {
@@ -143,12 +159,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
     <div className="flex flex-col h-full border rounded-lg bg-white overflow-hidden">
       <div className="flex flex-wrap items-center gap-1 p-3 border-b bg-gray-50">
         <Select
-          value={
-            editor.isActive("heading", { level: 1 }) ? "h1" :
-              editor.isActive("heading", { level: 2 }) ? "h2" :
-                editor.isActive("heading", { level: 3 }) ? "h3" :
-                  "p"
-          }
+          value={currentBlock}
           onValueChange={(value) => {
             const commands = editor.chain().focus();
             if (value === "p") {
@@ -160,6 +171,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             } else if (value === "h3") {
               commands.clearNodes().setHeading({ level: 3 }).run();
             }
+            setCurrentBlock(value);
           }}
         >
           <SelectTrigger className="w-44">
@@ -177,7 +189,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             <SelectValue placeholder="Font" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Inter">Inter (default)</SelectItem>
+            <SelectItem value="Inter">Inter</SelectItem>
             <SelectItem value="Arial, Helvetica, sans-serif">Arial</SelectItem>
             <SelectItem value="Georgia, serif">Georgia</SelectItem>
             <SelectItem value="Times New Roman, Times, serif">Times New Roman</SelectItem>
@@ -185,7 +197,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           </SelectContent>
         </Select>
 
-        <Select onValueChange={setFontSize}>
+        <Select onValueChange={setFontSize} value={selectedFontSize}>
           <SelectTrigger className="w-24">
             <SelectValue placeholder="Size" />
           </SelectTrigger>
