@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -74,6 +74,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   initialContent = "",
   onChange,
 }) => {
+  const [version, setVersion] = useState(0);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -106,7 +107,8 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           "outline-none min-h-screen p-12 prose max-w-none [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-6 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-4 [&_h3]:text-2xl [&_h3]:font-bold",
       },
     },
-    onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
+    onUpdate: ({ editor }) => {onChange?.(editor.getHTML()); setVersion((v) => v + 1);},
+    onSelectionUpdate: () => setVersion((v) => v + 1),
   });
 
   if (!editor) return null;
@@ -124,30 +126,6 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
     };
     reader.readAsDataURL(file);
   };
-
-  // Drag & Drop support for image uploads
-  useEffect(() => {
-    if (!editor) return;
-
-    const handleDrop = (e: DragEvent) => {
-      e.preventDefault();
-      const file = e.dataTransfer?.files[0];
-      if (file && file.type.startsWith("image/")) {
-        handleImageUpload(file);
-      }
-    };
-
-    const handleDragOver = (e: DragEvent) => e.preventDefault();
-
-    const dom = editor.view.dom;
-    dom.addEventListener("drop", handleDrop);
-    dom.addEventListener("dragover", handleDragOver);
-
-    return () => {
-      dom.removeEventListener("drop", handleDrop);
-      dom.removeEventListener("dragover", handleDragOver);
-    };
-  }, [editor]);
 
   const setFontFamily = (font: string) => {
     editor.chain().focus().setFontFamily(font).run();
