@@ -319,11 +319,30 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
         <div className="flex-1" />
       </div>
 
-      {/* Editor */}
-      <EditorContent
-        editor={editor}
-        className="flex-1 overflow-auto bg-white p-12 prose max-w-none"
-      />
+      {/* Editor Area */}
+      <div className="flex-1 overflow-auto bg-gray-100">
+        <div className="min-h-full flex items-start justify-center py-8 px-4">
+          <div
+            className="bg-white shadow-xl rounded-lg overflow-hidden"
+            style={{
+              width: "8.5in",
+              maxWidth: "100%",
+              minHeight: "11in",
+              paddingTop: "64px",
+              paddingBottom: "80px",
+              paddingLeft: "64px",
+              paddingRight: "64px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
+            }}
+          >
+            <EditorContent
+              editor={editor}
+              className="h-full outline-none prose max-w-none break-words"
+              style={{ wordBreak: "break-word" }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
