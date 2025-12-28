@@ -70,6 +70,37 @@ interface TemplateEditorProps {
   onChange?: (html: string) => void;
 }
 
+const getCurrentFontFamily = (editor: any) => {
+  const { from, to } = editor.state.selection;
+  let fontFamily: string | null | undefined = undefined;
+  let mixed = false;
+
+  editor.state.doc.nodesBetween(from, to, (node: any) => {
+    if (mixed) {
+      return false;
+    }
+
+    if (node.isText) {
+      const marks = node.marks;
+      const textStyleMark = marks.find((mark: any) => mark.type.name === "textStyle");
+      const current = textStyleMark ? textStyleMark.attrs.fontFamily : null;
+
+      if (fontFamily === undefined) {
+        fontFamily = current;
+      } else if (fontFamily !== current) {
+        mixed = true;
+        return false;
+      }
+    }
+  });
+
+  if (mixed) {
+    return undefined;
+  }
+  
+  return fontFamily;
+};
+
 const TemplateEditor: React.FC<TemplateEditorProps> = ({
   initialContent = "",
   onChange,
@@ -77,6 +108,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
   const [version, setVersion] = useState(0);
   const [selectedFontSize, setSelectedFontSize] = useState("16px");
+  const [selectedFontFamily, setSelectedFontFamily] = useState("");
   const [currentBlock, setCurrentBlock] = useState("p");
 
 
@@ -109,7 +141,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          "outline-none min-h-screen p-12 prose max-w-none [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-6 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-4 [&_h3]:text-2xl [&_h3]:font-bold",
+          "outline-none min-h-screen p-12 prose max-w-none [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-6 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-4 [&_h3]:text-2xl [&_h3]:font-bold font-['Inter']",
       },
     },
     onUpdate: ({ editor }) => { onChange?.(editor.getHTML()); setVersion((v) => v + 1); },
@@ -118,6 +150,16 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
       const fontSizeAttrs = editor.getAttributes('fontSize');
       setSelectedFontSize(fontSizeAttrs.fontSize || "16px");
+
+      const currentFont = getCurrentFontFamily(editor);
+
+      if (currentFont && !editor.state.selection.empty) {
+        setSelectedFontFamily(currentFont);
+      } else if (currentFont === null && !editor.state.selection.empty) {
+        setSelectedFontFamily("Inter"); // Default when no mark applied
+      } else {
+        setSelectedFontFamily(""); // Mixed or no selection
+      }
 
       if (editor.isActive("heading", { level: 1 })) setCurrentBlock("h1");
       else if (editor.isActive("heading", { level: 2 })) setCurrentBlock("h2");
@@ -184,7 +226,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             <SelectItem value="h3">Heading 3</SelectItem>
           </SelectContent>
         </Select>
-        <Select onValueChange={setFontFamily}>
+        <Select 
+          value={selectedFontFamily} 
+          onValueChange={(value) => {
+            setFontFamily(value);
+            setSelectedFontFamily(value);
+          }}
+        >
           <SelectTrigger className="w-44">
             <SelectValue placeholder="Font" />
           </SelectTrigger>
