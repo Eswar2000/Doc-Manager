@@ -30,6 +30,8 @@ import {
   ListOrdered,
   ImageIcon,
   TableIcon,
+  Undo2,
+  Redo2
 } from "lucide-react";
 import { ResizableImage } from "./resizable-image";
 
@@ -97,7 +99,7 @@ const getCurrentFontFamily = (editor: any) => {
   if (mixed) {
     return undefined;
   }
-  
+
   return fontFamily;
 };
 
@@ -363,6 +365,28 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
         <Button variant="ghost" size="icon" onClick={insertTable}>
           <TableIcon className="h-4 w-4" />
         </Button>
+
+        <div className="w-px h-8 bg-gray-300 mx-2" />
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo2 className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+          title="Redo (Ctrl+Y)"
+        >
+          <Redo2 className="h-4 w-4" />
+        </Button>
+
 
         <div className="flex-1" />
       </div>
