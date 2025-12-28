@@ -29,7 +29,7 @@ export const TableBubbleMenu: React.FC<TableBubbleMenuProps> = ({ editor }) => {
     <BubbleMenu
       editor={editor}
       options={{
-        placement: "top-start",
+        placement: "top",
         offset: 12,
       }}
       shouldShow={({ editor }) => editor.isActive("table")}
