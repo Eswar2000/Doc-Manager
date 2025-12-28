@@ -118,3 +118,63 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Professional table styling for documents */
+.prose table {
+  width: 100%;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+  margin: 1.5em 0;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.prose th,
+.prose td {
+  min-width: 60px;
+  padding: 4px 8px; /* Increased padding for better readability */
+  border: 1px solid #d0d7de;
+  white-space: break-word; /* Cell word wrap to new line */
+}
+
+/* Optional: right-align specific columns if needed later */
+.prose td[data-align="right"],
+.prose th[data-align="right"] {
+  text-align: right;
+}
+
+/* Optional: center specific columns */
+.prose td[data-align="center"],
+.prose th[data-align="center"] {
+  text-align: center;
+}
+
+.prose th {
+  background-color: #f6f8fa;
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.prose td {
+  background-color: #ffffff;
+}
+
+.prose tr:nth-child(even) td {
+  background-color: #fbfbfc;
+}
+
+.ProseMirror .column-resize-handle {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  width: 5px !important;
+  background-color: #3b82f6 !important;
+  right: -3px !important;
+}
+
+.ProseMirror table:hover .column-resize-handle {
+  opacity: 1;
+}
+
+.ProseMirror.resize-cursor {
+  cursor: col-resize !important;
+}
