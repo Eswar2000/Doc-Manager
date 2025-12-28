@@ -28,7 +28,10 @@ export const TableBubbleMenu: React.FC<TableBubbleMenuProps> = ({ editor }) => {
     return (
         <BubbleMenu
             editor={editor}
-            options={{ placement: "top", offset: 8 }}
+            options={{
+                placement: "top",
+                offset: 16,
+            }}
             shouldShow={({ editor }) => editor.isActive("table")}
         >
             <TooltipProvider>
