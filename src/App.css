@@ -122,18 +122,18 @@
 /* Professional table styling for documents */
 .prose table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
   margin: 1.5em 0;
-  font-size: 15px;
   line-height: 1.5;
 }
 
 .prose th,
 .prose td {
+  min-width: 60px;
+  padding: 4px 8px; /* Increased padding for better readability */
   border: 1px solid #d0d7de;
-  padding: 10px 14px;
-  text-align: left;
-  vertical-align: top;
+  white-space: break-word; /* Cell word wrap to new line */
 }
 
 .prose th {
@@ -148,4 +148,20 @@
 
 .prose tr:nth-child(even) td {
   background-color: #fbfbfc;
+}
+
+.ProseMirror .column-resize-handle {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  width: 5px !important;
+  background-color: #3b82f6 !important;
+  right: -3px !important;
+}
+
+.ProseMirror table:hover .column-resize-handle {
+  opacity: 1;
+}
+
+.ProseMirror.resize-cursor {
+  cursor: col-resize !important;
 }
