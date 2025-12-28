@@ -40,6 +40,7 @@ import {
   Redo2
 } from "lucide-react";
 import { ResizableImage } from "./resizable-image";
+import { TableBubbleMenu } from "./table-bubble-menu";
 
 // Custom Fontsize extension
 const FontSize = Mark.create({
@@ -517,6 +518,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 className="h-full outline-none prose max-w-none break-words"
                 style={{ wordBreak: "break-word" }}
               />
+              {editor && <TableBubbleMenu editor={editor} />}
             </div>
           </div>
         </div>

@@ -118,3 +118,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Professional table styling for documents */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid #d0d7de;
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose th {
+  background-color: #f6f8fa;
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.prose td {
+  background-color: #ffffff;
+}
+
+.prose tr:nth-child(even) td {
+  background-color: #fbfbfc;
+}
