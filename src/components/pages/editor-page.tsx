@@ -92,6 +92,19 @@ export default function TemplateEditPage() {
             </AccordionItem>
           </Accordion>
         </div>
+
+        {/* Fixed Footer with Save Button */}
+        <div className="p-6 border-t flex-shrink-0">
+          <Button
+            size="lg"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500 text-white font-medium shadow-sm"
+            onClick={() => {
+              console.log("Save Template clicked");
+            }}
+          >
+            Save Template
+          </Button>
+        </div>
       </div>
     </div>
   );
