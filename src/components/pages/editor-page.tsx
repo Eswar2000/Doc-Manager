@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-
+import React from "react";
+import { v4 as uuidv4 } from "uuid";
 import TemplateEditor from "../editor/editor";
 import type { Placeholder } from "../../types/table-types";
 
@@ -25,13 +25,49 @@ const placeholders: Placeholder[] = [
 export default function TemplateEditPage() {
   const [editor, setEditor] = React.useState<any>(null);
 
+
+  const handleSaveTemplate = () => {
+    if (!editor) return;
+
+    const templateId = uuidv4();
+    const html = editor.getHTML();
+
+    // Extract all attribute fields with their trackerId and label
+    const usedAttributes: Array<{
+      trackerId: string;
+      label: string;
+    }> = [];
+
+    editor.state.doc.descendants((node: any) => {
+      if (node.type.name === "attributeField") {
+        const { label, trackerId } = node.attrs;
+        if (trackerId && label) {
+          usedAttributes.push({
+            trackerId,
+            label,
+          });
+        }
+      }
+    });
+
+    const templateJson = {
+      templateId,
+      name: "Untitled Template", // You can make this editable later
+      createdAt: new Date().toISOString(),
+      html,
+      usedAttributes, // All instances, even duplicates
+      // Future: version, author, status, etc.
+    };
+
+    console.log("Saved Template JSON:", JSON.stringify(templateJson, null, 2));
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor */}
       <div className="flex-[3] p-8 overflow-auto">
         <TemplateEditor
           initialContent="<p>Start writing your contract...</p>"
-          onChange={(html) => console.log("→ HTML:", html)}
           onEditorReady={setEditor}
         />
       </div>
@@ -105,9 +141,7 @@ export default function TemplateEditPage() {
           <Button
             size="lg"
             className="w-full bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500 text-white font-medium shadow-sm"
-            onClick={() => {
-              console.log("Save Template clicked");
-            }}
+            onClick={handleSaveTemplate}
           >
             Save Template
           </Button>
