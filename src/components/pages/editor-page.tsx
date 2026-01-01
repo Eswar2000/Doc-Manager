@@ -31,35 +31,50 @@ export default function TemplateEditPage() {
 
     const templateId = uuidv4();
     const html = editor.getHTML();
+    const json = editor.getJSON();
 
-    // Extract all attribute fields with their trackerId and label
-    const usedAttributes: Array<{
-      trackerId: string;
-      label: string;
-    }> = [];
+    // Map to collect trackerIds per label
+    const attributeMap = new Map<string, { attributeId: string; trackerIds: string[] }>();
 
+    // First, build a map from label → original id (from placeholders)
+    const labelToId = new Map<string, string>();
+    placeholders.forEach(p => {
+      labelToId.set(p.label, p.id);
+    });
+
+    // Traverse document to collect trackerIds per label
     editor.state.doc.descendants((node: any) => {
       if (node.type.name === "attributeField") {
-        const { label, trackerId } = node.attrs;
-        if (trackerId && label) {
-          usedAttributes.push({
-            trackerId,
-            label,
-          });
+        const { label, trackerId } = node.attrs as { label: string; trackerId: string };
+        if (label && trackerId) {
+          const attributeId = labelToId.get(label) || "unknown"; // fallback if label not in placeholders
+
+          if (!attributeMap.has(label)) {
+            attributeMap.set(label, {
+              attributeId,
+              trackerIds: [],
+            });
+          }
+          attributeMap.get(label)!.trackerIds.push(trackerId);
         }
       }
     });
 
-    const templateJson = {
+    // Convert map to array
+    const attributes = Array.from(attributeMap.entries()).map(([attributName, data]) => ({
+      attributeId: data.attributeId,
+      attributName,
+      trackerIds: data.trackerIds,
+    }));
+
+    const templateData = {
       templateId,
-      name: "Untitled Template", // You can make this editable later
-      createdAt: new Date().toISOString(),
       html,
-      usedAttributes, // All instances, even duplicates
-      // Future: version, author, status, etc.
+      json,
+      attributes,
     };
 
-    console.log("Saved Template JSON:", JSON.stringify(templateJson, null, 2));
+    console.log("Saved Template:", JSON.stringify(templateData, null, 2));
   };
 
   return (
