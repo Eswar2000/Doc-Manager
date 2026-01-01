@@ -1,3 +1,5 @@
+import React, { useState } from "react";
+
 import TemplateEditor from "../editor/editor";
 import type { Placeholder } from "../../types/table-types";
 
@@ -21,6 +23,8 @@ const placeholders: Placeholder[] = [
 ];
 
 export default function TemplateEditPage() {
+  const [editor, setEditor] = React.useState<any>(null);
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor */}
@@ -28,6 +32,7 @@ export default function TemplateEditPage() {
         <TemplateEditor
           initialContent="<p>Start writing your contract...</p>"
           onChange={(html) => console.log("→ HTML:", html)}
+          onEditorReady={setEditor}
         />
       </div>
 
@@ -56,9 +61,11 @@ export default function TemplateEditPage() {
                       size="sm"
                       className="w-full justify-start text-left font-normal hover:bg-blue-50 hover:border-blue-300 transition-colors"
                       onClick={() => {
-                        // We'll wire this up next — inserts at cursor
-                        console.log("Insert:", placeholder.label);
+                        if (editor) {
+                          editor.commands.insertAttributeField(placeholder.label);
+                        }
                       }}
+                      disabled={!editor}
                     >
                       {placeholder.label}
                     </Button>

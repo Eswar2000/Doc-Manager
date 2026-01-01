@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/editor/editor.tsx
+import React, { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -37,12 +38,13 @@ import {
   ImageIcon,
   TableIcon,
   Undo2,
-  Redo2
+  Redo2,
 } from "lucide-react";
 import { ResizableImage } from "./resizable-image";
 import { TableBubbleMenu } from "./table-bubble-menu";
+import { AttributeField } from "./attribute-field";
 
-// Custom Fontsize extension
+// Custom FontSize extension
 const FontSize = Mark.create({
   name: "fontSize",
   addAttributes() {
@@ -64,12 +66,12 @@ const FontSize = Mark.create({
     return {
       setFontSize:
         (size: string) =>
-          ({ commands }) =>
-            commands.setMark(this.name, { fontSize: size }),
+        ({ commands }) =>
+          commands.setMark(this.name, { fontSize: size }),
       unsetFontSize:
         () =>
-          ({ commands }) =>
-            commands.unsetMark(this.name),
+        ({ commands }) =>
+          commands.unsetMark(this.name),
     };
   },
 });
@@ -77,6 +79,7 @@ const FontSize = Mark.create({
 interface TemplateEditorProps {
   initialContent?: string;
   onChange?: (html: string) => void;
+  onEditorReady?: (editor: any) => void;
 }
 
 const getCurrentFontFamily = (editor: any) => {
@@ -85,9 +88,7 @@ const getCurrentFontFamily = (editor: any) => {
   let mixed = false;
 
   editor.state.doc.nodesBetween(from, to, (node: any) => {
-    if (mixed) {
-      return false;
-    }
+    if (mixed) return false;
 
     if (node.isText) {
       const marks = node.marks;
@@ -103,23 +104,18 @@ const getCurrentFontFamily = (editor: any) => {
     }
   });
 
-  if (mixed) {
-    return undefined;
-  }
-
+  if (mixed) return undefined;
   return fontFamily;
 };
 
 const TemplateEditor: React.FC<TemplateEditorProps> = ({
   initialContent = "",
   onChange,
+  onEditorReady,
 }) => {
-
-  const [version, setVersion] = useState(0);
-  const [selectedFontSize, setSelectedFontSize] = useState("16px");
-  const [selectedFontFamily, setSelectedFontFamily] = useState("");
-  const [currentBlock, setCurrentBlock] = useState("p");
-
+  const [selectedFontSize, setSelectedFontSize] = React.useState("16px");
+  const [selectedFontFamily, setSelectedFontFamily] = React.useState("");
+  const [currentBlock, setCurrentBlock] = React.useState("p");
 
   const editor = useEditor({
     extensions: [
@@ -145,6 +141,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
       TextStyle,
       FontFamily,
       FontSize,
+      AttributeField,
     ],
     content: initialContent,
     editorProps: {
@@ -153,11 +150,9 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           "outline-none min-h-screen p-12 prose max-w-none [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-6 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-4 [&_h3]:text-2xl [&_h3]:font-bold font-['Inter']",
       },
     },
-    onUpdate: ({ editor }) => { onChange?.(editor.getHTML()); setVersion((v) => v + 1); },
+    onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
     onSelectionUpdate: ({ editor }) => {
-      setVersion((v) => v + 1);
-
-      const fontSizeAttrs = editor.getAttributes('fontSize');
+      const fontSizeAttrs = editor.getAttributes("fontSize");
       setSelectedFontSize(fontSizeAttrs.fontSize || "16px");
 
       const currentFont = getCurrentFontFamily(editor);
@@ -165,17 +160,24 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
       if (currentFont && !editor.state.selection.empty) {
         setSelectedFontFamily(currentFont);
       } else if (currentFont === null && !editor.state.selection.empty) {
-        setSelectedFontFamily("Inter"); // Default when no mark applied
+        setSelectedFontFamily("Inter");
       } else {
-        setSelectedFontFamily(""); // Mixed or no selection
+        setSelectedFontFamily("");
       }
 
       if (editor.isActive("heading", { level: 1 })) setCurrentBlock("h1");
       else if (editor.isActive("heading", { level: 2 })) setCurrentBlock("h2");
       else if (editor.isActive("heading", { level: 3 })) setCurrentBlock("h3");
       else setCurrentBlock("p");
-    }
+    },
   });
+
+  // Safely expose editor to parent after render
+  useEffect(() => {
+    if (editor) {
+      onEditorReady?.(editor);
+    }
+  }, [editor, onEditorReady]);
 
   if (!editor) return null;
 
@@ -209,23 +211,17 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   return (
     <TooltipProvider>
       <div className="flex flex-col h-full border rounded-lg bg-white overflow-hidden">
+        {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-1 p-3 border-b bg-gray-50">
-          <Select
-            value={currentBlock}
-            onValueChange={(value) => {
-              const commands = editor.chain().focus();
-              if (value === "p") {
-                commands.clearNodes().setParagraph().run();
-              } else if (value === "h1") {
-                commands.clearNodes().setHeading({ level: 1 }).run();
-              } else if (value === "h2") {
-                commands.clearNodes().setHeading({ level: 2 }).run();
-              } else if (value === "h3") {
-                commands.clearNodes().setHeading({ level: 3 }).run();
-              }
-              setCurrentBlock(value);
-            }}
-          >
+          {/* Style Dropdown */}
+          <Select value={currentBlock} onValueChange={(value) => {
+            const commands = editor.chain().focus();
+            if (value === "p") commands.clearNodes().setParagraph().run();
+            else if (value === "h1") commands.clearNodes().setHeading({ level: 1 }).run();
+            else if (value === "h2") commands.clearNodes().setHeading({ level: 2 }).run();
+            else if (value === "h3") commands.clearNodes().setHeading({ level: 3 }).run();
+            setCurrentBlock(value);
+          }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Style" />
             </SelectTrigger>
@@ -236,13 +232,12 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
               <SelectItem value="h3">Heading 3</SelectItem>
             </SelectContent>
           </Select>
-          <Select
-            value={selectedFontFamily}
-            onValueChange={(value) => {
-              setFontFamily(value);
-              setSelectedFontFamily(value);
-            }}
-          >
+
+          {/* Font Family */}
+          <Select value={selectedFontFamily} onValueChange={(value) => {
+            setFontFamily(value);
+            setSelectedFontFamily(value);
+          }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Font" />
             </SelectTrigger>
@@ -255,6 +250,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             </SelectContent>
           </Select>
 
+          {/* Font Size */}
           <Select onValueChange={setFontSize} value={selectedFontSize}>
             <SelectTrigger className="w-24">
               <SelectValue placeholder="Size" />
@@ -271,62 +267,41 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
           <div className="w-px h-8 bg-gray-300 mx-2" />
 
-          {/* Bold, Italic, etc. */}
+          {/* Formatting Buttons */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive("bold") ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().toggleBold().run()}
-              >
+              <Button variant={editor.isActive("bold") ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBold().run()}>
                 <Bold className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Bold (Ctrl+B)</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Bold (Ctrl+B)</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive("italic") ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-              >
+              <Button variant={editor.isActive("italic") ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleItalic().run()}>
                 <Italic className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Italic (Ctrl+I)</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Italic (Ctrl+I)</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive("underline") ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-              >
+              <Button variant={editor.isActive("underline") ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleUnderline().run()}>
                 <UnderlineIcon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Underline (Ctrl+U)</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Underline (Ctrl+U)</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive("strike") ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().toggleStrike().run()}
-              >
+              <Button variant={editor.isActive("strike") ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleStrike().run()}>
                 <Strikethrough className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Strikethrough (Ctrl+Shift+S)</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Strikethrough</p></TooltipContent>
           </Tooltip>
 
           <div className="w-px h-8 bg-gray-300 mx-2" />
@@ -334,59 +309,38 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           {/* Alignment */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive({ textAlign: "left" }) ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().setTextAlign("left").run()}
-              >
+              <Button variant={editor.isActive({ textAlign: "left" }) ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().setTextAlign("left").run()}>
                 <AlignLeft className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Align Left</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Align Left</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive({ textAlign: "center" }) ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().setTextAlign("center").run()}
-              >
+              <Button variant={editor.isActive({ textAlign: "center" }) ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().setTextAlign("center").run()}>
                 <AlignCenter className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Align Center</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Align Center</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive({ textAlign: "right" }) ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().setTextAlign("right").run()}
-              >
+              <Button variant={editor.isActive({ textAlign: "right" }) ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().setTextAlign("right").run()}>
                 <AlignRight className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Align Right</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Align Right</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive({ textAlign: "justify" }) ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().setTextAlign("justify").run()}
-              >
+              <Button variant={editor.isActive({ textAlign: "justify" }) ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().setTextAlign("justify").run()}>
                 <AlignJustify className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Align Justify</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Align Justify</p></TooltipContent>
           </Tooltip>
 
           <div className="w-px h-8 bg-gray-300 mx-2" />
@@ -394,40 +348,28 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           {/* Lists */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive("bulletList") ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-              >
+              <Button variant={editor.isActive("bulletList") ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBulletList().run()}>
                 <List className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Bullet List</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Bullet List</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={editor.isActive("orderedList") ? "default" : "ghost"}
-                size="sm"
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              >
+              <Button variant={editor.isActive("orderedList") ? "default" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
                 <ListOrdered className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Ordered List</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Ordered List</p></TooltipContent>
           </Tooltip>
 
-
-          {/* Image, Table */}
+          {/* Image */}
           <Tooltip>
             <TooltipTrigger asChild>
               <label>
                 <Button variant="ghost" size="icon" asChild>
-                  <span title="Upload image">
+                  <span>
                     <ImageIcon className="h-4 w-4" />
                   </span>
                 </Button>
@@ -443,28 +385,26 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 />
               </label>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Insert Image</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Insert Image</p></TooltipContent>
           </Tooltip>
+
+          {/* Table */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={insertTable}>
                 <TableIcon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Insert Table</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Insert Table</p></TooltipContent>
           </Tooltip>
 
           <div className="w-px h-8 bg-gray-300 mx-2" />
 
-          {/* Undo, Redo */}
+          {/* Undo / Redo */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant={editor.can().undo() ? "default" : "ghost"}
                 size="sm"
                 onClick={() => editor.chain().focus().undo().run()}
                 disabled={!editor.can().undo()}
@@ -472,14 +412,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 <Undo2 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Undo (Ctrl+Z)</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Undo (Ctrl+Z)</p></TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant={editor.can().redo() ? "default" : "ghost"}
                 size="sm"
                 onClick={() => editor.chain().focus().redo().run()}
                 disabled={!editor.can().redo()}
@@ -487,12 +426,8 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 <Redo2 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Redo (Ctrl+Y)</p>
-            </TooltipContent>
+            <TooltipContent side="bottom"><p>Redo (Ctrl+Y)</p></TooltipContent>
           </Tooltip>
-
-
 
           <div className="flex-1" />
         </div>
