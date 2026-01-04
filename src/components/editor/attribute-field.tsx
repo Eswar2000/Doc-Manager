@@ -16,6 +16,14 @@ declare module "@tiptap/core" {
   }
 }
 
+// Helper to truncate long texts
+const truncateDefault = (value: string | null, maxLength = 20) => {
+  if (!value) return "";
+  return value.length > maxLength
+    ? value.slice(0, maxLength - 3) + "..."
+    : value;
+};
+
 export const AttributeField = Node.create({
   name: "attributeField",
 
@@ -62,11 +70,10 @@ export const AttributeField = Node.create({
     }
 
     // Visible fields
-    const displayLabel = attrs.defaultValue
-      ? `${attrs.label} (${attrs.defaultValue})`
-      : attrs.label;
+    const truncatedDefault = truncateDefault(attrs.defaultValue);
+    const displaySuffix = truncatedDefault ? ` (${truncatedDefault})` : "";
 
-    const textContent = `{{ ${displayLabel}${attrs.required ? " *" : ""} }}`;
+    const textContent = `{{ ${attrs.label}${displaySuffix} }}`;
 
     const baseClasses =
       "inline-block align-middle mx-1 px-3 py-1 text-sm font-medium rounded-lg shadow-sm select-none cursor-pointer transition-all duration-150";
@@ -109,11 +116,10 @@ export const AttributeField = Node.create({
       // Visible field
       const dom = document.createElement("span");
 
-      const displayLabel = attrs.defaultValue
-        ? `${attrs.label} (${attrs.defaultValue})`
-        : attrs.label;
+      const truncatedDefault = truncateDefault(attrs.defaultValue);
+      const displaySuffix = truncatedDefault ? ` (${truncatedDefault})` : "";
 
-      dom.textContent = `{{ ${displayLabel}${attrs.required ? " *" : ""} }}`;
+      dom.textContent = `{{ ${attrs.label}${displaySuffix} }}`;
       dom.contentEditable = "false";
       dom.setAttribute("data-attribute-field", "");
       if (attrs.trackerId) dom.setAttribute("tracker-id", attrs.trackerId);
