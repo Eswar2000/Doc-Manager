@@ -272,13 +272,22 @@ export default function TemplateEditPage() {
             <DialogTitle>{selectedPlaceholder?.label} Already Configured</DialogTitle>
             <DialogDescription>
               This field type has existing settings. Do you want to use them or override?
-              <ul className="mt-3 space-y-1 text-sm">
-                <li>• Required: {attributeConfig[selectedPlaceholder?.id ?? ""]?.required ? "Yes" : "No"}</li>
-                <li>• Hidden: {attributeConfig[selectedPlaceholder?.id ?? ""]?.hidden ? "Yes" : "No"}</li>
-                <li>• Default value: {attributeConfig[selectedPlaceholder?.id ?? ""]?.defaultValue || "None"}</li>
-              </ul>
             </DialogDescription>
           </DialogHeader>
+          <div className="mt-4 space-y-1 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">• Required:</span>
+              {attributeConfig[selectedPlaceholder?.id ?? ""]?.required ? "Yes" : "No"}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">• Hidden:</span>
+              {attributeConfig[selectedPlaceholder?.id ?? ""]?.hidden ? "Yes" : "No"}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">• Default value:</span>
+              {attributeConfig[selectedPlaceholder?.id ?? ""]?.defaultValue || "None"}
+            </div>
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
