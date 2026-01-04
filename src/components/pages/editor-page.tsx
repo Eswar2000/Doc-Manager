@@ -9,7 +9,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const placeholders: Placeholder[] = [
   { id: "1", label: "Client Name" },
@@ -24,7 +35,23 @@ const placeholders: Placeholder[] = [
 
 export default function TemplateEditPage() {
   const [editor, setEditor] = React.useState<any>(null);
+  const [attributeConfig, setAttributeConfig] = React.useState<
+    Record<
+      string,
+      {
+        required: boolean;
+        hidden: boolean;
+        defaultValue: string | null;
+      }
+    >
+  >({});
+  const [configModalOpen, setConfigModalOpen] = React.useState(false);
+  const [overridePromptOpen, setOverridePromptOpen] = React.useState(false);
+  const [selectedPlaceholder, setSelectedPlaceholder] = React.useState<Placeholder | null>(null);
 
+  const [required, setRequired] = React.useState(false);
+  const [hidden, setHidden] = React.useState(false);
+  const [defaultValue, setDefaultValue] = React.useState("");
 
   const handleSaveTemplate = () => {
     if (!editor) return;
@@ -77,6 +104,87 @@ export default function TemplateEditPage() {
     console.log("Saved Template:", JSON.stringify(templateData, null, 2));
   };
 
+  const handleAttributeClick = (placeholder: Placeholder) => {
+    setSelectedPlaceholder(placeholder);
+
+    const existingConfig = attributeConfig[placeholder.id];
+
+    if (!existingConfig) {
+      setRequired(false);
+      setHidden(false);
+      setDefaultValue("");
+      setConfigModalOpen(true);
+    } else {
+      setOverridePromptOpen(true);
+    }
+  }
+
+  const insertAttributeWithConfig = (config: { required: boolean; hidden: boolean; defaultValue: string | null }) => {
+    if (!editor || !selectedPlaceholder) return;
+
+    editor.chain().focus().insertAttributeField({
+      label: selectedPlaceholder.label,
+      fieldKey: selectedPlaceholder.id,
+      required: config.required,
+      hidden: config.hidden,
+      defaultValue: config.defaultValue,
+    }).run();
+  }
+
+  const saveConfigAndInsert = () => {
+    if (!selectedPlaceholder) return;
+
+    const newConfig = {
+      required,
+      hidden,
+      defaultValue: defaultValue.trim() === "" ? null : defaultValue.trim(),
+    }
+
+    setAttributeConfig((prev) => ({
+      ...prev,
+      [selectedPlaceholder.id]: newConfig,
+    }));
+
+    insertAttributeWithConfig(newConfig);
+    updateAllFieldsOfType(selectedPlaceholder.id, newConfig);
+    setConfigModalOpen(false);
+  }
+
+  const openAttributeConfigForOverride = () => {
+    if (!selectedPlaceholder) return;
+
+    const existingConfig = attributeConfig[selectedPlaceholder.id];
+    setRequired(existingConfig.required);
+    setHidden(existingConfig.hidden);
+    setDefaultValue(existingConfig.defaultValue || "");
+    setOverridePromptOpen(false);
+    setConfigModalOpen(true);
+  }
+
+  const updateAllFieldsOfType = (fieldKey: string, newConfig: { required: boolean; hidden: boolean; defaultValue: string | null }) => {
+    if (!editor) return;
+
+    const { tr } = editor.state;
+    let modified = false;
+
+    editor.state.doc.descendants((node: any, pos: number) => {
+      if (node.type.name === "attributeField" && node.attrs.fieldKey === fieldKey) {
+        tr.setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          required: newConfig.required,
+          hidden: newConfig.hidden,
+          defaultValue: newConfig.defaultValue,
+        });
+        modified = true;
+      }
+    });
+
+    if (modified) {
+      editor.view.dispatch(tr);
+    }
+  };
+
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor */}
@@ -111,11 +219,7 @@ export default function TemplateEditPage() {
                       variant="outline"
                       size="sm"
                       className="w-full justify-start text-left font-normal hover:bg-blue-50 hover:border-blue-300 transition-colors"
-                      onClick={() => {
-                        if (editor) {
-                          editor.commands.insertAttributeField(placeholder.label);
-                        }
-                      }}
+                      onClick={() => handleAttributeClick(placeholder)}
                       disabled={!editor}
                     >
                       {placeholder.label}
@@ -162,6 +266,91 @@ export default function TemplateEditPage() {
           </Button>
         </div>
       </div>
+      <Dialog open={overridePromptOpen} onOpenChange={setOverridePromptOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedPlaceholder?.label} Already Configured</DialogTitle>
+            <DialogDescription>
+              This field type has existing settings. Do you want to use them or override?
+              <ul className="mt-3 space-y-1 text-sm">
+                <li>• Required: {attributeConfig[selectedPlaceholder?.id ?? ""]?.required ? "Yes" : "No"}</li>
+                <li>• Hidden: {attributeConfig[selectedPlaceholder?.id ?? ""]?.hidden ? "Yes" : "No"}</li>
+                <li>• Default value: {attributeConfig[selectedPlaceholder?.id ?? ""]?.defaultValue || "None"}</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const config = attributeConfig[selectedPlaceholder!.id];
+                insertAttributeWithConfig(config);
+                setOverridePromptOpen(false);
+              }}
+            >
+              Use Existing
+            </Button>
+            <Button onClick={openAttributeConfigForOverride}>
+              Override Settings
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full Configuration Dialog */}
+      <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configure Field: {selectedPlaceholder?.label}</DialogTitle>
+            <DialogDescription>
+              These settings will apply to all instances of this field in the template.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="required"
+                checked={required}
+                onCheckedChange={(checked) => setRequired(!!checked)}
+              />
+              <Label htmlFor="required" className="font-normal">
+                Required field
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="hidden"
+                checked={hidden}
+                onCheckedChange={(checked) => setHidden(!!checked)}
+              />
+              <Label htmlFor="hidden" className="font-normal">
+                Hidden attribute (metadata only – not visible in editor)
+              </Label>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="defaultValue">Default value (optional)</Label>
+              <Input
+                id="defaultValue"
+                value={defaultValue}
+                onChange={(e) => setDefaultValue(e.target.value)}
+                placeholder="e.g. Acme Corporation"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveConfigAndInsert}>
+              Insert Field
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

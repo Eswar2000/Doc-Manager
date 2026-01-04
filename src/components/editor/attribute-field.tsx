@@ -5,7 +5,13 @@ import { v4 as uuidv4 } from "uuid";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     attributeField: {
-      insertAttributeField: (label: string) => ReturnType;
+      insertAttributeField: (options: {
+        label: string;
+        fieldKey?: string | null;
+        required?: boolean;
+        hidden?: boolean;
+        defaultValue?: string | null;
+      }) => ReturnType;
     };
   }
 }
@@ -20,12 +26,12 @@ export const AttributeField = Node.create({
 
   addAttributes() {
     return {
-      label: {
-        default: "Field",
-      },
-      trackerId: {
-        default: null,
-      },
+      label: { default: "Field" },
+      trackerId: { default: null },
+      required: { default: false },
+      hidden: { default: false },
+      defaultValue: { default: null },
+      fieldKey: { default: null },
     };
   },
 
@@ -34,31 +40,93 @@ export const AttributeField = Node.create({
   },
 
   renderHTML({ node }) {
-    const { label, trackerId } = node.attrs as { label: string; trackerId: string };
+    const attrs = node.attrs as {
+      label: string;
+      trackerId: string | null;
+      required: boolean;
+      hidden: boolean;
+      defaultValue: string | null;
+    };
+
+    // Hidden fields: render invisible span (keeps data but shows nothing)
+    if (attrs.hidden) {
+      return [
+        "span",
+        {
+          "data-attribute-field": "",
+          "tracker-id": attrs.trackerId ?? "",
+          style: "display: none;",
+        },
+        "",
+      ];
+    }
+
+    // Visible fields
+    const displayLabel = attrs.defaultValue
+      ? `${attrs.label} (${attrs.defaultValue})`
+      : attrs.label;
+
+    const textContent = `{{ ${displayLabel}${attrs.required ? " *" : ""} }}`;
+
+    const baseClasses =
+      "inline-block align-middle mx-1 px-3 py-1 text-sm font-medium rounded-lg shadow-sm select-none cursor-pointer transition-all duration-150";
+
+    const colorClasses = attrs.required
+      ? "bg-red-50 text-red-800 border border-red-300 hover:bg-red-100 hover:border-red-400"
+      : "bg-blue-50 text-blue-800 border border-blue-300 hover:bg-blue-100 hover:border-blue-400";
 
     return [
       "span",
       {
         "data-attribute-field": "",
-        "tracker-id": trackerId,
+        "tracker-id": attrs.trackerId ?? "",
         contenteditable: "false",
-        style: "font: inherit; vertical-align: middle;",
-        class: "inline-block align-middle mx-1 px-2 py-px bg-blue-100 text-blue-800 border border-dashed border-blue-500 rounded select-none cursor-pointer leading-none",
+        class: `${baseClasses} ${colorClasses}`,
       },
-      `{{ ${label} }}`,
+      textContent,
     ];
   },
 
   addNodeView() {
     return ({ node }) => {
+      const attrs = node.attrs as {
+        label: string;
+        trackerId: string | null;
+        required: boolean;
+        hidden: boolean;
+        defaultValue: string | null;
+      };
+
+      // Hidden: render invisible placeholder
+      if (attrs.hidden) {
+        const dom = document.createElement("span");
+        dom.style.display = "none";
+        dom.setAttribute("data-attribute-field", "");
+        if (attrs.trackerId) dom.setAttribute("tracker-id", attrs.trackerId);
+        return { dom };
+      }
+
+      // Visible field
       const dom = document.createElement("span");
-      dom.textContent = `{{ ${node.attrs.label} }}`;
+
+      const displayLabel = attrs.defaultValue
+        ? `${attrs.label} (${attrs.defaultValue})`
+        : attrs.label;
+
+      dom.textContent = `{{ ${displayLabel}${attrs.required ? " *" : ""} }}`;
       dom.contentEditable = "false";
-      dom.className = "inline-block align-middle mx-1 px-2 py-px bg-blue-100 text-blue-800 border border-dashed border-blue-500 rounded select-none cursor-pointer leading-none";
       dom.setAttribute("data-attribute-field", "");
-      dom.setAttribute("tracker-id", node.attrs.trackerId);
-      dom.style.font = "inherit";
-      dom.style.verticalAlign = "middle";
+      if (attrs.trackerId) dom.setAttribute("tracker-id", attrs.trackerId);
+
+      const baseClasses =
+        "inline-block align-middle mx-1 px-3 py-1 text-sm font-medium rounded-lg shadow-sm select-none cursor-pointer transition-all duration-150";
+
+      const colorClasses = attrs.required
+        ? "bg-red-50 text-red-800 border border-red-300 hover:bg-red-100 hover:border-red-400"
+        : "bg-blue-50 text-blue-800 border border-blue-300 hover:bg-blue-100 hover:border-blue-400";
+
+      dom.className = `${baseClasses} ${colorClasses}`;
+
       return { dom };
     };
   },
@@ -66,36 +134,51 @@ export const AttributeField = Node.create({
   addCommands() {
     return {
       insertAttributeField:
-        (label: string) =>
-        ({ tr, dispatch, editor }) => {
-          const { selection } = tr;
-          const trackerId = uuidv4();
+        ({
+          label,
+          fieldKey,
+          required = false,
+          hidden = false,
+          defaultValue = null,
+        }: {
+          label: string;
+          fieldKey?: string | null;
+          required?: boolean;
+          hidden?: boolean;
+          defaultValue?: string | null;
+        }) =>
+          ({ tr, dispatch, editor }) => {
+            const trackerId = uuidv4();
 
-          const node = editor.schema.nodes.attributeField.create({
-            label,
-            trackerId,
-          });
+            const node = editor.schema.nodes.attributeField.create({
+              label,
+              trackerId,
+              fieldKey,
+              required,
+              hidden,
+              defaultValue,
+            });
 
-          if (dispatch) {
-            // Capture current marks
-            const marks = selection.$from.marks();
+            if (dispatch) {
+              const { selection } = tr;
+              const marks = selection.$from.marks();
 
-            // Insert the atomic node
-            let newTr = tr.insert(selection.from, node);
+              let newTr = tr.insert(selection.from, node);
 
-            // Insert zero-width space with marks to preserve style
-            const zeroWidthSpace = editor.schema.text("\u200B", marks);
-            newTr = newTr.insert(selection.from + node.nodeSize, zeroWidthSpace);
+              // Hidden nodes have nodeSize 1, visible ones are larger
+              const offset = hidden ? 1 : node.nodeSize;
 
-            // Move cursor after the zero-width space
-            const posAfter = selection.from + node.nodeSize + 1;
-            newTr = newTr.setSelection(TextSelection.create(newTr.doc, posAfter));
+              const zeroWidthSpace = editor.schema.text("\u200B", marks);
+              newTr = newTr.insert(selection.from + offset, zeroWidthSpace);
 
-            dispatch(newTr);
-          }
+              const posAfter = selection.from + offset + 1;
+              newTr = newTr.setSelection(TextSelection.create(newTr.doc, posAfter));
 
-          return true;
-        },
+              dispatch(newTr);
+            }
+
+            return true;
+          },
     };
   },
 });
