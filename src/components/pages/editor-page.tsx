@@ -61,7 +61,16 @@ export default function TemplateEditPage() {
     const json = editor.getJSON();
 
     // Map to collect trackerIds per label
-    const attributeMap = new Map<string, { attributeId: string; trackerIds: string[] }>();
+    const attributeMap = new Map<
+      string,
+      {
+        attributeId: string;
+        label: string;
+        trackerIds: string[];
+        required: boolean;
+        hidden: boolean;
+        defaultValue: string | null;
+      }>();
 
     // First, build a map from label → original id (from placeholders)
     const labelToId = new Map<string, string>();
@@ -72,27 +81,39 @@ export default function TemplateEditPage() {
     // Traverse document to collect trackerIds per label
     editor.state.doc.descendants((node: any) => {
       if (node.type.name === "attributeField") {
-        const { label, trackerId } = node.attrs as { label: string; trackerId: string };
-        if (label && trackerId) {
-          const attributeId = labelToId.get(label) || "unknown"; // fallback if label not in placeholders
+        const { label, trackerId, fieldKey } = node.attrs as {
+          label: string;
+          trackerId: string;
+          fieldKey: string | null;
+        };
+
+        if (label && trackerId && fieldKey) {
+          const attributeId = labelToId.get(label) || "custom";
+
+          // Get config from our React state (the source of truth for shared settings)
+          const config = attributeConfig[fieldKey] || {
+            required: false,
+            hidden: false,
+            defaultValue: null,
+          };
 
           if (!attributeMap.has(label)) {
             attributeMap.set(label, {
               attributeId,
+              label,
+              required: config.required,
+              hidden: config.hidden,
+              defaultValue: config.defaultValue,
               trackerIds: [],
             });
           }
+
           attributeMap.get(label)!.trackerIds.push(trackerId);
         }
       }
     });
 
-    // Convert map to array
-    const attributes = Array.from(attributeMap.entries()).map(([attributName, data]) => ({
-      attributeId: data.attributeId,
-      attributName,
-      trackerIds: data.trackerIds,
-    }));
+    const attributes = Array.from(attributeMap.values());
 
     const templateData = {
       templateId,
