@@ -296,25 +296,34 @@ export default function TemplateEditPage() {
                 <div className="space-y-2">
                   {placeholders.map((placeholder) => {
                     const count = attributeCounts[placeholder.id] || 0;
+                    const isActive = count > 0;
 
                     return (
                       <Button
                         key={placeholder.id}
                         variant="outline"
                         size="sm"
-                        className="w-full justify-between text-left font-normal hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+                        className={`
+        w-full justify-between text-left font-normal transition-all duration-200 relative overflow-hidden
+        ${isActive
+                            ? "border-indigo-500 bg-indigo-50/50 shadow-sm"
+                            : "border-gray-300"
+                          }
+        hover:bg-indigo-100/70 hover:border-indigo-600 hover:shadow-md hover:-translate-y-px
+        active:translate-y-0
+      `}
                         onClick={() => handleAttributeClick(placeholder)}
                         disabled={!editor}
                       >
-                        <span className="truncate">{placeholder.label}</span>
-                        {count > 0 ? (
+                        <span className="truncate pr-2">{placeholder.label}</span>
+                        {isActive && (
                           <Badge
                             variant="secondary"
-                            className="ml-2 text-xs animate-in fade-in slide-in-from-right-2 duration-300 shadow-md ring-2 ring-blue-200/50 bg-blue-100 text-blue-800"
+                            className="ml-2 text-xs shadow-sm ring-1 ring-indigo-300/50 bg-indigo-100 text-indigo-800"
                           >
                             {count}
                           </Badge>
-                        ) : null}
+                        )}
                       </Button>
                     );
                   })}
