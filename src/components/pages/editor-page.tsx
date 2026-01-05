@@ -60,15 +60,32 @@ export default function TemplateEditPage() {
     if (!editor) return;
 
     const newCounts: Record<string, number> = {};
+    const usedFieldKeys = new Set<string>();
 
     editor.state.doc.descendants((node: any) => {
       if (node.type.name === "attributeField" && node.attrs.fieldKey) {
         const fieldKey = node.attrs.fieldKey as string;
         newCounts[fieldKey] = (newCounts[fieldKey] || 0) + 1;
+        usedFieldKeys.add(fieldKey);
       }
     });
 
     setAttributeCounts(newCounts);
+
+    // Clean up stale configs: remove entries for field types no longer in use
+    setAttributeConfig((prev) => {
+      const updated = { ...prev };
+      let changed = false;
+
+      Object.keys(updated).forEach((key) => {
+        if (!usedFieldKeys.has(key)) {
+          delete updated[key];
+          changed = true;
+        }
+      });
+
+      return changed ? updated : prev;
+    });
   };
 
   // Safe real-time sync on every document change
