@@ -55,6 +55,42 @@ export default function TemplateEditPage() {
   const [hidden, setHidden] = React.useState(false);
   const [defaultValue, setDefaultValue] = React.useState("");
 
+  // Recalculate counts by scanning the document
+  const recalculateFieldCounts = () => {
+    if (!editor) return;
+
+    const newCounts: Record<string, number> = {};
+
+    editor.state.doc.descendants((node: any) => {
+      if (node.type.name === "attributeField" && node.attrs.fieldKey) {
+        const fieldKey = node.attrs.fieldKey as string;
+        newCounts[fieldKey] = (newCounts[fieldKey] || 0) + 1;
+      }
+    });
+
+    setAttributeCounts(newCounts);
+  };
+
+  // Safe real-time sync on every document change
+  React.useEffect(() => {
+    if (editor) {
+      recalculateFieldCounts(); // Initial count
+
+      const handler = ({ transaction }: { transaction: any }) => {
+        if (transaction.docChanged) {
+          // Queue to next tick — prevents infinite update loops
+          setTimeout(recalculateFieldCounts, 0);
+        }
+      };
+
+      editor.on("transaction", handler);
+
+      return () => {
+        editor.off("transaction", handler);
+      };
+    }
+  }, [editor]);
+
   const handleSaveTemplate = () => {
     if (!editor) return;
 
@@ -74,7 +110,7 @@ export default function TemplateEditPage() {
         defaultValue: string | null;
       }>();
 
-    // First, build a map from label → original id (from placeholders)
+    // First, build a map from label -> original id (from placeholders)
     const labelToId = new Map<string, string>();
     placeholders.forEach(p => {
       labelToId.set(p.label, p.id);
@@ -92,7 +128,7 @@ export default function TemplateEditPage() {
         if (label && trackerId && fieldKey) {
           const attributeId = labelToId.get(label) || "custom";
 
-          // Get config from our React state (the source of truth for shared settings)
+          // Get config from our React state
           const config = attributeConfig[fieldKey] || {
             required: false,
             hidden: false,
@@ -212,7 +248,6 @@ export default function TemplateEditPage() {
       editor.view.dispatch(tr);
     }
   };
-
 
   return (
     <div className="flex h-screen bg-gray-50">
