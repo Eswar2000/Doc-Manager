@@ -279,21 +279,25 @@ export default function TemplateEditPage() {
                 <div className="space-y-2">
                   {placeholders.map((placeholder) => {
                     const count = attributeCounts[placeholder.id] || 0;
+
                     return (
                       <Button
                         key={placeholder.id}
                         variant="outline"
                         size="sm"
-                        className="w-full justify-between text-left font-normal hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        className="w-full justify-between text-left font-normal hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
                         onClick={() => handleAttributeClick(placeholder)}
                         disabled={!editor}
                       >
                         <span className="truncate">{placeholder.label}</span>
-                        {count > 0 && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
+                        {count > 0 ? (
+                          <Badge
+                            variant="secondary"
+                            className="ml-2 text-xs animate-in fade-in slide-in-from-right-2 duration-300 shadow-md ring-2 ring-blue-200/50 bg-blue-100 text-blue-800"
+                          >
                             {count}
                           </Badge>
-                        )}
+                        ) : null}
                       </Button>
                     );
                   })}
