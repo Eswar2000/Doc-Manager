@@ -392,7 +392,7 @@ export default function TemplateEditPage() {
             >
               Use Existing
             </Button>
-            <Button onClick={openAttributeConfigForOverride}>
+            <Button onClick={openAttributeConfigForOverride} className="bg-indigo-600 hover:bg-indigo-700 text-white">
               Override Settings
             </Button>
           </DialogFooter>
@@ -447,8 +447,8 @@ export default function TemplateEditPage() {
             <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={saveConfigAndInsert}>
-              Insert Field
+            <Button onClick={saveConfigAndInsert} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              Insert Attribute
             </Button>
           </DialogFooter>
         </DialogContent>
