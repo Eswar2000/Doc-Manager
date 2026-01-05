@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 const placeholders: Placeholder[] = [
   { id: "1", label: "Client Name" },
@@ -45,6 +46,7 @@ export default function TemplateEditPage() {
       }
     >
   >({});
+  const [attributeCounts, setAttributeCounts] = React.useState<Record<string, number>>({});
   const [configModalOpen, setConfigModalOpen] = React.useState(false);
   const [overridePromptOpen, setOverridePromptOpen] = React.useState(false);
   const [selectedPlaceholder, setSelectedPlaceholder] = React.useState<Placeholder | null>(null);
@@ -150,6 +152,12 @@ export default function TemplateEditPage() {
       hidden: config.hidden,
       defaultValue: config.defaultValue,
     }).run();
+
+    // Increment count for this attribute
+    setAttributeCounts((prev) => ({
+      ...prev,
+      [selectedPlaceholder.id]: (prev[selectedPlaceholder.id] || 0) + 1,
+    }));
   }
 
   const saveConfigAndInsert = () => {
@@ -234,18 +242,26 @@ export default function TemplateEditPage() {
               </AccordionTrigger>
               <AccordionContent className="px-6 pt-2 pb-4">
                 <div className="space-y-2">
-                  {placeholders.map((placeholder) => (
-                    <Button
-                      key={placeholder.id}
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start text-left font-normal hover:bg-blue-50 hover:border-blue-300 transition-colors"
-                      onClick={() => handleAttributeClick(placeholder)}
-                      disabled={!editor}
-                    >
-                      {placeholder.label}
-                    </Button>
-                  ))}
+                  {placeholders.map((placeholder) => {
+                    const count = attributeCounts[placeholder.id] || 0;
+                    return (
+                      <Button
+                        key={placeholder.id}
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-between text-left font-normal hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        onClick={() => handleAttributeClick(placeholder)}
+                        disabled={!editor}
+                      >
+                        <span className="truncate">{placeholder.label}</span>
+                        {count > 0 && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            {count}
+                          </Badge>
+                        )}
+                      </Button>
+                    );
+                  })}
                 </div>
               </AccordionContent>
             </AccordionItem>
