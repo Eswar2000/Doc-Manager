@@ -41,7 +41,7 @@ const placeholders: Placeholder[] = [
   { id: "8", label: "Document Title" },
 ];
 
-export default function TemplateEditPage() {
+export default function EditorPage() {
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [attributeConfig, setAttributeConfig] = React.useState<

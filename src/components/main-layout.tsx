@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { SidebarItem } from './sidebar/sidebar-item';
 import AttributesPage from './pages/attributes-page';
-import TemplateEditPage from './pages/editor-page';
+import EditorPage from './pages/editor-page';
 
 export default function MainLayout({ }) {
     return (
@@ -21,7 +21,7 @@ export default function MainLayout({ }) {
             </Sidebar>
             <main className="flex flex-1 justify-center">
                 {/* <AttributesPage /> */}
-                <TemplateEditPage />
+                <EditorPage />
             </main>
         </div>
     )
