@@ -414,16 +414,18 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
             </AccordionItem>
 
             {/* Reusable Snippets */}
-            <AccordionItem value="snippets">
-              <AccordionTrigger className="px-6 text-base font-medium">
-                Reusable Snippets
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pt-4 pb-6">
-                <p className="text-sm text-gray-500 italic text-center">
-                  Standard clauses, terms, and sections coming soon
-                </p>
-              </AccordionContent>
-            </AccordionItem>
+            {mode === 'template' && (
+              <AccordionItem value="snippets">
+                <AccordionTrigger className="px-6 text-base font-medium">
+                  Reusable Snippets
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pt-4 pb-6">
+                  <p className="text-sm text-gray-500 italic text-center">
+                    Standard clauses, terms, and sections coming soon
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
             {/* Rules */}
             {mode === 'template' && (
