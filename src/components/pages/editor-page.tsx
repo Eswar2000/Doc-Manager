@@ -17,6 +17,13 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { EllipsisVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -49,6 +56,7 @@ export default function TemplateEditPage() {
   const [attributeCounts, setAttributeCounts] = React.useState<Record<string, number>>({});
   const [configModalOpen, setConfigModalOpen] = React.useState(false);
   const [overridePromptOpen, setOverridePromptOpen] = React.useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
   const [selectedPlaceholder, setSelectedPlaceholder] = React.useState<Placeholder | null>(null);
 
   const [required, setRequired] = React.useState(false);
@@ -266,6 +274,31 @@ export default function TemplateEditPage() {
     }
   };
 
+  const removeAllFieldsOfType = (fieldKey: string) => {
+    if (!editor) return;
+
+    const { tr } = editor.state;
+    const positionsToDelete: { pos: number; size: number }[] = [];
+
+    // Collect all positions first
+    editor.state.doc.descendants((node: any, pos: number) => {
+      if (node.type.name === "attributeField" && node.attrs.fieldKey === fieldKey) {
+        positionsToDelete.push({ pos, size: node.nodeSize });
+      }
+    });
+
+    // Delete in reverse order to avoid position shifts
+    positionsToDelete.reverse().forEach(({ pos, size }) => {
+      tr.delete(pos, pos + size);
+    });
+
+    if (positionsToDelete.length > 0) {
+      editor.view.dispatch(tr);
+      // Recalculate counts and clean stale config
+      recalculateFieldCounts();
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor */}
@@ -279,9 +312,9 @@ export default function TemplateEditPage() {
       {/* Right Sidebar – Field Library */}
       <div className="flex-[1] bg-white border-l shadow-sm flex flex-col">
         <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Field Library</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Builder Panel</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Click a field to insert at cursor
+            Configure attributes, snippets, rules and metadata for your template.
           </p>
         </div>
 
@@ -299,32 +332,65 @@ export default function TemplateEditPage() {
                     const isActive = count > 0;
 
                     return (
-                      <Button
-                        key={placeholder.id}
-                        variant="outline"
-                        size="sm"
-                        className={`
-        w-full justify-between text-left font-normal transition-all duration-200 relative overflow-hidden
-        ${isActive
-                            ? "border-indigo-500 bg-indigo-50/50 shadow-sm"
-                            : "border-gray-300"
-                          }
-        hover:bg-indigo-100/70 hover:border-indigo-600 hover:shadow-md hover:-translate-y-px
-        active:translate-y-0
-      `}
-                        onClick={() => handleAttributeClick(placeholder)}
-                        disabled={!editor}
-                      >
-                        <span className="truncate pr-2">{placeholder.label}</span>
+                      <div key={placeholder.id} className="group relative">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`
+          w-full justify-between text-left font-normal transition-all duration-200 pr-10
+          ${isActive ? "border-indigo-500 bg-indigo-50/50 shadow-sm" : "border-gray-300"}
+          hover:bg-indigo-100/70 hover:border-indigo-600 hover:shadow-md hover:-translate-y-px
+          active:translate-y-0
+        `}
+                          onClick={() => handleAttributeClick(placeholder)}
+                          disabled={!editor}
+                        >
+                          <span className="truncate pr-2">{placeholder.label}</span>
+                          <div className="flex items-center gap-2">
+                            {isActive && (
+                              <Badge
+                                variant="secondary"
+                                className="text-xs shadow-sm ring-1 ring-indigo-300/50 bg-indigo-100 text-indigo-800"
+                              >
+                                {count}
+                              </Badge>
+                            )}
+                          </div>
+                        </Button>
                         {isActive && (
-                          <Badge
-                            variant="secondary"
-                            className="ml-2 text-xs shadow-sm ring-1 ring-indigo-300/50 bg-indigo-100 text-indigo-800"
-                          >
-                            {count}
-                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <div
+                                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-md hover:bg-indigo-100 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <EllipsisVertical className="h-4 w-4 text-indigo-600" />
+                              </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log(`Update Config clicked for ${placeholder.label}`);
+                                  // We'll implement full update in next step
+                                }}
+                              >
+                                Update Config
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPlaceholder(placeholder);
+                                  setDeleteConfirmOpen(true);
+                                }}
+                              >
+                                Delete All Instances
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
-                      </Button>
+                      </div>
                     );
                   })}
                 </div>
@@ -458,6 +524,30 @@ export default function TemplateEditPage() {
             </Button>
             <Button onClick={saveConfigAndInsert} className="bg-indigo-600 hover:bg-indigo-700 text-white">
               Insert Attribute
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete All {selectedPlaceholder?.label} Fields?</DialogTitle>
+            <DialogDescription>
+              This will permanently remove all instances of this field from the template. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                removeAllFieldsOfType(selectedPlaceholder!.id);
+                setDeleteConfirmOpen(false);
+              }}
+            >
+              Delete All
             </Button>
           </DialogFooter>
         </DialogContent>
