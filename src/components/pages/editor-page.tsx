@@ -43,6 +43,7 @@ const placeholders: Placeholder[] = [
 
 export default function TemplateEditPage() {
   const [editor, setEditor] = React.useState<any>(null);
+  const [isEditMode, setIsEditMode] = React.useState(false);
   const [attributeConfig, setAttributeConfig] = React.useState<
     Record<
       string,
@@ -203,6 +204,18 @@ export default function TemplateEditPage() {
     }
   }
 
+  const openConfigModalDirectly = (placeholder: Placeholder) => {
+    setSelectedPlaceholder(placeholder);
+    setIsEditMode(true);
+
+    const existingConfig = attributeConfig[placeholder.id];
+    setRequired(existingConfig?.required ?? false);
+    setHidden(existingConfig?.hidden ?? false);
+    setDefaultValue(existingConfig?.defaultValue ?? "");
+
+    setConfigModalOpen(true);
+  };
+
   const insertAttributeWithConfig = (config: { required: boolean; hidden: boolean; defaultValue: string | null }) => {
     if (!editor || !selectedPlaceholder) return;
 
@@ -221,7 +234,7 @@ export default function TemplateEditPage() {
     }));
   }
 
-  const saveConfigAndInsert = () => {
+  const saveConfig = () => {
     if (!selectedPlaceholder) return;
 
     const newConfig = {
@@ -235,8 +248,12 @@ export default function TemplateEditPage() {
       [selectedPlaceholder.id]: newConfig,
     }));
 
-    insertAttributeWithConfig(newConfig);
     updateAllFieldsOfType(selectedPlaceholder.id, newConfig);
+    if (!isEditMode) {
+      insertAttributeWithConfig(newConfig);
+    }
+
+    setIsEditMode(false);
     setConfigModalOpen(false);
   }
 
@@ -371,8 +388,7 @@ export default function TemplateEditPage() {
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  console.log(`Update Config clicked for ${placeholder.label}`);
-                                  // We'll implement full update in next step
+                                  openConfigModalDirectly(placeholder);
                                 }}
                               >
                                 Update Config
@@ -519,11 +535,16 @@ export default function TemplateEditPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConfigModalOpen(false);
+                setIsEditMode(false);
+              }}>
               Cancel
             </Button>
-            <Button onClick={saveConfigAndInsert} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-              Insert Attribute
+            <Button onClick={saveConfig} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              {isEditMode ? "Update All Fields" : "Insert Attribute"}
             </Button>
           </DialogFooter>
         </DialogContent>
