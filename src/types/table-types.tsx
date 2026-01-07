@@ -4,6 +4,29 @@ export type AttributeType = "number" | "text" | "date" | "email";
 
 export type FormFieldType = "text" | "textarea" | "select" | "number";
 
+export type EditorMode = 'template' | 'snippet';
+
+export interface EditorInitialData {
+  id: string;
+  name: string;
+  description?: string;
+  htmlContent: string;
+  jsonContent?: any;
+  attributesConfig: Record<
+    string,
+    {
+      required: boolean;
+      hidden: boolean;
+      defaultValue: string | null;
+    }
+  >;
+}
+
+export interface EditorProps {
+  mode: EditorMode;
+  initialData?: EditorInitialData;
+}
+
 export interface AttributeProps {
   id: number,
   name: string,
