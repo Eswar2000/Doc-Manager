@@ -1,7 +1,7 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import TemplateEditor from "../editor/editor";
-import type { Placeholder } from "../../types/table-types";
+import type { Placeholder, EditorProps } from "../../types/table-types";
 
 import {
   Accordion,
@@ -41,7 +41,7 @@ const placeholders: Placeholder[] = [
   { id: "8", label: "Document Title" },
 ];
 
-export default function EditorPage() {
+export default function EditorPage({ mode = 'template', initialData }: EditorProps) {
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [attributeConfig, setAttributeConfig] = React.useState<
@@ -426,16 +426,18 @@ export default function EditorPage() {
             </AccordionItem>
 
             {/* Rules */}
-            <AccordionItem value="rules">
-              <AccordionTrigger className="px-6 text-base font-medium">
-                Conditional Rules
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pt-4 pb-6">
-                <p className="text-sm text-gray-500 italic text-center">
-                  Show/hide logic and dynamic content coming soon
-                </p>
-              </AccordionContent>
-            </AccordionItem>
+            {mode === 'template' && (
+              <AccordionItem value="rules">
+                <AccordionTrigger className="px-6 text-base font-medium">
+                  Conditional Rules
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pt-4 pb-6">
+                  <p className="text-sm text-gray-500 italic text-center">
+                    Show/hide logic and dynamic content coming soon
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
           </Accordion>
         </div>
 
@@ -446,7 +448,7 @@ export default function EditorPage() {
             className="w-full bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500 text-white font-medium shadow-sm"
             onClick={handleSaveTemplate}
           >
-            Save Template
+            Save {mode.charAt(0).toUpperCase() + mode.slice(1)}
           </Button>
         </div>
       </div>
