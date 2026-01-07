@@ -1,7 +1,7 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import TemplateEditor from "../editor/editor";
-import type { Placeholder, EditorProps } from "../../types/table-types";
+import type { Placeholder, EditorProps } from "../../types/index";
 
 import {
   Accordion,

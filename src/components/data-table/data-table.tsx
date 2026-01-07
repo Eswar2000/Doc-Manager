@@ -14,7 +14,7 @@ import type {
   SortingState,
   VisibilityState
 } from "@tanstack/react-table";
-import type { DataTableProps } from "@/types/table-types";
+import type { DataTableProps } from "@/types/index";
 import {
   Table,
   TableBody,

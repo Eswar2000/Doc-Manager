@@ -1,11 +1,11 @@
 
 import { DataTable } from "../data-table/data-table";
 import { getColumns } from "../data-table/columns";
-import type { AttributeProps } from "../../types/table-types";
+import type { AttributeProps } from "../../types/index";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useState } from "react";
-import type { DynamicField } from "../../types/table-types";
+import type { DynamicField } from "../../types/index";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
 
 export default function AttributesPage() {

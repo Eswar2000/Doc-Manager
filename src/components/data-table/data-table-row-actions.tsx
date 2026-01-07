@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import type { DataTableRowActionsProps } from "@/types/table-types";
+import type { DataTableRowActionsProps } from "@/types/index";
 
 
 export function DataTableRowActions({ row, onDelete, onEdit }: DataTableRowActionsProps) {

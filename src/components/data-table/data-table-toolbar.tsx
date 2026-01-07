@@ -1,5 +1,5 @@
 import { Cross2Icon, PlusIcon } from "@radix-ui/react-icons";
-import type { DataTableToolbarProps } from "@/types/table-types";
+import type { DataTableToolbarProps } from "@/types/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
