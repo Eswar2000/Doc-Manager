@@ -121,10 +121,25 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
     }
   }, [editor]);
 
-  const handleSaveTemplate = () => {
+  // Load editor content when initialData is provided (when editing existing templates or snippets)
+  React.useEffect(() => {
+    if (editor && initialData?.htmlContent) {
+      editor.commands.setContent(initialData.htmlContent);
+      recalculateFieldCounts();
+    }
+  }, [editor, initialData]);
+
+  // Load attribute config from initialData (when editing existing templates or snippets)
+  React.useEffect(() => {
+    if (initialData?.attributesConfig) {
+      setAttributeConfig(initialData.attributesConfig);
+    }
+  }, [initialData]);
+
+  const handleSave = () => {
     if (!editor) return;
 
-    const templateId = uuidv4();
+    const id = initialData?.id || uuidv4();
     const html = editor.getHTML();
     const json = editor.getJSON();
 
@@ -183,14 +198,16 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
 
     const attributes = Array.from(attributeMap.values());
 
-    const templateData = {
-      templateId,
-      html,
-      json,
+    const savedData = {
+      id,
+      name,
+      description,
+      htmlContent: html,
+      jsonContent: json,
       attributes,
     };
 
-    console.log("Saved Template:", JSON.stringify(templateData, null, 2));
+    console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
   };
 
   const handleAttributeClick = (placeholder: Placeholder) => {
@@ -325,17 +342,16 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
       {/* Main Editor */}
       <div className="flex-[3] p-8 overflow-auto">
         <TemplateEditor
-          initialContent="<p>Start writing your contract...</p>"
           onEditorReady={setEditor}
         />
       </div>
 
-      {/* Right Sidebar – Field Library */}
+      {/* Right Sidebar – Builder Panel */}
       <div className="flex-[1] bg-white border-l shadow-sm flex flex-col">
         <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Builder Panel</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{mode.charAt(0).toUpperCase() + mode.slice(1)} Builder Panel</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Configure attributes, snippets, rules and metadata for your template.
+            Configure fields and content for your {mode}.
           </p>
         </div>
 
@@ -498,7 +514,7 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
           <Button
             size="lg"
             className="w-full bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500 text-white font-medium shadow-sm"
-            onClick={handleSaveTemplate}
+            onClick={handleSave}
           >
             Save {mode.charAt(0).toUpperCase() + mode.slice(1)}
           </Button>
