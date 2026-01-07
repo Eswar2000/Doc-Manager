@@ -29,6 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 const placeholders: Placeholder[] = [
   { id: "1", label: "Client Name" },
@@ -44,6 +45,9 @@ const placeholders: Placeholder[] = [
 export default function EditorPage({ mode = 'template', initialData }: EditorProps) {
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
+
+  const [name, setName] = React.useState(initialData?.name || '');
+  const [description, setDescription] = React.useState(initialData?.description || '');
   const [attributeConfig, setAttributeConfig] = React.useState<
     Record<
       string,
@@ -336,7 +340,53 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <Accordion type="single" collapsible defaultValue="placeholders" className="w-full">
+          <Accordion type="single" collapsible defaultValue="info" className="w-full">
+
+            {/* Basic Information */}
+            <AccordionItem value="info">
+              <AccordionTrigger className="px-6 text-base font-medium">
+                Basic Information
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pt-2 pb-6 space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name" className="text-base font-medium">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={`e.g. ${mode === 'template' ? 'Employment Agreement' : 'Confidentiality Clause'}`}
+                    className={`
+          text-base transition-all duration-200
+          ${initialData?.id
+                        ? "bg-gray-50 cursor-not-allowed"
+                        : "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-1 focus-visible:ring-indigo-500"
+                      }
+        `}
+                    disabled={!!initialData?.id}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    maxLength={150}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 150) {
+                        setDescription(e.target.value);
+                      }
+                    }}
+                    placeholder="Brief description of this content. You can include usage notes, version info, or context."
+                    className="resize-none border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-1 focus-visible:ring-indigo-500 transition-all duration-200"
+                  />
+                  <div className="text-right text-xs text-gray-500">
+                    {description.length}/150
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
             {/* Placeholders / Attributes */}
             <AccordionItem value="placeholders">
               <AccordionTrigger className="px-6 text-base font-medium">

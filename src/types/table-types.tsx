@@ -6,15 +6,25 @@ export type FormFieldType = "text" | "textarea" | "select" | "number";
 
 export type EditorMode = 'template' | 'snippet';
 
+export interface EditorInitialData {
+  id: string;
+  name: string;
+  description?: string;
+  htmlContent: string;
+  jsonContent?: any;
+  attributesConfig: Record<
+    string,
+    {
+      required: boolean;
+      hidden: boolean;
+      defaultValue: string | null;
+    }
+  >;
+}
+
 export interface EditorProps {
   mode: EditorMode;
-  initialData?: {
-    id: string,
-    name: string,
-    description: string,
-    content: string,
-    attributes: any[]
-  }
+  initialData?: EditorInitialData;
 }
 
 export interface AttributeProps {
