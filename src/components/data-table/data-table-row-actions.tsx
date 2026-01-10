@@ -35,24 +35,25 @@ export function DataTableRowActions<T>({ row, actions }: DataTableRowActionsProp
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        {visibleActions.map((action, index) => (
-          <React.Fragment key={index}>
+        {visibleActions.map((action, index) => {
+          const isDestructive = action.variant === "destructive";
+          const isSecondary = action.variant === "secondary";
+
+          return (
             <DropdownMenuItem
               onClick={() => action.onClick(row.original)}
               disabled={typeof action.disabled === "function" ? action.disabled(row.original) : action.disabled}
-              className={
-                action.variant === "destructive"
-                  ? "text-red-600 focus:text-red-600 focus:bg-red-50"
-                  : ""
-              }
+              className={`
+                ${isDestructive ? "text-red-600 focus:text-red-600 focus:bg-red-50" : ""}
+                ${isSecondary ? "text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50" : ""}
+              `}
               key={index}
             >
               {action.icon && <span className="mr-2">{action.icon}</span>}
               {action.title}
             </DropdownMenuItem>
-            {index < visibleActions.length - 1 && <DropdownMenuSeparator />}
-          </React.Fragment>
-        ))}
+          )
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

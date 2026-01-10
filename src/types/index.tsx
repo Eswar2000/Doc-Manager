@@ -106,7 +106,7 @@ export interface TableAction<T> {
   onClick: (row: T) => void;
   disabled?: boolean | ((row: T) => boolean);
   hidden?: boolean | ((row: T) => boolean);
-  variant?: "default" | "destructive";
+  variant?: "default" | "secondary" | "destructive";
 }
 
 export interface DataTableRowActionsProps {
