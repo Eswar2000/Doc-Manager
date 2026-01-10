@@ -1,11 +1,11 @@
 
 import { DataTable } from "../data-table/data-table";
 import { getColumns } from "../data-table/columns";
-import type { AttributeProps } from "../../types/table-types";
+import type { AttributeProps } from "../../types/index";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useState } from "react";
-import type { DynamicField } from "../../types/table-types";
+import type { DynamicField } from "../../types/index";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
 
 export default function AttributesPage() {
@@ -244,7 +244,20 @@ export default function AttributesPage() {
     {
       id: "actions",
       accessorKey: "actions",
-      cell: ({ row }) => <DataTableRowActions row={row} onDelete={() => setData(prev => prev.filter(item => item.id !== row.original.id))} onEdit={() => openEdit(row.original)} />,
+      cell: ({ row }) => <DataTableRowActions row={row}
+        actions={
+          [
+            {
+              title: "Edit",
+              onClick: () => openEdit(row.original),
+            },
+            {
+              title: "Delete",
+              variant: "destructive",
+              onClick: () => setData(prev => prev.filter(item => item.id !== row.original.id)),
+            }
+          ]
+        } />,
     }
   ])
 
