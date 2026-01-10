@@ -52,6 +52,26 @@ export interface AttributeProps {
   updatedAt: string
 }
 
+export interface TemplateProps {
+  id: string,
+  name: string,
+  description?: string,
+  version: number,
+  state: 'archived' | 'active',
+  parentTemplateId?: string | null,
+  htmlContent: string,
+  jsonContent: any,
+  createdAt: string,
+  attributes: Array<{
+    attributeId: string;
+    label: string;
+    required: boolean;
+    hidden: boolean;
+    defaultValue: string | null;
+    trackerIds: string[];
+  }>,
+}
+
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];

@@ -7,8 +7,6 @@ import {
     Settings
 } from 'lucide-react';
 import { SidebarItem } from './sidebar/sidebar-item';
-import AttributesPage from './pages/attributes-page';
-import EditorPage from './pages/editor-page';
 
 export default function MainLayout({ }) {
     return (

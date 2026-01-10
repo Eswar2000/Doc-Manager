@@ -3,6 +3,7 @@ import './App.css';
 import MainLayout from './components/main-layout';
 import AttributesPage from './components/pages/attributes-page';
 import EditorPage from './components/pages/editor-page';
+import TemplatesPage from './components/pages/templates-page';
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<AttributesPage />} />
           <Route path="/attributes" element={<AttributesPage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/snippets" element={<EditorPage mode='snippet' />} />
 
         </Route>
