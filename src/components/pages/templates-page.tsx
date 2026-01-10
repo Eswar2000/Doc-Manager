@@ -1,7 +1,7 @@
 
 import { DataTable } from "../data-table/data-table";
 import { getColumns } from "../data-table/columns";
-import type { TemplateProps } from "../../types/index";
+import type { TemplateProps, TableAction } from "../../types/index";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useState } from "react";
@@ -394,29 +394,34 @@ export default function TemplatesPage() {
         {
             id: "actions",
             accessorKey: "actions",
-            cell: ({ row }) => <DataTableRowActions row={row}
-                actions={
-                    [
-                        {
-                            title: "Edit",
-                            icon: <Pencil className="h-4 w-4" />,
-                            variant: "secondary",
-                            onClick: () => { console.log("Editing template: " + row.original.name) }
-                        },
-                        {
-                            title: "View Details",
-                            icon: <Eye className="h-4 w-4" />,
-                            variant: "secondary",
-                            onClick: () => { console.log("viewing details of template: " + row.original.name) }
-                        },
-                        {
-                            title: "Delete",
-                            icon: <Trash2 className="h-4 w-4" />,
-                            variant: "destructive",
-                            onClick: () => { console.log("Deleting template: " + row.original.name) }
-                        }
-                    ]
-                } />,
+            cell: ({ row }) => {
+                const templateRowActions: TableAction<TemplateProps>[] = [
+                    {
+                        title: "View Details",
+                        icon: <Eye className="h-4 w-4" />,
+                        variant: "secondary",
+                        onClick: () => { console.log("viewing details of template: " + row.original.name) }
+                    },
+                    {
+                        title: "Delete",
+                        icon: <Trash2 className="h-4 w-4" />,
+                        variant: "destructive",
+                        onClick: () => { console.log("Deleting template: " + row.original.name) }
+                    }
+                ];
+
+                if (row.original.state === "active") {
+                    templateRowActions.unshift({
+                        title: "Edit",
+                        icon: <Pencil className="h-4 w-4" />,
+                        variant: "secondary",
+                        onClick: () => console.log("Editing template: " + row.original.name),
+                    });
+                }
+
+                return <DataTableRowActions row={row} actions={templateRowActions} />
+            }
+
         }
     ])
 
