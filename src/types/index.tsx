@@ -100,6 +100,15 @@ export interface DataTableToolbarProps<TData> {
   onCreate?: () => void;
 }
 
+export interface TableAction<T> {
+  title: string;
+  icon?: React.ReactNode;
+  onClick: (row: T) => void;
+  disabled?: boolean | ((row: T) => boolean);
+  hidden?: boolean | ((row: T) => boolean);
+  variant?: "default" | "destructive";
+}
+
 export interface DataTableRowActionsProps {
   row: any;
   onDelete: (row: any) => void;

@@ -244,7 +244,20 @@ export default function AttributesPage() {
     {
       id: "actions",
       accessorKey: "actions",
-      cell: ({ row }) => <DataTableRowActions row={row} onDelete={() => setData(prev => prev.filter(item => item.id !== row.original.id))} onEdit={() => openEdit(row.original)} />,
+      cell: ({ row }) => <DataTableRowActions row={row}
+        actions={
+          [
+            {
+              title: "Edit",
+              onClick: () => openEdit(row.original),
+            },
+            {
+              title: "Delete",
+              variant: "destructive",
+              onClick: () => setData(prev => prev.filter(item => item.id !== row.original.id)),
+            }
+          ]
+        } />,
     }
   ])
 
