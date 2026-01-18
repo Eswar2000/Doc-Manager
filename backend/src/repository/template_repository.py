@@ -1,4 +1,5 @@
-from azure.cosmos import ContainerProxy, exceptions
+from azure.cosmos.aio import ContainerProxy
+from azure.cosmos import exceptions
 from fastapi import HTTPException
 from typing import Optional
 import uuid
@@ -49,3 +50,30 @@ class TemplateRepository:
                 raise HTTPException(409, "Template ID conflict")
             print("Create_Template: End of template creation process with error")
             raise HTTPException(status_code=500, detail=f"Database error while creating template: {str(e)}")
+        
+    async def get_template_by_id(self, template_id: str) -> Optional[Template]:
+        print("Get_Template_By_ID: Starting template creation process")
+        container = await self._get_container()
+
+        try:
+            query = "SELECT * FROM c WHERE c.id = @template_id"
+            parameters = [{"name": "@template_id", "value": template_id}]
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+            if results:
+                print(f"Get_Template_By_ID: Template found with ID {template_id}")
+                return Template(**results[0])
+            else:
+                print(f"Get_Template_By_ID: No template found with ID {template_id}")
+                return None
+        except exceptions.CosmosHttpResponseError as e:
+            if e.status_code == 404:
+                print(f"Get_Template_By_ID: No template found with ID {template_id}")
+                return None
+            print(f"Get_Template_By_ID: Error occurred while retrieving template: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while retrieving template: {str(e)}")
