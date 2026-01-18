@@ -50,7 +50,17 @@ class TemplateRepository:
                 raise HTTPException(409, "Template ID conflict")
             print("Create_Template: End of template creation process with error")
             raise HTTPException(status_code=500, detail=f"Database error while creating template: {str(e)}")
-        
+
+    async def create_template_version(self, template_dict: dict) -> Template:
+        print("Create_Template_Version: Starting template version creation process")
+        container = await self._get_container()
+        try:
+            new_template = await container.create_item(template_dict)
+            print(f"Create_Template_Version: Template version created successfully with ID {new_template['id']}")
+            return Template(**new_template)
+        except exceptions.CosmosHttpResponseError as e:
+            raise HTTPException(status_code=500, detail=f"Database error while creating template version: {str(e)}")
+
     async def get_template_by_id(self, template_id: str) -> Optional[Template]:
         print("Get_Template_By_ID: Starting template creation process")
         container = await self._get_container()
@@ -122,3 +132,71 @@ class TemplateRepository:
         except exceptions.CosmosHttpResponseError as e:
             print(f"List_Templates: Error occurred while listing templates: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while listing templates: {str(e)}")
+
+    async def archive_template(self, template: Template) -> bool:
+        print("Archive_Template: Starting template archival process")
+
+        if not template:
+            print(f"Archive_Template: No template found with ID {template.id} to archive")
+            return False
+        if template.state != "active":
+            print(f"Archive_Template: Template with ID {template.id} is not active and cannot be archived")
+            return False
+        
+        container = await self._get_container()
+        try:    
+            template_to_update = template.model_dump(by_alias=True)
+            template_to_update["state"] = "archived"
+            await container.replace_item(item=template.id, body=template_to_update)
+            print(f"Archive_Template: Template with ID {template.id} archived successfully")
+            return True
+        
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Archive_Template: Error occurred while archiving template: {str(e)}")
+            if e.status_code == 409:
+                raise HTTPException(status_code=409, detail="Concurrency conflict — template updated by another process")
+            return False
+        
+    async def update_template(self, template_id: str, payload: TemplateCreateRequest) -> Template:
+        print(f"Update_Template: Starting update for template ID {template_id}")
+
+        existing_template = await self.get_template_by_id(template_id)
+        if not existing_template:
+            print(f"Update_Template: No template found with ID {template_id} to update")
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        if existing_template.state != "active":
+            print(f"Update_Template: Template with ID {template_id} is not active and cannot be updated")
+            raise HTTPException(status_code=400, detail="Only active templates can be updated")
+        
+        root_v1_id = existing_template.parentTemplateId or existing_template.id
+        print(f"Update_Template: Root v1 ID determined as {root_v1_id}")
+
+        archived_template = await self.archive_template(existing_template)
+        if not archived_template:
+            print(f"Update_Template: Failed to archive existing template with ID {template_id}")
+            raise HTTPException(status_code=500, detail="Failed to archive existing template")
+
+        print(f"Update_Template: Successfully archived old version {template_id}")
+
+        now = datetime.now(timezone.utc).isoformat()
+        new_version = existing_template.version + 1
+        
+        new_template = Template(
+            id=str(uuid.uuid4()),
+            name=payload.name,
+            description=payload.description,
+            htmlContent=payload.htmlContent,
+            jsonContent=payload.jsonContent,
+            attributes=payload.attributes,
+            version=new_version,
+            state="active",
+            parentTemplateId=root_v1_id,
+            createdAt=now
+        )
+
+        print(f"Update_Template: Preparing new version {new_version} with ID {new_template.id}")
+        updated_template = await self.create_template_version(new_template.model_dump(by_alias=True))
+        print(f"Update_Template: Successfully created new version {new_version} with ID {updated_template.id}")
+        return updated_template
+    

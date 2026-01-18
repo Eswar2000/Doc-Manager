@@ -79,3 +79,26 @@ async def list_templates(name: Optional[str] = None, desc: Optional[str] = None,
     except Exception as e:
         print("List templates endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing templates", "error": str(e)})
+    
+@router.put(
+    "/{template_id}",
+    response_model=TemplateResponse,
+    summary="Update a template (creates a new version and archives the old one)",
+    responses={
+        200: {"description": "New active version created successfully"},
+        400: {"description": "Only active templates can be updated"},
+        404: {"description": "Template not found"},
+    }
+)
+async def update_template(template_id: str, payload: TemplateCreateRequest, service: TemplateService = Depends(get_template_service)):
+    print("Update template endpoint called")
+    try:
+        updated_template = await service.update_template(template_id, payload)
+        print("Update template endpoint: Template updated successfully")
+        return updated_template
+    except HTTPException as e:
+        print("Update template endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Update template endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during template update", "error": str(e)})
