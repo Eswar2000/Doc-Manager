@@ -1,7 +1,7 @@
 from azure.cosmos.aio import ContainerProxy
 from azure.cosmos import exceptions
 from fastapi import HTTPException
-from typing import Optional
+from typing import Literal, Optional
 import uuid
 from datetime import datetime, timezone
 from src.db.client import get_container
@@ -77,3 +77,48 @@ class TemplateRepository:
                 return None
             print(f"Get_Template_By_ID: Error occurred while retrieving template: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while retrieving template: {str(e)}")
+
+    async def list_templates(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0) -> list[Template]:
+        print("List_Templates: Starting to list all templates")
+        container = await self._get_container()
+        
+        query = "SELECT * FROM c"
+        parameters = []
+        conditions = []
+
+        if name_contains:
+            print(f"List_Templates: Filtering templates with name containing '{name_contains}'")
+            conditions.append("CONTAINS(LOWER(c.name), LOWER(@name))")
+            parameters.append({"name": "@name", "value": name_contains})
+
+        if desc_contains:
+            print(f"List_Templates: Filtering templates with description containing '{desc_contains}'")
+            conditions.append("CONTAINS(LOWER(c.description), LOWER(@desc))")
+            parameters.append({"name": "@desc", "value": desc_contains})
+
+        if state:
+            print(f"List_Templates: Filtering templates with state '{state}'")
+            conditions.append("c.state = @state")
+            parameters.append({"name": "@state", "value": state})
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        query += " ORDER BY c.createdAt DESC OFFSET @offset LIMIT @limit"
+        parameters.append({"name": "@offset", "value": offset})
+        parameters.append({"name": "@limit", "value": limit})
+
+        try:
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+
+            print(f"List_Templates: Retrieved {len(results)} templates")
+            return [Template(**item) for item in results]
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"List_Templates: Error occurred while listing templates: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while listing templates: {str(e)}")

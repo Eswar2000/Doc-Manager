@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
-from src.model.templates import TemplateCreateRequest, TemplateResponse
+from src.model.templates import TemplateCreateRequest, TemplateResponse, Template
+from typing import List, Optional, Literal
 
 router = APIRouter(prefix="/templates", tags=["templates"], responses={500: {"description": "Internal Server Error"}})
 
@@ -59,3 +60,22 @@ async def get_template_by_id(template_id: str, service: TemplateService = Depend
     except Exception as e:
         print("Get template endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during template retrieval", "error": str(e)})
+    
+@router.get(
+    "/",
+    response_model=List[Template],
+    summary="List templates with filters",
+    responses={200: {"description": "List of templates"}}
+)
+async def list_templates(name: Optional[str] = None, desc: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0, service: TemplateService = Depends(get_template_service)):
+    print("List templates endpoint called")
+    try:
+        templates = await service.list_templates(name_contains=name, desc_contains=desc, state=state, limit=limit, offset=offset)
+        print(f"List templates endpoint: Retrieved {len(templates)} templates")
+        return templates
+    except HTTPException as e:
+        print("List templates endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("List templates endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing templates", "error": str(e)})
