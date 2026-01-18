@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
-from src.model.templates import TemplateCreateRequest, TemplateResponse, Template
+from src.model.templates import TemplateCreateRequest, TemplateResponse, Template, TemplateVersionInfo
 from typing import List, Optional, Literal
 
 router = APIRouter(prefix="/templates", tags=["templates"], responses={500: {"description": "Internal Server Error"}})
@@ -102,3 +102,25 @@ async def update_template(template_id: str, payload: TemplateCreateRequest, serv
     except Exception as e:
         print("Update template endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during template update", "error": str(e)})
+    
+@router.get(
+    "/{template_id}/versions",
+    response_model=List[TemplateVersionInfo],
+    summary="Get version history of a template",
+    responses={
+        200: {"description": "Version history retrieved successfully"},
+        404: {"description": "Template not found"},
+    }
+)
+async def get_version_history(template_id: str, service: TemplateService = Depends(get_template_service)):
+    print("Get version history endpoint called")
+    try:
+        version_history = await service.get_version_history(template_id)
+        print(f"Get version history endpoint: Retrieved {len(version_history)} versions")
+        return version_history
+    except HTTPException as e:
+        print("Get version history endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Get version history endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving version history", "error": str(e)})

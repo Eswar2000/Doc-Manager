@@ -1,6 +1,6 @@
 from typing import Optional, Literal
 from src.repository.template_repository import TemplateRepository
-from src.model.templates import TemplateCreateRequest, Template
+from src.model.templates import TemplateCreateRequest, Template, TemplateVersionInfo
 
 
 class TemplateService:
@@ -18,3 +18,6 @@ class TemplateService:
     
     async def update_template(self, template_id: str, request: TemplateCreateRequest) -> Template:
         return await self.repo.update_template(template_id, request)
+
+    async def get_version_history(self, template_id: int) -> list[TemplateVersionInfo]:
+        return await self.repo.get_version_history(template_id)

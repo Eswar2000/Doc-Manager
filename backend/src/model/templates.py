@@ -38,3 +38,9 @@ class TemplateCreateRequest(BaseModel):
 class TemplateResponse(Template):
     class Config:
         populate_by_name = True
+
+class TemplateVersionInfo(BaseModel):
+    templateId: str = Field(..., description="Unique ID of the template")
+    parentTemplateId: Optional[str] = Field(None, description="ID of the parent (the root) template")
+    version: int = Field(..., description="Version number of the template")
+    state: Literal["active", "archived"] = Field(..., description="State of the template")

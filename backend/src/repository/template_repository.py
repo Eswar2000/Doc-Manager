@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from src.db.client import get_container
 
-from src.model.templates import Template, TemplateCreateRequest
+from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
 
 
 class TemplateRepository:
@@ -199,4 +199,26 @@ class TemplateRepository:
         updated_template = await self.create_template_version(new_template.model_dump(by_alias=True))
         print(f"Update_Template: Successfully created new version {new_version} with ID {updated_template.id}")
         return updated_template
-    
+
+    async def get_version_history(self, template_id: str) -> list[TemplateVersionInfo]:
+        print(f"Get_Version_History: Fetching version history for template ID {template_id}")
+        container = await self._get_container()
+
+        current_template = await self.get_template_by_id(template_id)
+        if not current_template:
+            print(f"Get_Version_History: No template found with ID {template_id}")
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        parent_template_id = current_template.parentTemplateId or current_template.id
+
+        try:
+            query = "SELECT c.id AS templateId, c.parentTemplateId, c.version, c.state FROM c WHERE c.parentTemplateId = @parent_id OR c.id = @parent_id ORDER BY c.version"
+            items = container.query_items(query, parameters=[{"name": "@parent_id", "value": parent_template_id}])
+            
+            results = [item async for item in items]
+            print(f"Get_Version_History: Retrieved {len(results)} versions for template ID {template_id}")
+
+            return [TemplateVersionInfo(**item) for item in results]
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Get_Version_History: Error occurred while fetching version history: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while fetching version history: {str(e)}")
