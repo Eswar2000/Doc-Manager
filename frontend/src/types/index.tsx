@@ -141,3 +141,12 @@ export interface LoaderProps {
   screenHeader: string,
   screenMessage: string
 }
+
+export interface ErrorStateProps {
+  title?: string;
+  description?: string;
+  onRetry?: () => void;
+  onHome?: () => void;
+  homeLabel?: string;
+  retryLabel?: string;
+}

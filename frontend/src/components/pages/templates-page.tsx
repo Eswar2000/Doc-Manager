@@ -5,22 +5,32 @@ import type { TemplateProps, TableAction } from "../../types/index";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import { Trash2, Pencil, Eye } from "lucide-react";
 import type { EditorInitialData } from "../../types/index";
 import { templateApi } from "@/api/templates";
 import { Loader } from "../loader/loader";
+import { ErrorState } from "../error-state/error-state";
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
 
     const {
         data: templates = [],
-        isLoading
+        isLoading,
+        isError,
+        error,
+        refetch,
     } = useQuery({
         queryKey: ['templates'], // unique cache key
         queryFn: templateApi.fetchTemplates,
         staleTime: 1000 * 60, // 1 minute stale time
+
+        // Disable automatic refetching on failures
+        retry: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        refetchOnMount: false,
     });
 
     const cols = getColumns<TemplateProps>([
@@ -152,7 +162,7 @@ export default function TemplatesPage() {
                                 jsonContent: original.jsonContent,
                                 attributesConfig,
                             };
-                            navigate('/editor', {state: {initialData, mode: 'template'}})
+                            navigate('/editor', { state: { initialData, mode: 'template' } })
                         },
                     });
                 }
@@ -175,7 +185,7 @@ export default function TemplatesPage() {
     ]
 
     const createNewTemplate = () => {
-        navigate('/editor', {state: {mode: 'template'}})
+        navigate('/editor', { state: { mode: 'template' } })
     }
 
     return (
@@ -185,8 +195,9 @@ export default function TemplatesPage() {
                     <span>Manage Templates</span>
                 </h2>
             </div>
-            {!isLoading && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()}/>}
+            {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} />}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
+            {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => {navigate('/attributes')}}/>}
         </div>
     );
 }
