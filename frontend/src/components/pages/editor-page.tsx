@@ -1,7 +1,8 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import TemplateEditor from "../editor/editor";
-import type { Placeholder, EditorProps } from "../../types/index";
+import type { Placeholder, EditorInitialData } from "../../types/index";
+import { useLocation } from "react-router-dom";
 
 import {
   Accordion,
@@ -42,7 +43,11 @@ const placeholders: Placeholder[] = [
   { id: "8", label: "Document Title" },
 ];
 
-export default function EditorPage({ mode = 'template', initialData }: EditorProps) {
+export default function EditorPage() {
+  const location = useLocation();
+  const initialData = location.state?.initialData as EditorInitialData | undefined;
+  const mode = location.state?.mode || "template";
+  
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
 
@@ -123,8 +128,8 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
 
   // Load editor content when initialData is provided (when editing existing templates or snippets)
   React.useEffect(() => {
-    if (editor && initialData?.htmlContent) {
-      editor.commands.setContent(initialData.htmlContent);
+    if (editor && initialData?.jsonContent) {
+      editor.commands.setContent(initialData.jsonContent);
       recalculateFieldCounts();
     }
   }, [editor, initialData]);
@@ -589,7 +594,7 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
                 onCheckedChange={(checked) => setHidden(!!checked)}
               />
               <Label htmlFor="hidden" className="font-normal">
-                Hidden attribute (metadata only – not visible in editor)
+                Hidden attribute (metadata only - not visible in editor)
               </Label>
             </div>
 

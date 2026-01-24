@@ -13,8 +13,8 @@ export default function App() {
           <Route path="/" element={<AttributesPage />} />
           <Route path="/attributes" element={<AttributesPage />} />
           <Route path="/templates" element={<TemplatesPage />} />
-          <Route path="/snippets" element={<EditorPage mode='snippet' />} />
-
+          <Route path="/snippets" element={<EditorPage />} />
+          <Route path="/editor" element={<EditorPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

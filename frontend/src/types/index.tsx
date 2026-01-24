@@ -38,11 +38,6 @@ export interface EditorInitialData {
   >;
 }
 
-export interface EditorProps {
-  mode: EditorMode;
-  initialData?: EditorInitialData;
-}
-
 export interface AttributeProps {
   id: number,
   name: string,
