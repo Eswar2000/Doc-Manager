@@ -2,7 +2,7 @@ import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import TemplateEditor from "../editor/editor";
 import type { Placeholder, EditorInitialData } from "../../types/index";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   Accordion,
@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -45,11 +45,13 @@ const placeholders: Placeholder[] = [
 
 export default function EditorPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialData = location.state?.initialData as EditorInitialData | undefined;
   const mode = location.state?.mode || "template";
-  
+
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
+  const [closeDialogOpen, setCloseDialogOpen] = React.useState(false);
 
   const [name, setName] = React.useState(initialData?.name || '');
   const [description, setDescription] = React.useState(initialData?.description || '');
@@ -358,6 +360,16 @@ export default function EditorPage() {
           <p className="text-sm text-gray-600 mt-1">
             Configure fields and content for your {mode}.
           </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+            onClick={() => {
+              setCloseDialogOpen(true);
+            }}
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -644,6 +656,34 @@ export default function EditorPage() {
               }}
             >
               Delete All
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Discard changes?</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes in this template. Closing now will discard them.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-start">
+            <Button
+              variant="outline"
+              onClick={() => setCloseDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setCloseDialogOpen(false);
+                navigate('/templates');
+              }}
+            >
+              Discard & Close
             </Button>
           </DialogFooter>
         </DialogContent>
