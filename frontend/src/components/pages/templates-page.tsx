@@ -9,12 +9,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Trash2, Pencil, Eye } from "lucide-react";
 import type { EditorInitialData } from "../../types/index";
 import { templateApi } from "@/api/templates";
+import { Loader } from "../loader/loader";
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
 
     const {
-        data: templates = []
+        data: templates = [],
+        isLoading
     } = useQuery({
         queryKey: ['templates'], // unique cache key
         queryFn: templateApi.fetchTemplates,
@@ -183,7 +185,8 @@ export default function TemplatesPage() {
                     <span>Manage Templates</span>
                 </h2>
             </div>
-            <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()}/>
+            {!isLoading && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()}/>}
+            {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
         </div>
     );
 }

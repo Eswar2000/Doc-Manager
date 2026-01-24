@@ -136,3 +136,8 @@ export type Placeholder = {
   id: string;
   label: string;
 };
+
+export interface LoaderProps {
+  screenHeader: string,
+  screenMessage: string
+}
