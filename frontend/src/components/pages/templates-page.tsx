@@ -172,6 +172,10 @@ export default function TemplatesPage() {
         },
     ]
 
+    const createNewTemplate = () => {
+        navigate('/editor', {state: {mode: 'template'}})
+    }
+
     return (
         <div className="h-full flex-1 flex-col space-y-2 p-8 md:flex">
             <div className="flex items-center justify-between">
@@ -179,7 +183,7 @@ export default function TemplatesPage() {
                     <span>Manage Templates</span>
                 </h2>
             </div>
-            <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} />
+            <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()}/>
         </div>
     );
 }
