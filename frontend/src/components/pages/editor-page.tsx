@@ -1,8 +1,9 @@
 import React from "react";
-import { v4 as uuidv4 } from "uuid";
 import TemplateEditor from "../editor/editor";
 import type { Placeholder, EditorInitialData } from "../../types/index";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { templateApi } from "@/api/templates";
 
 import {
   Accordion,
@@ -46,6 +47,8 @@ const placeholders: Placeholder[] = [
 export default function EditorPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const initialData = location.state?.initialData as EditorInitialData | undefined;
   const mode = location.state?.mode || "template";
 
@@ -143,10 +146,9 @@ export default function EditorPage() {
     }
   }, [initialData]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editor) return;
 
-    const id = initialData?.id || uuidv4();
     const html = editor.getHTML();
     const json = editor.getJSON();
 
@@ -206,7 +208,6 @@ export default function EditorPage() {
     const attributes = Array.from(attributeMap.values());
 
     const savedData = {
-      id,
       name,
       description,
       htmlContent: html,
@@ -214,7 +215,26 @@ export default function EditorPage() {
       attributes,
     };
 
-    console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+    try {
+      const isCreate = initialData?.id ? false : true;
+      console.log("Action:", isCreate ? "Create New" : "Update Existing");
+      if (isCreate) {
+        if (mode === 'template') {
+          await templateApi.createTemplate(savedData);
+        } else {
+          console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+        }
+      } else {
+        console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+      }
+
+      if (mode === 'template') {
+        queryClient.invalidateQueries({ queryKey: ['templates'] });
+      }
+      navigate(mode === 'template' ? '/templates' : '/snippets');
+    } catch (err) {
+      console.log("Save failed: ", err);
+    }
   };
 
   const handleAttributeClick = (placeholder: Placeholder) => {
