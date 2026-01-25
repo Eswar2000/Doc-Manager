@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "../ui/spinner";
 
 const placeholders: Placeholder[] = [
   { id: "1", label: "Client Name" },
@@ -55,6 +56,7 @@ export default function EditorPage() {
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [closeDialogOpen, setCloseDialogOpen] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const [name, setName] = React.useState(initialData?.name || '');
   const [description, setDescription] = React.useState(initialData?.description || '');
@@ -149,6 +151,8 @@ export default function EditorPage() {
   const handleSave = async () => {
     if (!editor) return;
 
+    setIsSaving(true);
+
     const html = editor.getHTML();
     const json = editor.getJSON();
 
@@ -234,6 +238,8 @@ export default function EditorPage() {
       navigate(mode === 'template' ? '/templates' : '/snippets');
     } catch (err) {
       console.log("Save failed: ", err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -552,8 +558,18 @@ export default function EditorPage() {
             size="lg"
             className="w-full bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500 text-white font-medium shadow-sm"
             onClick={handleSave}
+            disabled={isSaving}
           >
-            Save {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            {
+              isSaving ? (
+                <div className="flex items-center gap-4">
+                  <Spinner data-icon="inline-start" />
+                  Saving...
+                </div>
+              ) : (
+                `Save ${mode.charAt(0).toUpperCase() + mode.slice(1)}`
+              )
+            }
           </Button>
         </div>
       </div>
