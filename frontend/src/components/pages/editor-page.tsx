@@ -4,6 +4,7 @@ import type { Placeholder, EditorInitialData } from "../../types/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { templateApi } from "@/api/templates";
+import { toast } from "sonner";
 
 import {
   Accordion,
@@ -235,9 +236,25 @@ export default function EditorPage() {
       if (mode === 'template') {
         queryClient.invalidateQueries({ queryKey: ['templates'] });
       }
+
+      toast.success("Failed to save", {
+        description: isCreate ? `${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully.` : `${mode.charAt(0).toUpperCase() + mode.slice(1)} updated successfully.`,
+        duration: 2000,
+        closeButton: false,
+      });
+
       navigate(mode === 'template' ? '/templates' : '/snippets');
     } catch (err) {
       console.log("Save failed: ", err);
+
+      toast.error("Failed to save", {
+        description: err instanceof Error
+          ? err.message
+          : "Something went wrong. Please check and try again.",
+        duration: 3000,
+        closeButton: false,
+      });
+
     } finally {
       setIsSaving(false);
     }

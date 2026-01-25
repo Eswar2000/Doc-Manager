@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
 import './App.css';
 import MainLayout from './components/main-layout';
 import AttributesPage from './components/pages/attributes-page';
@@ -17,6 +18,15 @@ export default function App() {
           <Route path="/editor" element={<EditorPage />} />
         </Route>
       </Routes>
+
+      {/* Toaster for notifications */}
+      <Toaster
+        richColors
+        position="bottom-left"
+        closeButton
+        duration={3000}
+        
+      />
     </BrowserRouter>
   )
 }
