@@ -3,7 +3,7 @@ from azure.cosmos import exceptions
 from fastapi import HTTPException
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
+from typing import List, Optional
 from src.db.client import get_container
 
 from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType, AttributeUpdateRequest
@@ -164,4 +164,30 @@ class AttributeRepository:
             raise HTTPException(status_code=500, detail=f"Database error while updating attribute: {str(e)}")
 
         return Attribute(**updated_attr)
+
+    async def filter_attributes_by_tenant(self, attribute_ids: List[str], tenant_id: Optional[str]) -> list[str]:
+        print("Filter_Attributes_By_Tenant: Starting to filter attributes by tenant")
+        if not tenant_id:
+            tenant_id = "default"
         
+        container = await self._get_container()
+
+        query = "SELECT VALUE c.id FROM c WHERE ARRAY_CONTAINS(@attrIds, c.id) AND c.tenantId = @tenantId"
+        parameters = [
+            {"name": "@attrIds", "value": attribute_ids},
+            {"name": "@tenantId", "value": tenant_id}
+        ]
+
+        try:
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+            print(f"Filter_Attributes_By_Tenant: Retrieved {len(results)} attributes")
+            return results
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Filter_Attributes_By_Tenant: Error occurred while filtering attributes: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while filtering attributes: {str(e)}")

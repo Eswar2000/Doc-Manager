@@ -39,6 +39,10 @@ class AttributeUpdateRequest(BaseModel):
     description: Optional[str] = Field(None, description="Description of the attribute", max_length=150)
     tenantId: str = Field(None, description="Identifier for the tenant to which the attribute belongs")
 
+class AttributeFilterByTenantRequest(BaseModel):
+    attributeIds: list[str] = Field(..., description="List of attribute IDs to filter")
+    tenantId: Optional[str] = Field(None, description="Identifier for the tenant to filter attributes by")
+
 class AttributeResponse(Attribute):
     class Config:
         populate_by_name = True

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from src.repository.attribute_repository import AttributeRepository
 from src.service.attribute_service import AttributeService
-from src.model.attributes import AttributeCreateRequest, AttributeResponse, Attribute, AttributeType, AttributeUpdateRequest
+from src.model.attributes import AttributeCreateRequest, AttributeFilterByTenantRequest, AttributeResponse, Attribute, AttributeType, AttributeUpdateRequest
 from typing import List, Optional
 
 router = APIRouter(prefix="/attributes", tags=["attributes"], responses={500: {"description": "Internal Server Error"}})
@@ -123,3 +123,26 @@ async def update_attribute(attribute_id: str, payload: AttributeUpdateRequest, s
     except Exception as e:
         print("Update attribute endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during attribute update", "error": str(e)})
+    
+@router.post(
+    "/filter-by-tenant",
+    response_model=List[str],
+    summary="Filter attribute IDs by tenant",
+    responses={
+        200: {"description": "Filtered attributes successfully successfully"},
+        422: {"description": "Pydantic validation error"},
+        500: {"description": "Unexpected server error"}
+    }
+)
+async def filter_attributes_by_tenant(request: AttributeFilterByTenantRequest, service: AttributeService = Depends(get_attribute_service)):
+    print("Filter attribute by tenant endpoint called")
+    try:
+        filtered = await service.filter_attributes_by_tenant(attribute_ids=request.attributeIds, tenant_id=request.tenantId)
+        print("Filter attribute by tenant endpoint: Attributes filtered successfully")
+        return filtered
+    except HTTPException as e:
+        print("Filter attribute by tenant endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Filter attribute by tenant endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during attribute filtering", "error": str(e)})
