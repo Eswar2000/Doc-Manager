@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from src.repository.attribute_repository import AttributeRepository
 from src.service.attribute_service import AttributeService
 from src.model.attributes import AttributeCreateRequest, AttributeResponse, Attribute, AttributeType
@@ -78,3 +78,25 @@ async def get_attribute_by_id(attribute_id: str, service: AttributeService = Dep
     except Exception as e:
         print("Get attribute endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during attribute retrieval", "error": str(e)})
+    
+@router.delete(
+    "/{attribute_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an attribute by ID",
+    responses={
+        204: {"description": "Attribute deleted successfully"},
+        404: {"description": "Attribute not found"},
+        500: {"description": "Unexpected server error"}
+    }
+)
+async def delete_attribute(attribute_id: str, service: AttributeService = Depends(get_attribute_service)):
+    print(f"Delete attribute endpoint called for ID: {attribute_id}")
+
+    deleted = await service.delete_attribute_by_id(attribute_id)
+
+    if not deleted:
+        print(f"Delete attribute endpoint: Attribute not found: {attribute_id}")
+        raise HTTPException(status_code=404, detail="Attribute not found")
+
+    print(f"Delete attribute endpoint: Successfully deleted attribute {attribute_id}")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

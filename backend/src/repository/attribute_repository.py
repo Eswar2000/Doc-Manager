@@ -117,3 +117,23 @@ class AttributeRepository:
                 return None
             print(f"Get_Attribute_By_ID: Error occurred while retrieving attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while retrieving attribute: {str(e)}")
+        
+    async def delete_attribute_by_id(self, attribute_id: str) -> bool:
+        print("Delete_Attribute_By_ID: Starting attribute deletion process")
+        container = await self._get_container()
+
+        try:
+            attr = await self.get_attribute_by_id(attribute_id)
+            if not attr:
+                return False
+
+            await container.delete_item(item=attribute_id, partition_key=attr.tenantId)
+            print(f"Delete_Attribute_By_ID: Attribute with ID {attribute_id} deleted successfully")
+
+            return True
+        except exceptions.CosmosHttpResponseError as e:
+            if e.status_code == 404:
+                print(f"Delete_Attribute_By_ID: No attribute found with ID {attribute_id} to delete")
+                return False
+            print(f"Delete_Attribute_By_ID: Error occurred while deleting attribute: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while deleting attribute: {str(e)}")
