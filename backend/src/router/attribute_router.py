@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.repository.attribute_repository import AttributeRepository
 from src.service.attribute_service import AttributeService
-from src.model.attributes import AttributeCreateRequest, AttributeResponse, Attribute
-from typing import List, Optional, Literal
+from src.model.attributes import AttributeCreateRequest, AttributeResponse, Attribute, AttributeType
+from typing import List, Optional
 
 router = APIRouter(prefix="/attributes", tags=["attributes"], responses={500: {"description": "Internal Server Error"}})
 
@@ -33,3 +33,22 @@ async def create_attribute(payload: AttributeCreateRequest, service: AttributeSe
     except Exception as e:
         print("Create attribute endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during attribute creation", "error": str(e)})
+    
+@router.get(
+    "/",
+    response_model=List[Attribute],
+    summary="List attributes with filters",
+    responses={200: {"description": "List of attributes"}}
+)
+async def list_attributes(name: Optional[str] = None, desc: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0, service: AttributeService = Depends(get_attribute_service)):
+    print("List attributes endpoint called")
+    try:
+        attributes = await service.list_attributes(name_contains=name, desc_contains=desc, type=type, limit=limit, offset=offset)
+        print(f"List attributes endpoint: Retrieved {len(attributes)} attributes")
+        return attributes
+    except HTTPException as e:
+        print("List attributes endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("List attributes endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing attributes", "error": str(e)})

@@ -3,6 +3,7 @@ from azure.cosmos import exceptions
 from fastapi import HTTPException
 import uuid
 from datetime import datetime, timezone
+from typing import Literal, Optional
 from src.db.client import get_container
 
 from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType
@@ -44,3 +45,48 @@ class AttributeRepository:
                 raise HTTPException(409, "Attribute ID conflict")
             print("Create_Attribute: End of attribute creation process with error")
             raise HTTPException(status_code=500, detail=f"Database error while creating attribute: {str(e)}")
+    
+    async def list_attribute(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
+        print("List_Attributes: Starting to list all attributes")
+        container = await self._get_container()
+        
+        query = "SELECT * FROM c"
+        parameters = []
+        conditions = []
+
+        if name_contains:
+            print(f"List_Attributes: Filtering attributes with name containing '{name_contains}'")
+            conditions.append("CONTAINS(LOWER(c.name), LOWER(@name))")
+            parameters.append({"name": "@name", "value": name_contains})
+
+        if desc_contains:
+            print(f"List_Attributes: Filtering attributes with description containing '{desc_contains}'")
+            conditions.append("CONTAINS(LOWER(c.description), LOWER(@desc))")
+            parameters.append({"name": "@desc", "value": desc_contains})
+
+        if type:
+            print(f"List_Attributes: Filtering attributes with type '{type}'")
+            conditions.append("c.type = @type")
+            parameters.append({"name": "@type", "value": type})
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        query += " ORDER BY c.createdAt DESC OFFSET @offset LIMIT @limit"
+        parameters.append({"name": "@offset", "value": offset})
+        parameters.append({"name": "@limit", "value": limit})
+
+        try:
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+
+            print(f"List_Attributes: Retrieved {len(results)} attributes")
+            return [Attribute(**item) for item in results]
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"List_Attributes: Error occurred while listing attributes: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while listing attributes: {str(e)}")
