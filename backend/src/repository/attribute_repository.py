@@ -3,10 +3,10 @@ from azure.cosmos import exceptions
 from fastapi import HTTPException
 import uuid
 from datetime import datetime, timezone
-from typing import Literal, Optional
+from typing import Optional
 from src.db.client import get_container
 
-from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType
+from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType, AttributeUpdateRequest
 
 class AttributeRepository:
     def __init__(self):
@@ -137,3 +137,31 @@ class AttributeRepository:
                 return False
             print(f"Delete_Attribute_By_ID: Error occurred while deleting attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while deleting attribute: {str(e)}")
+        
+    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest) -> Attribute:
+        print("Update_Attribute: Starting attribute update process")
+        container = await self._get_container()
+
+        attr = await self.get_attribute_by_id(attribute_id)
+        if not attr:
+            print(f"Update_Attribute: No attribute found with ID {attribute_id} to update")
+            raise HTTPException(status_code=404, detail="Attribute not found")
+
+        updated_data = attr.model_dump()
+        if data.name is not None:
+            updated_data["name"] = data.name.strip()
+        if data.description is not None:
+            updated_data["description"] = data.description.strip()
+        if data.tenantId is not None:
+            updated_data["tenantId"] = data.tenantId
+        updated_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+        try:
+            updated_attr = await container.replace_item(item=attribute_id, body=updated_data)
+            print(f"Update_Attribute: Attribute with ID {attribute_id} updated successfully")
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Update_Attribute: Error occurred while updating attribute: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while updating attribute: {str(e)}")
+
+        return Attribute(**updated_attr)
+        

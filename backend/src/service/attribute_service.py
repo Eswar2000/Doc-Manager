@@ -1,6 +1,6 @@
-from typing import Optional, Literal
+from typing import Optional
 from src.repository.attribute_repository import AttributeRepository
-from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType
+from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType, AttributeUpdateRequest
 
 class AttributeService:
     def __init__(self, repo: AttributeRepository):
@@ -17,3 +17,6 @@ class AttributeService:
     
     async def delete_attribute_by_id(self, attribute_id: str) -> bool:
         return await self.repo.delete_attribute_by_id(attribute_id)
+    
+    async def update_attribute(self, attribute_id: str, data: AttributeUpdateRequest) -> Attribute:
+        return await self.repo.update_attribute(attribute_id, data)

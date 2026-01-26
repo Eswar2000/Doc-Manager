@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from src.repository.attribute_repository import AttributeRepository
 from src.service.attribute_service import AttributeService
-from src.model.attributes import AttributeCreateRequest, AttributeResponse, Attribute, AttributeType
+from src.model.attributes import AttributeCreateRequest, AttributeResponse, Attribute, AttributeType, AttributeUpdateRequest
 from typing import List, Optional
 
 router = APIRouter(prefix="/attributes", tags=["attributes"], responses={500: {"description": "Internal Server Error"}})
@@ -100,3 +100,26 @@ async def delete_attribute(attribute_id: str, service: AttributeService = Depend
 
     print(f"Delete attribute endpoint: Successfully deleted attribute {attribute_id}")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.put(
+    "/{attribute_id}",
+    response_model=AttributeResponse,
+    summary="Update an attribute",
+    responses={
+        200: {"description": "Attribute updated successfully"},
+        404: {"description": "Attribute not found"},
+        500: {"description": "Unexpected server error"}
+    }
+)
+async def update_attribute(attribute_id: str, payload: AttributeUpdateRequest, service: AttributeService = Depends(get_attribute_service)):
+    print("Update attribute endpoint called")
+    try:
+        updated_attribute = await service.update_attribute(attribute_id, payload)
+        print("Update attribute endpoint: Attribute updated successfully")
+        return updated_attribute
+    except HTTPException as e:
+        print("Update attribute endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Update attribute endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during attribute update", "error": str(e)})
