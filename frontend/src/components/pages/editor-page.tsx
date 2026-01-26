@@ -1,7 +1,10 @@
 import React from "react";
-import { v4 as uuidv4 } from "uuid";
 import TemplateEditor from "../editor/editor";
-import type { Placeholder, EditorProps } from "../../types/index";
+import type { Placeholder, EditorInitialData } from "../../types/index";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { templateApi } from "@/api/templates";
+import { toast } from "sonner";
 
 import {
   Accordion,
@@ -23,13 +26,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "../ui/spinner";
 
 const placeholders: Placeholder[] = [
   { id: "1", label: "Client Name" },
@@ -42,9 +46,18 @@ const placeholders: Placeholder[] = [
   { id: "8", label: "Document Title" },
 ];
 
-export default function EditorPage({ mode = 'template', initialData }: EditorProps) {
+export default function EditorPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const initialData = location.state?.initialData as EditorInitialData | undefined;
+  const mode = location.state?.mode || "template";
+
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
+  const [closeDialogOpen, setCloseDialogOpen] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const [name, setName] = React.useState(initialData?.name || '');
   const [description, setDescription] = React.useState(initialData?.description || '');
@@ -123,8 +136,8 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
 
   // Load editor content when initialData is provided (when editing existing templates or snippets)
   React.useEffect(() => {
-    if (editor && initialData?.htmlContent) {
-      editor.commands.setContent(initialData.htmlContent);
+    if (editor && initialData?.jsonContent) {
+      editor.commands.setContent(initialData.jsonContent);
       recalculateFieldCounts();
     }
   }, [editor, initialData]);
@@ -136,10 +149,11 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
     }
   }, [initialData]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editor) return;
 
-    const id = initialData?.id || uuidv4();
+    setIsSaving(true);
+
     const html = editor.getHTML();
     const json = editor.getJSON();
 
@@ -199,7 +213,6 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
     const attributes = Array.from(attributeMap.values());
 
     const savedData = {
-      id,
       name,
       description,
       htmlContent: html,
@@ -207,7 +220,44 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
       attributes,
     };
 
-    console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+    try {
+      const isCreate = initialData?.id ? false : true;
+      console.log("Action:", isCreate ? "Create New" : "Update Existing");
+      if (isCreate) {
+        if (mode === 'template') {
+          await templateApi.createTemplate(savedData);
+        } else {
+          console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+        }
+      } else {
+        console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+      }
+
+      if (mode === 'template') {
+        queryClient.invalidateQueries({ queryKey: ['templates'] });
+      }
+
+      toast.success("Failed to save", {
+        description: isCreate ? `${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully.` : `${mode.charAt(0).toUpperCase() + mode.slice(1)} updated successfully.`,
+        duration: 2000,
+        closeButton: false,
+      });
+
+      navigate(mode === 'template' ? '/templates' : '/snippets');
+    } catch (err) {
+      console.log("Save failed: ", err);
+
+      toast.error("Failed to save", {
+        description: err instanceof Error
+          ? err.message
+          : "Something went wrong. Please check and try again.",
+        duration: 3000,
+        closeButton: false,
+      });
+
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAttributeClick = (placeholder: Placeholder) => {
@@ -353,6 +403,16 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
           <p className="text-sm text-gray-600 mt-1">
             Configure fields and content for your {mode}.
           </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+            onClick={() => {
+              setCloseDialogOpen(true);
+            }}
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -515,8 +575,18 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
             size="lg"
             className="w-full bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500 text-white font-medium shadow-sm"
             onClick={handleSave}
+            disabled={isSaving}
           >
-            Save {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            {
+              isSaving ? (
+                <div className="flex items-center gap-4">
+                  <Spinner data-icon="inline-start" />
+                  Saving...
+                </div>
+              ) : (
+                `Save ${mode.charAt(0).toUpperCase() + mode.slice(1)}`
+              )
+            }
           </Button>
         </div>
       </div>
@@ -589,7 +659,7 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
                 onCheckedChange={(checked) => setHidden(!!checked)}
               />
               <Label htmlFor="hidden" className="font-normal">
-                Hidden attribute (metadata only – not visible in editor)
+                Hidden attribute (metadata only - not visible in editor)
               </Label>
             </div>
 
@@ -639,6 +709,34 @@ export default function EditorPage({ mode = 'template', initialData }: EditorPro
               }}
             >
               Delete All
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Discard changes?</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes in this template. Closing now will discard them.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-start">
+            <Button
+              variant="outline"
+              onClick={() => setCloseDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setCloseDialogOpen(false);
+                navigate('/templates');
+              }}
+            >
+              Discard & Close
             </Button>
           </DialogFooter>
         </DialogContent>

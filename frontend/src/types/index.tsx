@@ -38,11 +38,6 @@ export interface EditorInitialData {
   >;
 }
 
-export interface EditorProps {
-  mode: EditorMode;
-  initialData?: EditorInitialData;
-}
-
 export interface AttributeProps {
   id: number,
   name: string,
@@ -141,3 +136,17 @@ export type Placeholder = {
   id: string;
   label: string;
 };
+
+export interface LoaderProps {
+  screenHeader: string,
+  screenMessage: string
+}
+
+export interface ErrorStateProps {
+  title?: string;
+  description?: string;
+  onRetry?: () => void;
+  onHome?: () => void;
+  homeLabel?: string;
+  retryLabel?: string;
+}
