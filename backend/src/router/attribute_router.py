@@ -52,3 +52,29 @@ async def list_attributes(name: Optional[str] = None, desc: Optional[str] = None
     except Exception as e:
         print("List attributes endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing attributes", "error": str(e)})
+    
+@router.get(
+    "/{attribute_id}",
+    response_model=AttributeResponse,
+    summary="Get an attribute by ID",
+    responses={
+        200: {"description": "Attribute retrieved successfully"},
+        404: {"description": "Attribute not found"}
+    }
+)
+async def get_attribute_by_id(attribute_id: str, service: AttributeService = Depends(get_attribute_service)):
+    print("Get attribute endpoint called")
+    try:
+        attribute = await service.get_attribute_by_id(attribute_id)
+        if attribute:
+            print("Get attribute endpoint: Attribute retrieved successfully")
+            return attribute
+        else:
+            print("Get attribute endpoint: Attribute not found")
+            raise HTTPException(status_code=404, detail="Attribute not found")
+    except HTTPException as e:
+        print("Get attribute endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Get attribute endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during attribute retrieval", "error": str(e)})

@@ -11,3 +11,6 @@ class AttributeService:
     
     async def list_attributes(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
         return await self.repo.list_attribute(name_contains, desc_contains, type, limit, offset)
+    
+    async def get_attribute_by_id(self, attribute_id: str) -> Optional[Attribute]:
+        return await self.repo.get_attribute_by_id(attribute_id)

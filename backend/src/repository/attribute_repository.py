@@ -90,3 +90,30 @@ class AttributeRepository:
         except exceptions.CosmosHttpResponseError as e:
             print(f"List_Attributes: Error occurred while listing attributes: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while listing attributes: {str(e)}")
+        
+    async def get_attribute_by_id(self, attribute_id: str) -> Optional[Attribute]:
+        print("Get_Attribute_By_ID: Starting attribute retrieval process")
+        container = await self._get_container()
+
+        try:
+            query = "SELECT * FROM c WHERE c.id = @attribute_id"
+            parameters = [{"name": "@attribute_id", "value": attribute_id}]
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+            if results:
+                print(f"Get_Attribute_By_ID: Attribute found with ID {attribute_id}")
+                return Attribute(**results[0])
+            else:
+                print(f"Get_Attribute_By_ID: No attribute found with ID {attribute_id}")
+                return None
+        except exceptions.CosmosHttpResponseError as e:
+            if e.status_code == 404:
+                print(f"Get_Attribute_By_ID: No attribute found with ID {attribute_id}")
+                return None
+            print(f"Get_Attribute_By_ID: Error occurred while retrieving attribute: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while retrieving attribute: {str(e)}")
