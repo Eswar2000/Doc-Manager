@@ -218,7 +218,7 @@ export default function AttributesPage() {
     try {
       await attributeApi.updateAttribute(editingItem.id, updatedAttr);
       queryClient.invalidateQueries({ queryKey: ['attributes'] });
-      
+
       setDialogOpen(false);
     } catch (error) {
       console.error("Failed to update attribute:", error);

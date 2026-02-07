@@ -14,6 +14,7 @@ import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircleIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function DynamicDialog({
     open,
@@ -91,6 +92,11 @@ export default function DynamicDialog({
                                     disabled={field.disabled}
                                     value={formValues[field.name] ?? ""}
                                     onChange={(e) => handleChange(field.name, e.target.value)}
+                                    className={cn(
+                                        "focus-visible:ring-1 transition-colors duration-150",
+                                        field.disabled && "border-black-800 bg-gray-100 cursor-not-allowed",
+                                        !field.disabled && "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                                    )}
                                 />
                             )}
 
@@ -116,7 +122,11 @@ export default function DynamicDialog({
                                     disabled={field.disabled}
                                     value={formValues[field.name] ?? ""}
                                     onChange={(e) => handleChange(field.name, e.target.value)}
-                                    className="min-h-[100px]"
+                                    className={cn(
+                                        "min-h-[100px] focus-visible:ring-1 transition-colors duration-150",
+                                        field.disabled && "border-black-800 bg-gray-100 cursor-not-allowed",
+                                        !field.disabled && "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                                    )}
                                 />
                             )}
 
@@ -128,12 +138,16 @@ export default function DynamicDialog({
                                     onValueChange={(value) => handleChange(field.name, value)}
                                 >
                                     <SelectTrigger
-                                        className={`w-full ${field.disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                                        className={cn(
+                                            "w-full focus-visible:ring-1 transition-colors duration-150",
+                                            field.disabled && "border-black-800 bg-gray-100 cursor-not-allowed",
+                                            !field.disabled && "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                                        )}
                                     >
                                         <SelectValue placeholder="Select..." />
                                     </SelectTrigger>
 
-                                    <SelectContent>
+                                    <SelectContent className="border-indigo-500 shadow-sm focus-visible:ring-indigo-500">
                                         {field.options?.map((opt) => (
                                             <SelectItem key={opt} value={opt}>
                                                 {opt.charAt(0).toUpperCase() + opt.slice(1)}
