@@ -7,146 +7,34 @@ import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useState } from "react";
 import type { DynamicField } from "../../types/index";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { attributeApi } from "@/api/attributes";
+import { Loader } from "../loader/loader";
+import { ErrorState } from "../error-state/error-state";
 
 export default function AttributesPage() {
-  const [data, setData] = useState<AttributeProps[]>([
-    {
-      "id": 1,
-      "name": "Candidate First Name",
-      "description": "First name of the candidate",
-      "type": "text",
-      "createdAt": "2024-06-25T09:15:00",
-      "updatedAt": "2024-06-25T09:15:00"
-    },
-    {
-      id: 2,
-      name: "Candidate Last Name",
-      description: "Last name of the candidate",
-      type: "text",
-      createdAt: "2024-06-25T09:16:00",
-      updatedAt: "2024-06-25T09:16:00"
-    },
-    {
-      id: 3,
-      name: "Job Title",
-      description: "Title of the offered position",
-      type: "text",
-      createdAt: "2024-06-25T09:17:00",
-      updatedAt: "2024-06-25T09:17:00"
-    },
-    {
-      id: 4,
-      name: "Start Date",
-      description: "Employment start date",
-      type: "date",
-      createdAt: "2024-06-25T09:18:00",
-      updatedAt: "2024-06-25T09:18:00"
-    },
-    {
-      id: 5,
-      name: "Salary",
-      description: "Annual salary offered",
-      type: "number",
-      createdAt: "2024-06-25T09:19:00",
-      updatedAt: "2024-06-25T09:19:00"
-    },
-    {
-      id: 6,
-      name: "Candidate Email Address",
-      description: "Official email address for the candidate",
-      type: "email",
-      createdAt: "2024-06-25T09:20:00",
-      updatedAt: "2024-06-25T09:20:00"
-    },
-    {
-      id: 7,
-      name: "Probation Period (months)",
-      description: "Duration of probation in months",
-      type: "number",
-      createdAt: "2024-06-25T09:21:00",
-      updatedAt: "2024-06-25T09:21:00"
-    },
-    {
-      id: 8,
-      name: "Notice Period (months)",
-      description: "Notice period required for resignation",
-      type: "number",
-      createdAt: "2024-06-25T09:22:00",
-      updatedAt: "2024-06-25T09:22:00"
-    },
-    {
-      id: 9,
-      name: "Manager Name",
-      description: "Name of the reporting manager",
-      type: "text",
-      createdAt: "2024-06-25T09:23:00",
-      updatedAt: "2024-06-25T09:23:00"
-    },
-    {
-      id: 10,
-      name: "Work Location",
-      description: "Primary work location for the candidate",
-      type: "text",
-      createdAt: "2024-06-25T09:24:00",
-      updatedAt: "2024-06-25T09:24:00"
-    },
-    {
-      id: 11,
-      name: "Relocation Bonus",
-      description: "One-time bonus for relocation expenses",
-      type: "number",
-      createdAt: "2024-06-25T09:25:00",
-      updatedAt: "2024-06-25T09:25:00"
-    },
-    {
-      id: 12,
-      name: "Candidate Address",
-      description: "Residential address of the candidate",
-      type: "text",
-      createdAt: "2024-06-25T09:26:00",
-      updatedAt: "2024-06-25T09:26:00"
-    },
-    {
-      id: 13,
-      name: "Company Name",
-      description: "Legal name of the employing company",
-      type: "text",
-      createdAt: "2024-06-25T09:27:00",
-      updatedAt: "2024-06-25T09:27:00"
-    },
-    {
-      id: 14,
-      name: "Company Address",
-      description: "Registered address of the company",
-      type: "text",
-      createdAt: "2024-06-25T09:28:00",
-      updatedAt: "2024-06-25T09:28:00"
-    },
-    {
-      id: 15,
-      name: "Reporting Manager Email Address",
-      description: "Email address of the reporting manager",
-      type: "email",
-      createdAt: "2024-06-25T09:29:00",
-      updatedAt: "2024-06-25T09:29:00"
-    },
-    {
-      id: 16,
-      name: "Contract End Date",
-      description: "End date of the employment contract",
-      type: "date",
-      createdAt: "2024-06-25T09:30:00",
-      updatedAt: "2024-06-25T09:30:00"
-    },
-    {
-      id: 17,
-      name: "Work Permit Number",
-      description: "Official work permit or visa number",
-      type: "text",
-      createdAt: "2024-06-25T09:31:00",
-      updatedAt: "2024-06-25T09:31:00"
-    }
-  ]);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const {
+    data: data = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['attributes'], // unique cache key
+    queryFn: attributeApi.fetchAttributes,
+    staleTime: 1000 * 60, // 1 minute stale time
+
+    // Disable automatic refetching on failures
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: true,
+  });
 
   const cols = getColumns<AttributeProps>([
     {
@@ -254,7 +142,14 @@ export default function AttributesPage() {
             {
               title: "Delete",
               variant: "destructive",
-              onClick: () => setData(prev => prev.filter(item => item.id !== row.original.id)),
+              onClick: async () => {
+                try {
+                  await attributeApi.deleteAttribute(row.original.id);
+                  queryClient.invalidateQueries({ queryKey: ['attributes'] });
+                } catch (error) {
+                  console.error("Failed to delete attribute:", error);
+                }
+              },
             }
           ]
         } />,
@@ -279,15 +174,17 @@ export default function AttributesPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const editFormFields: DynamicField[] = [
-    { name: "name", label: "Name", type: "text", disabled: true },
+    { name: "name", label: "Name", type: "text" },
     { name: "description", label: "Description", type: "textarea" },
     { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"], disabled: true },
+    { name: "tenantId", label: "Tenant ID", type: "text" }
   ]
 
   const createFormFields: DynamicField[] = [
     { name: "name", label: "Name", type: "text", required: true, maxLength: 16 },
     { name: "description", label: "Description", type: "textarea", maxLength: 64 },
     { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"], required: true },
+    { name: "tenantId", label: "Tenant ID", type: "text", required: false }
   ]
 
   const openEdit = (item: AttributeProps) => {
@@ -295,33 +192,37 @@ export default function AttributesPage() {
     setDialogOpen(true);
   };
 
-  const createRow = (newItem: any) => {
-    const newAttr: AttributeProps = {
-      id: data.length + 1,
+  const createRow = async (newItem: any) => {
+    const newAttr = {
       name: newItem.name,
       description: newItem.description,
-      type: newItem.type,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      type: newItem.type
+    };
+    try {
+      await attributeApi.createAttribute(newAttr);
+      queryClient.invalidateQueries({ queryKey: ['attributes'] });
+
+      setCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create attribute:", error);
     }
-    setData(prev => [...prev, newAttr]);
-    setCreateDialogOpen(false);
   }
 
-  const updateRow = (updated: any) => {
-    setData(prev =>
-      // Update the record's description and updated at timestamp. name and type are kept unchanged. created at is also kept unchanged - not shown for edit.
-      prev.map(item =>
-        item.id === editingItem.id
-          ? {
-            ...item,
-            ...updated,
-            updatedAt: new Date().toISOString(),
-          }
-          : item
-      )
-    );
-    setDialogOpen(false);
+  const updateRow = async (updated: any) => {
+    const updatedAttr = {
+      name: updated.name,
+      description: updated.description,
+      tenantId: updated.tenantId
+    };
+
+    try {
+      await attributeApi.updateAttribute(editingItem.id, updatedAttr);
+      queryClient.invalidateQueries({ queryKey: ['attributes'] });
+      
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to update attribute:", error);
+    }
   };
 
   return (
@@ -331,7 +232,9 @@ export default function AttributesPage() {
           <span>Manage Attributes</span>
         </h2>
       </div>
-      <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => setCreateDialogOpen(true)} />
+      {!isLoading && !isError && <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => setCreateDialogOpen(true)} />}
+      {isLoading && <Loader screenHeader="Loading your attributes" screenMessage="Please wait till we fetch your attributes" />}
+      {isError && <ErrorState title="Failed to load attributes" description={error?.message || "We couldn't load the attributes right now."} onRetry={() => refetch()} onHome={() => { navigate('/templates') }} />}
 
       {editingItem && (
         <DynamicDialog
