@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { attributeApi } from "@/api/attributes";
 import { Loader } from "../loader/loader";
 import { ErrorState } from "../error-state/error-state";
+import { toast } from "sonner";
 
 export default function AttributesPage() {
   const navigate = useNavigate();
@@ -142,14 +143,7 @@ export default function AttributesPage() {
             {
               title: "Delete",
               variant: "destructive",
-              onClick: async () => {
-                try {
-                  await attributeApi.deleteAttribute(row.original.id);
-                  queryClient.invalidateQueries({ queryKey: ['attributes'] });
-                } catch (error) {
-                  console.error("Failed to delete attribute:", error);
-                }
-              },
+              onClick: async () => deleteRow(row.original),
             }
           ]
         } />,
@@ -205,6 +199,14 @@ export default function AttributesPage() {
       setCreateDialogOpen(false);
     } catch (error) {
       console.error("Failed to create attribute:", error);
+
+      toast.error("Failed to create attribute", {
+        description: error instanceof Error
+          ? error.message
+          : "Something went wrong. Please check and try again.",
+        duration: 3000,
+        closeButton: false,
+      });
     }
   }
 
@@ -222,6 +224,31 @@ export default function AttributesPage() {
       setDialogOpen(false);
     } catch (error) {
       console.error("Failed to update attribute:", error);
+
+      toast.error("Failed to update attribute", {
+        description: error instanceof Error
+          ? error.message
+          : "Something went wrong. Please check and try again.",
+        duration: 3000,
+        closeButton: false,
+      });
+    }
+  };
+
+  const deleteRow = async (deleted: any) => {
+    try {
+      await attributeApi.deleteAttribute(deleted.id);
+      queryClient.invalidateQueries({ queryKey: ['attributes'] });
+    } catch (error) {
+      console.error("Failed to delete attribute:", error);
+      
+      toast.error("Failed to delete attribute", {
+        description: error instanceof Error
+          ? error.message
+          : "Something went wrong. Please check and try again.",
+        duration: 3000,
+        closeButton: false,
+      });
     }
   };
 
