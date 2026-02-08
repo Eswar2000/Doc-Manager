@@ -44,7 +44,7 @@ export default function AttributesPage() {
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row }) => (
-        <div className="w-[150px] font-medium capitalize">{row.getValue("name")}</div>
+        <div className="w-[150px] font-medium">{row.getValue("name")}</div>
       ),
       filterFn: (row, id, value) => {
         return row.getValue(id).toLowerCase().includes(value.toLowerCase());
@@ -58,7 +58,7 @@ export default function AttributesPage() {
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate capitalize">
+            <span className="max-w-[500px] truncate">
               {row.getValue("description")}
             </span>
           </div>
@@ -196,6 +196,12 @@ export default function AttributesPage() {
       await attributeApi.createAttribute(newAttr);
       queryClient.invalidateQueries({ queryKey: ['attributes'] });
 
+      toast.success("Successfully created", {
+        description: "The attribute has been created successfully.",
+        duration: 2000,
+        closeButton: false,
+      });
+
       setCreateDialogOpen(false);
     } catch (error) {
       console.error("Failed to create attribute:", error);
@@ -221,6 +227,12 @@ export default function AttributesPage() {
       await attributeApi.updateAttribute(editingItem.id, updatedAttr);
       queryClient.invalidateQueries({ queryKey: ['attributes'] });
 
+      toast.success("Successfully updated", {
+        description: "The attribute has been updated successfully.",
+        duration: 2000,
+        closeButton: false,
+      });
+
       setDialogOpen(false);
     } catch (error) {
       console.error("Failed to update attribute:", error);
@@ -239,9 +251,15 @@ export default function AttributesPage() {
     try {
       await attributeApi.deleteAttribute(deleted.id);
       queryClient.invalidateQueries({ queryKey: ['attributes'] });
+
+      toast.success("Successfully deleted", {
+        description: "The attribute has been deleted successfully.",
+        duration: 2000,
+        closeButton: false,
+      });
     } catch (error) {
       console.error("Failed to delete attribute:", error);
-      
+
       toast.error("Failed to delete attribute", {
         description: error instanceof Error
           ? error.message
