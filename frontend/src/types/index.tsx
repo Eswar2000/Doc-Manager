@@ -44,7 +44,8 @@ export interface AttributeProps {
   description: string,
   type: AttributeType,
   createdAt: string,
-  updatedAt: string
+  updatedAt: string,
+  tenantId?: string
 }
 
 export interface TemplateProps {

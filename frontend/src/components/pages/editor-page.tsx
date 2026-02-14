@@ -237,7 +237,7 @@ export default function EditorPage() {
         queryClient.invalidateQueries({ queryKey: ['templates'] });
       }
 
-      toast.success("Failed to save", {
+      toast.success("Successfully created", {
         description: isCreate ? `${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully.` : `${mode.charAt(0).toUpperCase() + mode.slice(1)} updated successfully.`,
         duration: 2000,
         closeButton: false,
