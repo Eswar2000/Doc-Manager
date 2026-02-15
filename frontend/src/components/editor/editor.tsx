@@ -76,7 +76,7 @@ const FontSize = Mark.create({
   },
 });
 
-interface TemplateEditorProps {
+interface EditorProps {
   initialContent?: string;
   onChange?: (html: string) => void;
   onEditorReady?: (editor: any) => void;
@@ -108,7 +108,7 @@ const getCurrentFontFamily = (editor: any) => {
   return fontFamily;
 };
 
-const TemplateEditor: React.FC<TemplateEditorProps> = ({
+const Editor: React.FC<EditorProps> = ({
   initialContent = "",
   onChange,
   onEditorReady,
@@ -463,4 +463,4 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   );
 };
 
-export default TemplateEditor;
+export default Editor;

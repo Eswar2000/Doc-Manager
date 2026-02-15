@@ -1,5 +1,5 @@
 import React from "react";
-import TemplateEditor from "../editor/editor";
+import Editor from "../editor/editor";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
 import type { Placeholder, EditorInitialData, DynamicField, AttributeProps } from "../../types/index";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -411,7 +411,7 @@ export default function EditorPage() {
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor */}
       <div className="flex-[3] p-8 overflow-auto">
-        <TemplateEditor
+        <Editor
           onEditorReady={setEditor}
         />
       </div>
