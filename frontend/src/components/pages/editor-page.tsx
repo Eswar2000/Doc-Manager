@@ -1,6 +1,7 @@
 import React from "react";
 import TemplateEditor from "../editor/editor";
-import type { Placeholder, EditorInitialData } from "../../types/index";
+import DynamicDialog from "../dialog-box/dynamic-dialog";
+import type { Placeholder, EditorInitialData, DynamicField } from "../../types/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { templateApi } from "@/api/templates";
@@ -80,6 +81,24 @@ export default function EditorPage() {
   const [required, setRequired] = React.useState(false);
   const [hidden, setHidden] = React.useState(false);
   const [defaultValue, setDefaultValue] = React.useState("");
+
+  const [ruleDialogOpen, setRuleDialogOpen] = React.useState(false);
+  const [editingRule, setEditingRule] = React.useState<{
+    id: string | null;          // null = new rule
+    pos?: number;               // only for edit
+    condition: { fieldKey: string; operator: string; value: string } | null;
+    action: "show" | "hide";
+  } | null>(null);
+
+  const getRuleDialogFields = (): DynamicField[] => {
+    const usedAttributes = placeholders.filter(p => attributeCounts[p.id] > 0);
+    return [
+      { name: "fieldKey", label: "Attribute", type: "select", required: true, options: usedAttributes.map(p => p.id) },
+      { name: "operator", label: "Operator", type: "select", required: true, options: ["equals", "not_equals", "greater", "less"] },
+      { name: "value", label: "Value", type: "text", required: true },
+      { name: "action", label: "Action when condition is true", type: "select", required: true, options: ["show", "hide"] },
+    ];
+  }
 
   // Recalculate counts by scanning the document
   const recalculateFieldCounts = () => {
@@ -564,14 +583,8 @@ export default function EditorPage() {
                     variant="outline"
                     className="w-full mb-4 border-dashed border-indigo-400 text-indigo-600 hover:bg-indigo-50"
                     onClick={() => {
-                      if (!editor) return;
-                      // For now: insert a dummy block to test visually
-                      // Later: open full dialog
-                      editor.chain().focus().insertConditionalBlock({
-                        condition: { fieldKey: "1", operator: "equals", value: "Test Client" },
-                        action: "show",
-                      }).run();
-                      toast.info("Test conditional block inserted (click pencil to configure)");
+                      setEditingRule(null);
+                      setRuleDialogOpen(true);
                     }}
                     disabled={!editor || Object.keys(attributeCounts).length === 0}
                   >
@@ -755,6 +768,57 @@ export default function EditorPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DynamicDialog
+        open={ruleDialogOpen}
+        title={editingRule ? "Edit Conditional Rule" : "Add Conditional Rule"}
+        description="Control when this section of the template appears or is hidden."
+        fields={getRuleDialogFields()}
+        initialValues={
+          editingRule?.condition && editingRule.action
+            ? {
+              fieldKey: editingRule.condition.fieldKey,
+              operator: editingRule.condition.operator,
+              value: editingRule.condition.value,
+              action: editingRule.action,
+            }
+            : {}
+        }
+        submitButtonText={editingRule ? "Update Rule" : "Add Rule"}
+        cancelButtonText="Cancel"
+        onUpdate={(values: Record<string, any>) => {
+          const { fieldKey, operator, value, action } = values;
+
+          // Basic sanitization
+          if (!fieldKey || !operator || !value || !action) {
+            toast.error("Please fill all required fields");
+            return;
+          }
+
+          const condition = { fieldKey, operator, value: String(value) };
+
+          if (editingRule && editingRule.id) {
+            // Update existing block (next step: implement)
+            console.log("Updating rule:", editingRule.id, condition, action);
+            // TODO: find node by id or pos → update attrs
+            toast.success("Rule updated");
+          } else {
+            // Create new block
+            editor.chain().focus().insertConditionalBlock({
+              condition,
+              action: action as "show" | "hide",
+            }).run();
+            toast.success("Conditional rule added");
+          }
+
+          setRuleDialogOpen(false);
+          setEditingRule(null);
+        }}
+        onCancel={() => {
+          setRuleDialogOpen(false);
+          setEditingRule(null);
+        }}
+      />
     </div>
   );
 }
