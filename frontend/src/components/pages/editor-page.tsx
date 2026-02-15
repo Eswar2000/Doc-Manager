@@ -1,10 +1,12 @@
 import React from "react";
 import TemplateEditor from "../editor/editor";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
-import type { Placeholder, EditorInitialData, DynamicField } from "../../types/index";
+import type { Placeholder, EditorInitialData, DynamicField, AttributeProps } from "../../types/index";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { templateApi } from "@/api/templates";
+import { attributeApi } from "@/api/attributes";
+
 import { toast } from "sonner";
 
 import {
@@ -36,16 +38,6 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "../ui/spinner";
 
-const placeholders: Placeholder[] = [
-  { id: "1", label: "Client Name" },
-  { id: "2", label: "Contract Date" },
-  { id: "3", label: "Total Amount" },
-  { id: "4", label: "Signature" },
-  { id: "5", label: "Company Name" },
-  { id: "6", label: "Effective Date" },
-  { id: "7", label: "Recipient Email" },
-  { id: "8", label: "Document Title" },
-];
 
 export default function EditorPage() {
   const location = useLocation();
@@ -54,6 +46,21 @@ export default function EditorPage() {
 
   const initialData = location.state?.initialData as EditorInitialData | undefined;
   const mode = location.state?.mode || "template";
+
+  const {
+    data: attributes = [],
+    // isLoading: isAttributesLoading,
+    // isError: isAttributesError,
+    // error: attributesError,
+  } = useQuery<AttributeProps[]>({
+    queryKey: ['attributes'],
+    queryFn: attributeApi.fetchAttributes,
+    staleTime: 3000 * 60,
+    retry: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: false,
+    refetchOnMount: true,
+  });
 
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
@@ -91,9 +98,9 @@ export default function EditorPage() {
   } | null>(null);
 
   const getRuleDialogFields = (): DynamicField[] => {
-    const usedAttributes = placeholders.filter(p => attributeCounts[p.id] > 0);
+    const usedAttributes = attributes.filter(attr => attributeCounts[attr.id.toString()] > 0);
     return [
-      { name: "fieldKey", label: "Attribute", type: "select", required: true, options: usedAttributes.map(p => p.id) },
+      { name: "fieldKey", label: "Attribute", type: "select", required: true, options: usedAttributes.map(attr => attr.name) },
       { name: "operator", label: "Operator", type: "select", required: true, options: ["equals", "not_equals", "greater", "less"] },
       { name: "value", label: "Value", type: "text", required: true },
       { name: "action", label: "Action when condition is true", type: "select", required: true, options: ["show", "hide"] },
@@ -188,12 +195,6 @@ export default function EditorPage() {
         defaultValue: string | null;
       }>();
 
-    // First, build a map from label -> original id (from placeholders)
-    const labelToId = new Map<string, string>();
-    placeholders.forEach(p => {
-      labelToId.set(p.label, p.id);
-    });
-
     // Traverse document to collect trackerIds per label
     editor.state.doc.descendants((node: any) => {
       if (node.type.name === "attributeField") {
@@ -204,7 +205,7 @@ export default function EditorPage() {
         };
 
         if (label && trackerId && fieldKey) {
-          const attributeId = labelToId.get(label) || "custom";
+          const attributeId = fieldKey;
 
           // Get config from our React state
           const config = attributeConfig[fieldKey] || {
@@ -213,8 +214,8 @@ export default function EditorPage() {
             defaultValue: null,
           };
 
-          if (!attributeMap.has(label)) {
-            attributeMap.set(label, {
+          if (!attributeMap.has(attributeId)) {
+            attributeMap.set(attributeId, {
               attributeId,
               label,
               required: config.required,
@@ -224,7 +225,7 @@ export default function EditorPage() {
             });
           }
 
-          attributeMap.get(label)!.trackerIds.push(trackerId);
+          attributeMap.get(attributeId)!.trackerIds.push(trackerId);
         }
       }
     });
@@ -489,12 +490,12 @@ export default function EditorPage() {
               </AccordionTrigger>
               <AccordionContent className="px-6 pt-2 pb-4">
                 <div className="space-y-2">
-                  {placeholders.map((placeholder) => {
-                    const count = attributeCounts[placeholder.id] || 0;
+                  {attributes.map((attr) => {
+                    const count = attributeCounts[attr.id.toString()] || 0;
                     const isActive = count > 0;
 
                     return (
-                      <div key={placeholder.id} className="group relative">
+                      <div key={attr.id} className="group relative">
                         <Button
                           variant="outline"
                           size="sm"
@@ -504,10 +505,13 @@ export default function EditorPage() {
           hover:bg-indigo-100/70 hover:border-indigo-600 hover:shadow-md hover:-translate-y-px
           active:translate-y-0
         `}
-                          onClick={() => handleAttributeClick(placeholder)}
+                          onClick={() => handleAttributeClick({
+                            id: attr.id.toString(),
+                            label: attr.name,
+                          })}
                           disabled={!editor}
                         >
-                          <span className="truncate pr-2">{placeholder.label}</span>
+                          <span className="truncate pr-2">{attr.name}</span>
                           <div className="flex items-center gap-2">
                             {isActive && (
                               <Badge
@@ -533,7 +537,10 @@ export default function EditorPage() {
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openConfigModalDirectly(placeholder);
+                                  openConfigModalDirectly({
+                                    id: attr.id.toString(),
+                                    label: attr.name,
+                                  });
                                 }}
                               >
                                 Update Config
@@ -542,7 +549,10 @@ export default function EditorPage() {
                                 className="text-red-600 focus:text-red-600 focus:bg-red-50"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedPlaceholder(placeholder);
+                                  setSelectedPlaceholder({
+                                    id: attr.id.toString(),
+                                    label: attr.name,
+                                  });
                                   setDeleteConfirmOpen(true);
                                 }}
                               >
