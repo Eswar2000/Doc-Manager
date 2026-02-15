@@ -573,7 +573,7 @@ export default function EditorPage() {
                       }).run();
                       toast.info("Test conditional block inserted (click pencil to configure)");
                     }}
-                    disabled={!editor}
+                    disabled={!editor || Object.keys(attributeCounts).length === 0}
                   >
                     + Add Conditional Rule
                   </Button>
