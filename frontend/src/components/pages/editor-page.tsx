@@ -560,9 +560,23 @@ export default function EditorPage() {
                   Conditional Rules
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pt-4 pb-6">
-                  <p className="text-sm text-gray-500 italic text-center">
-                    Show/hide logic and dynamic content coming soon
-                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full mb-4 border-dashed border-indigo-400 text-indigo-600 hover:bg-indigo-50"
+                    onClick={() => {
+                      if (!editor) return;
+                      // For now: insert a dummy block to test visually
+                      // Later: open full dialog
+                      editor.chain().focus().insertConditionalBlock({
+                        condition: { fieldKey: "1", operator: "equals", value: "Test Client" },
+                        action: "show",
+                      }).run();
+                      toast.info("Test conditional block inserted (click pencil to configure)");
+                    }}
+                    disabled={!editor}
+                  >
+                    + Add Conditional Rule
+                  </Button>
                 </AccordionContent>
               </AccordionItem>
             )}
