@@ -799,7 +799,6 @@ export default function EditorPage() {
         onUpdate={(values: Record<string, any>) => {
           const { fieldKey, operator, value, action } = values;
 
-          // Basic sanitization
           if (!fieldKey || !operator || !value || !action) {
             toast.error("Please fill all required fields");
             return;
@@ -807,18 +806,27 @@ export default function EditorPage() {
 
           const condition = { fieldKey, operator, value: String(value) };
 
+          // Determine whether to wrap selection or insert new block
+          const hasSelection = editor && !editor.state.selection.empty;
+
           if (editingRule && editingRule.id) {
-            // Update existing block (next step: implement)
+            // TODO: Update existing block (next step)
             console.log("Updating rule:", editingRule.id, condition, action);
-            // TODO: find node by id or pos → update attrs
-            toast.success("Rule updated");
+            toast.success("Rule updated (edit not yet implemented)");
+          } else if (hasSelection) {
+            // Wrap the current selection
+            editor.chain().focus().wrapInConditionalBlock({
+              condition,
+              action: action as "show" | "hide",
+            }).run();
+            toast.success("Conditional rule applied to selected content");
           } else {
-            // Create new block
+            // No selection → insert new block
             editor.chain().focus().insertConditionalBlock({
               condition,
               action: action as "show" | "hide",
             }).run();
-            toast.success("Conditional rule added");
+            toast.success("New conditional block added");
           }
 
           setRuleDialogOpen(false);

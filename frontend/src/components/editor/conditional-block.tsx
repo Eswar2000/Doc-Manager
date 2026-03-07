@@ -172,7 +172,7 @@ export const ConditionalBlock = Node.create({
                             { id, condition, action },
                             [
                                 editor.schema.nodes.paragraph.create({}, [
-                                    editor.schema.text("Conditional content – edit or replace me"),
+                                    editor.schema.text("Conditional content - edit or replace me"),
                                 ]),
                             ]
                         );
