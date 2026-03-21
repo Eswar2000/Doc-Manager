@@ -37,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "../ui/spinner";
+import { TextSelection } from "prosemirror-state";
 
 
 export default function EditorPage() {
@@ -93,16 +94,15 @@ export default function EditorPage() {
   const [editingRule, setEditingRule] = React.useState<{
     id: string | null;          // null = new rule
     pos?: number;               // only for edit
-    condition: { fieldKey: string; operator: string; value: string } | null;
+    // condition now supports a group: { join: 'and'|'or', items: [{fieldKey, operator, value}] }
+    condition: { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
     action: "show" | "hide";
   } | null>(null);
 
   const getRuleDialogFields = (): DynamicField[] => {
     const usedAttributes = attributes.filter(attr => attributeCounts[attr.id.toString()] > 0);
     return [
-      { name: "fieldKey", label: "Attribute", type: "select", required: true, options: usedAttributes.map(attr => attr.name) },
-      { name: "operator", label: "Operator", type: "select", required: true, options: ["equals", "not_equals", "greater", "less"] },
-      { name: "value", label: "Value", type: "text", required: true },
+      { name: "conditions", label: "Conditions (combine with AND / OR)", type: "conditions", required: true, options: usedAttributes.map(attr => attr.name), operatorOptions: ["equals", "not_equals", "greater", "less"] },
       { name: "action", label: "Action when condition is true", type: "select", required: true, options: ["show", "hide"] },
     ];
   }
@@ -159,6 +159,20 @@ export default function EditorPage() {
       };
     }
   }, [editor]);
+
+  // Listen for edit events dispatched from the conditional block node view
+  React.useEffect(() => {
+    const handler = (e: any) => {
+      const detail = e?.detail;
+      if (!detail) return;
+      const { id, pos, condition, action } = detail;
+      setEditingRule({ id: id ?? null, pos, condition: condition ?? null, action: action ?? 'show' });
+      setRuleDialogOpen(true);
+    };
+
+    window.addEventListener('edit-conditional-block', handler);
+    return () => window.removeEventListener('edit-conditional-block', handler);
+  }, []);
 
   // Load editor content when initialData is provided (when editing existing templates or snippets)
   React.useEffect(() => {
@@ -787,9 +801,7 @@ export default function EditorPage() {
         initialValues={
           editingRule?.condition && editingRule.action
             ? {
-              fieldKey: editingRule.condition.fieldKey,
-              operator: editingRule.condition.operator,
-              value: editingRule.condition.value,
+              conditions: editingRule.condition,
               action: editingRule.action,
             }
             : {}
@@ -797,33 +809,66 @@ export default function EditorPage() {
         submitButtonText={editingRule ? "Update Rule" : "Add Rule"}
         cancelButtonText="Cancel"
         onUpdate={(values: Record<string, any>) => {
-          const { fieldKey, operator, value, action } = values;
+          const { conditions, action } = values;
 
-          if (!fieldKey || !operator || !value || !action) {
+          if (!conditions || !Array.isArray(conditions.items) || conditions.items.length === 0 || !action) {
             toast.error("Please fill all required fields");
             return;
           }
 
-          const condition = { fieldKey, operator, value: String(value) };
+          const conditionGroup = {
+            join: conditions.join ?? 'and',
+            items: conditions.items.map((it: any) => ({ fieldKey: it.fieldKey, operator: it.operator, value: String(it.value) }))
+          };
 
           // Determine whether to wrap selection or insert new block
           const hasSelection = editor && !editor.state.selection.empty;
 
           if (editingRule && editingRule.id) {
-            // TODO: Update existing block (next step)
-            console.log("Updating rule:", editingRule.id, condition, action);
-            toast.success("Rule updated (edit not yet implemented)");
+            // Update the existing conditional block node at the saved position
+            const idToFind = editingRule.id;
+            if (!idToFind) {
+              toast.error("Failed to update rule: missing id");
+            } else if (editor) {
+              // Prefer locating node by id (more robust than stored pos)
+              let foundPos: number | null = null;
+              editor.state.doc.descendants((node: any, pos: number) => {
+                if (node.type && node.type.name === 'conditionalBlock' && node.attrs && node.attrs.id === idToFind) {
+                  foundPos = pos;
+                  return false; // stop iteration
+                }
+                return true;
+              });
+
+              if (foundPos === null) {
+                toast.error('Failed to update rule: block not found in document');
+              } else {
+                try {
+                  const node = editor.state.doc.nodeAt(foundPos);
+                  if (!node) throw new Error('node missing at foundPos');
+                  const schema = editor.schema;
+                  const newAttrs = { ...(node.attrs || {}), condition: conditionGroup, action };
+                  const newNode = schema.nodes.conditionalBlock.create(newAttrs, node.content);
+                  let tr2 = editor.state.tr.replaceWith(foundPos, foundPos + node.nodeSize, newNode);
+                  tr2 = tr2.setSelection(TextSelection.create(tr2.doc, foundPos + 1));
+                  editor.view.dispatch(tr2);
+                  toast.success('Rule updated');
+                } catch (err: any) {
+                  toast.error('Failed to update rule: ' + (err?.message || String(err)));
+                }
+              }
+            }
           } else if (hasSelection) {
             // Wrap the current selection
             editor.chain().focus().wrapInConditionalBlock({
-              condition,
+              condition: conditionGroup,
               action: action as "show" | "hide",
             }).run();
             toast.success("Conditional rule applied to selected content");
           } else {
             // No selection → insert new block
             editor.chain().focus().insertConditionalBlock({
-              condition,
+              condition: conditionGroup,
               action: action as "show" | "hide",
             }).run();
             toast.success("New conditional block added");

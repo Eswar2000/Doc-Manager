@@ -11,19 +11,20 @@ declare module "@tiptap/core" {
     interface Commands<ReturnType> {
         conditionalBlock: {
             insertConditionalBlock: (options: {
+                // condition can be a single condition or a group { join, items[] }
                 condition?: {
-                    fieldKey: string;
-                    operator: string;
-                    value: string;
-                } | null;
+                    fieldKey?: string;
+                    operator?: string;
+                    value?: string;
+                } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                 action?: "show" | "hide";
             }) => ReturnType;
             wrapInConditionalBlock: (options: {
                 condition?: {
-                    fieldKey: string;
-                    operator: string;
-                    value: string;
-                } | null;
+                    fieldKey?: string;
+                    operator?: string;
+                    value?: string;
+                } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                 action?: "show" | "hide";
             }) => ReturnType;
         };
@@ -34,16 +35,26 @@ const ConditionalBlockComponent = (props: any) => {
     const { node, editor, getPos } = props;
     const attrs = node.attrs as {
         id: string | null;
-        condition: { fieldKey: string; operator: string; value: string } | null;
+        // condition may be a single condition or a group
+        condition: { fieldKey?: string; operator?: string; value?: string } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
         action: "show" | "hide";
     };
 
     const isShow = attrs.action === "show";
 
     let conditionLabel = "Unconfigured rule";
-    if (attrs.condition?.fieldKey) {
-        const op = attrs.condition.operator.replace(/_/g, " ");
-        conditionLabel = `${attrs.condition.fieldKey} ${op} "${attrs.condition.value}"`;
+    if (attrs.condition) {
+        // group
+        if ((attrs.condition as any).items && Array.isArray((attrs.condition as any).items)) {
+            const grp = (attrs.condition as any);
+            const parts = grp.items.map((it: any) => `${it.fieldKey} ${String(it.operator).replace(/_/g, ' ')} "${it.value}"`);
+            const joiner = grp.join === 'or' ? ' OR ' : ' AND ';
+            conditionLabel = parts.join(joiner);
+        } else if ((attrs.condition as any).fieldKey) {
+            const single = attrs.condition as any;
+            const op = String(single.operator).replace(/_/g, " ");
+            conditionLabel = `${single.fieldKey} ${op} "${single.value}"`;
+        }
     }
 
     const bannerClasses = cn(
@@ -56,8 +67,13 @@ const ConditionalBlockComponent = (props: any) => {
 
     const handleEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
-        console.log("Edit conditional block:", attrs.id, attrs.condition, attrs.action);
-        // → Later: open your rule dialog here, pass attrs.id and getPos()
+        try {
+            const pos = typeof getPos === "function" ? getPos() : -1;
+            const payload = { id: attrs.id, pos, condition: attrs.condition, action: attrs.action };
+            window.dispatchEvent(new CustomEvent('edit-conditional-block', { detail: payload }));
+        } catch (err) {
+            // silently ignore dispatch errors in production
+        }
     };
 
     const handleDelete = (e: React.MouseEvent) => {
@@ -155,14 +171,14 @@ export const ConditionalBlock = Node.create({
         return ReactNodeViewRenderer(ConditionalBlockComponent);
     },
 
-    addCommands() {
+            addCommands() {
         return {
             insertConditionalBlock:
                 ({
                     condition = null,
                     action = "show",
                 }: {
-                    condition?: { fieldKey: string; operator: string; value: string } | null;
+                    condition?: { fieldKey?: string; operator?: string; value?: string } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                     action?: "show" | "hide";
                 } = {}) =>
                     ({ tr, dispatch, editor }) => {
@@ -198,7 +214,7 @@ export const ConditionalBlock = Node.create({
                     condition = null,
                     action = "show",
                 }: {
-                    condition?: { fieldKey: string; operator: string; value: string } | null;
+                    condition?: { fieldKey?: string; operator?: string; value?: string } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                     action?: "show" | "hide";
                 } = {}) =>
                     ({ tr, dispatch, editor }) => {

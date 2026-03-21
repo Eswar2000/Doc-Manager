@@ -12,6 +12,7 @@ import type { DynamicDialogProps } from "@/types/index";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Plus, Trash } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,27 @@ export default function DynamicDialog({
         setFormValues((prev) => ({ ...prev, [name]: value }));
     }
 
+    const handleAddConditionRow = (fieldName: string) => {
+        const current = formValues[fieldName] ?? { join: 'and', items: [] };
+        const items = Array.isArray(current.items) ? current.items.slice() : [];
+        items.push({ fieldKey: '', operator: '', value: '' });
+        handleChange(fieldName, { ...current, items });
+    }
+
+    const handleRemoveConditionRow = (fieldName: string, idx: number) => {
+        const current = formValues[fieldName] ?? { join: 'and', items: [] };
+        const items = Array.isArray(current.items) ? current.items.slice() : [];
+        items.splice(idx, 1);
+        handleChange(fieldName, { ...current, items });
+    }
+
+    const handleConditionRowChange = (fieldName: string, idx: number, key: string, value: any) => {
+        const current = formValues[fieldName] ?? { join: 'and', items: [] };
+        const items = Array.isArray(current.items) ? current.items.slice() : [];
+        items[idx] = { ...(items[idx] || {}), [key]: value };
+        handleChange(fieldName, { ...current, items });
+    }
+
     const handleSubmit = () => {
         const validationErrors = validateForm();
         if (validationErrors.length > 0) {
@@ -51,19 +73,33 @@ export default function DynamicDialog({
         fields.forEach((field) => {
             const value = formValues[field.name];
 
-            //Is required validation
-            if (field.required && (value === undefined || value === null || value === "")) {
-                newErrors.push(`${field.label} is required.`);
-            }
+            //Is required validation (simple fields)
+            if (field.type !== 'conditions') {
+                if (field.required && (value === undefined || value === null || value === "")) {
+                    newErrors.push(`${field.label} is required.`);
+                }
 
-            // Max length validation for text and textarea
-            if ((field.type === "text" || field.type === "textarea") && field.maxLength && value && value.length > field.maxLength) {
-                newErrors.push(`${field.label} must be at most ${field.maxLength} characters.`);
-            }
+                // Max length validation for text and textarea
+                if ((field.type === "text" || field.type === "textarea") && field.maxLength && value && value.length > field.maxLength) {
+                    newErrors.push(`${field.label} must be at most ${field.maxLength} characters.`);
+                }
 
-            // Number validations
-            if (field.type === "number" && value !== "" && isNaN(Number(value))) {
-                newErrors.push(`${field.label} must be a valid number.`);
+                // Number validations
+                if (field.type === "number" && value !== "" && isNaN(Number(value))) {
+                    newErrors.push(`${field.label} must be a valid number.`);
+                }
+            } else {
+                // conditions field validation
+                const group = value ?? { join: 'and', items: [] };
+                const items = Array.isArray(group.items) ? group.items : [];
+                if (field.required && items.length === 0) {
+                    newErrors.push(`${field.label} requires at least one condition.`);
+                }
+                items.forEach((it: any, idx: number) => {
+                    if (!it.fieldKey) newErrors.push(`${field.label}: condition ${idx + 1} missing Attribute.`);
+                    if (!it.operator) newErrors.push(`${field.label}: condition ${idx + 1} missing Operator.`);
+                    if (it.value === undefined || it.value === null || String(it.value).trim() === '') newErrors.push(`${field.label}: condition ${idx + 1} missing Value.`);
+                });
             }
         });
 
@@ -155,6 +191,84 @@ export default function DynamicDialog({
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            )}
+
+                            {/* Conditions group */}
+                            {field.type === "conditions" && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-sm">Match</label>
+                                        <Select
+                                            disabled={field.disabled}
+                                            value={(formValues[field.name]?.join) ?? 'and'}
+                                            onValueChange={(val) => handleChange(field.name, { ...(formValues[field.name] ?? { items: [] }), join: val })}
+                                        >
+                                            <SelectTrigger className="w-36">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="and">All (AND)</SelectItem>
+                                                <SelectItem value="or">Any (OR)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {(formValues[field.name]?.items ?? []).map((row: any, idx: number) => (
+                                        <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                                            <div className="col-span-4">
+                                                <Select
+                                                    disabled={field.disabled}
+                                                    value={row.fieldKey ?? ''}
+                                                    onValueChange={(val) => handleConditionRowChange(field.name, idx, 'fieldKey', val)}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Attribute" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {(field.options ?? []).map((opt) => (
+                                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="col-span-3">
+                                                <Select
+                                                    disabled={field.disabled}
+                                                    value={row.operator ?? ''}
+                                                    onValueChange={(val) => handleConditionRowChange(field.name, idx, 'operator', val)}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Operator" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {(field.operatorOptions ?? ['equals','not_equals','greater','less']).map((op) => (
+                                                            <SelectItem key={op} value={op}>{op.replace('_',' ')}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="col-span-4">
+                                                <Input
+                                                    disabled={field.disabled}
+                                                    value={row.value ?? ''}
+                                                    onChange={(e) => handleConditionRowChange(field.name, idx, 'value', e.target.value)}
+                                                    placeholder="Value"
+                                                />
+                                            </div>
+                                            <div className="col-span-1 flex justify-end">
+                                                <Button variant="ghost" onClick={() => handleRemoveConditionRow(field.name, idx)}>
+                                                    <Trash className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <div>
+                                        <Button variant="outline" size="sm" onClick={() => handleAddConditionRow(field.name)}>
+                                            <Plus className="h-4 w-4 mr-2" /> Add condition
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     ))}
