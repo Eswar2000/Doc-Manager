@@ -203,12 +203,16 @@ export default function DynamicDialog({
                                             value={(formValues[field.name]?.join) ?? 'and'}
                                             onValueChange={(val) => handleChange(field.name, { ...(formValues[field.name] ?? { items: [] }), join: val })}
                                         >
-                                            <SelectTrigger className="w-36">
+                                            <SelectTrigger className={cn(
+                                                "w-36 focus-visible:ring-1 transition-colors duration-150",
+                                                field.disabled && "border-black-800 bg-gray-100 cursor-not-allowed",
+                                                !field.disabled && "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                                            )}>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="and">All (AND)</SelectItem>
-                                                <SelectItem value="or">Any (OR)</SelectItem>
+                                                <SelectItem value="and">All</SelectItem>
+                                                <SelectItem value="or">Any</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -221,7 +225,11 @@ export default function DynamicDialog({
                                                     value={row.fieldKey ?? ''}
                                                     onValueChange={(val) => handleConditionRowChange(field.name, idx, 'fieldKey', val)}
                                                 >
-                                                    <SelectTrigger className="w-full">
+                                                    <SelectTrigger className={cn(
+                                                        "w-full focus-visible:ring-1 transition-colors duration-150",
+                                                        field.disabled && "border-black-800 bg-gray-100 cursor-not-allowed",
+                                                        !field.disabled && "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                                                    )}>
                                                         <SelectValue placeholder="Attribute" />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -237,12 +245,16 @@ export default function DynamicDialog({
                                                     value={row.operator ?? ''}
                                                     onValueChange={(val) => handleConditionRowChange(field.name, idx, 'operator', val)}
                                                 >
-                                                    <SelectTrigger className="w-full">
+                                                    <SelectTrigger className={cn(
+                                                        "w-full focus-visible:ring-1 transition-colors duration-150",
+                                                        field.disabled && "border-black-800 bg-gray-100 cursor-not-allowed",
+                                                        !field.disabled && "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                                                    )}>
                                                         <SelectValue placeholder="Operator" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {(field.operatorOptions ?? ['equals','not_equals','greater','less']).map((op) => (
-                                                            <SelectItem key={op} value={op}>{op.replace('_',' ')}</SelectItem>
+                                                        {(field.operatorOptions ?? ['equals', 'not_equals', 'greater', 'less']).map((op) => (
+                                                            <SelectItem key={op} value={op}>{op.replace('_', ' ')}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -253,6 +265,11 @@ export default function DynamicDialog({
                                                     value={row.value ?? ''}
                                                     onChange={(e) => handleConditionRowChange(field.name, idx, 'value', e.target.value)}
                                                     placeholder="Value"
+                                                    className={cn(
+                                                        "focus-visible:ring-1 transition-colors duration-150",
+                                                        field.disabled && "border-black-800 bg-gray-100 cursor-not-allowed",
+                                                        !field.disabled && "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                                                    )}
                                                 />
                                             </div>
                                             <div className="col-span-1 flex justify-end">
