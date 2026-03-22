@@ -29,7 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical, X } from "lucide-react";
+import { EllipsisVertical, X, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -99,6 +99,7 @@ export default function EditorPage() {
     action: "show" | "hide";
     name: string;
   } | null>(null);
+  const [rules, setRules] = React.useState<Array<{ id: string | null; pos: number; condition: any; action: "show" | "hide"; name: string }>>([]);
 
   const getRuleDialogFields = (): DynamicField[] => {
     const usedAttributes = attributes.filter(attr => attributeCounts[attr.id.toString()] > 0);
@@ -142,15 +143,31 @@ export default function EditorPage() {
     });
   };
 
+  // initial rules scan
+  const scanRules = () => {
+    const found: Array<{ id: string | null; pos: number; condition: any; action: "show" | "hide"; name: string }> = [];
+    editor.state.doc.descendants((node: any, pos: number) => {
+      if (node.type && node.type.name === 'conditionalBlock') {
+        found.push({ id: node.attrs?.id ?? null, pos, condition: node.attrs?.condition ?? null, action: node.attrs?.action ?? 'show', name: node.attrs?.name ?? '' });
+      }
+    });
+    setRules(found);
+  };
+
   // Safe real-time sync on every document change
   React.useEffect(() => {
     if (editor) {
       recalculateFieldCounts(); // Initial count
 
+      scanRules();
+
       const handler = ({ transaction }: { transaction: any }) => {
         if (transaction.docChanged) {
           // Queue to next tick — prevents infinite update loops
-          setTimeout(recalculateFieldCounts, 0);
+          setTimeout(() => {
+            recalculateFieldCounts();
+            scanRules();
+          }, 0);
         }
       };
 
@@ -616,6 +633,48 @@ export default function EditorPage() {
                   >
                     + Add Conditional Rule
                   </Button>
+                  <div className="mt-2 space-y-2">
+                    {rules.length === 0 ? (
+                      <div className="flex items-center justify-center py-2">
+                        <p className="text-sm text-gray-500 italic">No conditional rules yet</p>
+                      </div>
+                    ) : (
+                      rules.map((r) => (
+                        <div
+                          key={r.id ?? String(r.pos)}
+                          className="flex items-center justify-between p-2 rounded-md border border-gray-100 hover:bg-gray-50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="text-xs">
+                              {r.action === 'show' ? (
+                                <div className="p-1 rounded bg-emerald-50" title="Show">
+                                  <Eye className="h-4 w-4 text-emerald-600" />
+                                </div>
+                              ) : (
+                                <div className="p-1 rounded bg-red-50" title="Hide">
+                                  <EyeOff className="h-4 w-4 text-red-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-sm font-normal text-gray-700">{r.name || (r.condition ? 'Rule' : 'Unnamed')}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingRule({ id: r.id, pos: r.pos, condition: r.condition, action: r.action, name: r.name });
+                                setRuleDialogOpen(true);
+                              }}
+                              className="text-indigo-600 hover:text-indigo-700"
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             )}
