@@ -32,9 +32,12 @@ export default function DynamicDialog({
     const [errors, setErrors] = useState<string[]>([]);
 
     useEffect(() => {
-        // Reset the form when dialog opens or the initial values change
-        setFormValues(initialValues ?? {});
-        setErrors([]);
+        // Only reset the form when the dialog opens.
+        // Prevents the form from briefly resetting while the dialog is closing.
+        if (open) {
+            setFormValues(initialValues ?? {});
+            setErrors([]);
+        }
     }, [open, initialValues]);
 
     const handleChange = (name: string, value: any) => {
@@ -113,7 +116,7 @@ export default function DynamicDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={onCancel}>
+        <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel(); }}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
