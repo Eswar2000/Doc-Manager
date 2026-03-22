@@ -259,7 +259,7 @@ export default function DynamicDialog({
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            <div className="col-span-4">
+                                            <div className="col-span-3">
                                                 <Input
                                                     disabled={field.disabled}
                                                     value={row.value ?? ''}
@@ -272,8 +272,8 @@ export default function DynamicDialog({
                                                     )}
                                                 />
                                             </div>
-                                            <div className="col-span-1 flex justify-end">
-                                                <Button variant="ghost" onClick={() => handleRemoveConditionRow(field.name, idx)}>
+                                            <div className="col-span-2 flex">
+                                                <Button variant="ghost" onClick={() => handleRemoveConditionRow(field.name, idx)} className="text-indigo-600 hover:text-indigo-700">
                                                     <Trash className="h-4 w-4" />
                                                 </Button>
                                             </div>
@@ -281,8 +281,8 @@ export default function DynamicDialog({
                                     ))}
 
                                     <div>
-                                        <Button variant="outline" size="sm" onClick={() => handleAddConditionRow(field.name)}>
-                                            <Plus className="h-4 w-4 mr-2" /> Add condition
+                                        <Button onClick={() => handleAddConditionRow(field.name)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                                            <Plus className="h-4 w-4" /> Add condition
                                         </Button>
                                     </div>
                                 </div>
