@@ -97,11 +97,13 @@ export default function EditorPage() {
     // condition now supports a group: { join: 'and'|'or', items: [{fieldKey, operator, value}] }
     condition: { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
     action: "show" | "hide";
+    name: string;
   } | null>(null);
 
   const getRuleDialogFields = (): DynamicField[] => {
     const usedAttributes = attributes.filter(attr => attributeCounts[attr.id.toString()] > 0);
     return [
+      { name: "name", label: "Rule name", type: "text", required: true, maxLength: 100 },
       { name: "conditions", label: "Conditions (combine with AND / OR)", type: "conditions", required: true, options: usedAttributes.map(attr => attr.name), operatorOptions: ["equals", "not_equals", "greater", "less"] },
       { name: "action", label: "Action when condition is true", type: "select", required: true, options: ["show", "hide"] },
     ];
@@ -165,8 +167,8 @@ export default function EditorPage() {
     const handler = (e: any) => {
       const detail = e?.detail;
       if (!detail) return;
-      const { id, pos, condition, action } = detail;
-      setEditingRule({ id: id ?? null, pos, condition: condition ?? null, action: action ?? 'show' });
+      const { id, pos, condition, action, name } = detail;
+      setEditingRule({ id: id ?? null, pos, condition: condition ?? null, action: action ?? 'show', name: name ?? '' });
       setRuleDialogOpen(true);
     };
 
@@ -801,6 +803,7 @@ export default function EditorPage() {
         initialValues={
           editingRule?.condition && editingRule.action
             ? {
+              name: editingRule.name ?? '',
               conditions: editingRule.condition,
               action: editingRule.action,
             }
@@ -809,7 +812,12 @@ export default function EditorPage() {
         submitButtonText={editingRule ? "Update Rule" : "Add Rule"}
         cancelButtonText="Cancel"
         onUpdate={(values: Record<string, any>) => {
-          const { conditions, action } = values;
+          const { name, conditions, action } = values;
+
+          if (!name || String(name).trim() === "") {
+            toast.error("Rule name is required");
+            return;
+          }
 
           if (!conditions || !Array.isArray(conditions.items) || conditions.items.length === 0 || !action) {
             toast.error("Please fill all required fields");
@@ -847,7 +855,7 @@ export default function EditorPage() {
                   const node = editor.state.doc.nodeAt(foundPos);
                   if (!node) throw new Error('node missing at foundPos');
                   const schema = editor.schema;
-                  const newAttrs = { ...(node.attrs || {}), condition: conditionGroup, action };
+                  const newAttrs = { ...(node.attrs || {}), condition: conditionGroup, action, name };
                   const newNode = schema.nodes.conditionalBlock.create(newAttrs, node.content);
                   let tr2 = editor.state.tr.replaceWith(foundPos, foundPos + node.nodeSize, newNode);
                   tr2 = tr2.setSelection(TextSelection.create(tr2.doc, foundPos + 1));
@@ -863,14 +871,16 @@ export default function EditorPage() {
             editor.chain().focus().wrapInConditionalBlock({
               condition: conditionGroup,
               action: action as "show" | "hide",
-            }).run();
+              name: name,
+            } as any).run();
             toast.success("Conditional rule applied to selected content");
           } else {
             // No selection → insert new block
             editor.chain().focus().insertConditionalBlock({
               condition: conditionGroup,
               action: action as "show" | "hide",
-            }).run();
+              name: name,
+            } as any).run();
             toast.success("New conditional block added");
           }
 

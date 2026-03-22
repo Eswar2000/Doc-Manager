@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -30,6 +30,12 @@ export default function DynamicDialog({
 }: DynamicDialogProps) {
     const [formValues, setFormValues] = useState(initialValues);
     const [errors, setErrors] = useState<string[]>([]);
+
+    useEffect(() => {
+        // Reset the form when dialog opens or the initial values change
+        setFormValues(initialValues ?? {});
+        setErrors([]);
+    }, [open, initialValues]);
 
     const handleChange = (name: string, value: any) => {
         setFormValues((prev) => ({ ...prev, [name]: value }));

@@ -18,6 +18,7 @@ declare module "@tiptap/core" {
                     value?: string;
                 } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                 action?: "show" | "hide";
+                name?: string;
             }) => ReturnType;
             wrapInConditionalBlock: (options: {
                 condition?: {
@@ -26,6 +27,7 @@ declare module "@tiptap/core" {
                     value?: string;
                 } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                 action?: "show" | "hide";
+                name?: string;
             }) => ReturnType;
         };
     }
@@ -38,6 +40,7 @@ const ConditionalBlockComponent = (props: any) => {
         // condition may be a single condition or a group
         condition: { fieldKey?: string; operator?: string; value?: string } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
         action: "show" | "hide";
+        name: string;
     };
 
     const isShow = attrs.action === "show";
@@ -69,7 +72,7 @@ const ConditionalBlockComponent = (props: any) => {
         e.stopPropagation();
         try {
             const pos = typeof getPos === "function" ? getPos() : -1;
-            const payload = { id: attrs.id, pos, condition: attrs.condition, action: attrs.action };
+                const payload = { id: attrs.id, pos, condition: attrs.condition, action: attrs.action, name: attrs.name ?? '' };
             window.dispatchEvent(new CustomEvent('edit-conditional-block', { detail: payload }));
         } catch (err) {
             // silently ignore dispatch errors in production
@@ -111,7 +114,7 @@ const ConditionalBlockComponent = (props: any) => {
             <div className={bannerClasses}>
                 {isShow ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
                 <span className="ml-1.5">
-                    {isShow ? "Show if" : "Hide if"} {conditionLabel}
+                    {isShow ? "Show if" : "Hide if"} {attrs.name ? attrs.name : conditionLabel}
                 </span>
 
                 {editor.isEditable && (
@@ -156,6 +159,7 @@ export const ConditionalBlock = Node.create({
             id: { default: null },
             condition: { default: null },
             action: { default: "show" },
+            name: { default: '' },
         };
     },
 
@@ -177,15 +181,17 @@ export const ConditionalBlock = Node.create({
                 ({
                     condition = null,
                     action = "show",
+                    name = '',
                 }: {
                     condition?: { fieldKey?: string; operator?: string; value?: string } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                     action?: "show" | "hide";
+                    name?: string;
                 } = {}) =>
                     ({ tr, dispatch, editor }) => {
                         const id = uuidv4();
 
-                        const node = editor.schema.nodes.conditionalBlock.create(
-                            { id, condition, action },
+                            const node = editor.schema.nodes.conditionalBlock.create(
+                            { id, condition, action, name: name ?? '' },
                             [
                                 editor.schema.nodes.paragraph.create({}, [
                                     editor.schema.text("Conditional content - edit or replace me"),
@@ -213,9 +219,11 @@ export const ConditionalBlock = Node.create({
                 ({
                     condition = null,
                     action = "show",
+                    name = '',
                 }: {
                     condition?: { fieldKey?: string; operator?: string; value?: string } | { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
                     action?: "show" | "hide";
+                    name?: string;
                 } = {}) =>
                     ({ tr, dispatch, editor }) => {
                         const id = uuidv4();
@@ -237,6 +245,7 @@ export const ConditionalBlock = Node.create({
                                         id,
                                         condition: condition ?? null,
                                         action: action ?? "show",
+                                        name: name ?? '',
                                     },
                                     content
                                 );
@@ -251,7 +260,7 @@ export const ConditionalBlock = Node.create({
                             }
 
                             const wrapper = editor.schema.nodes.conditionalBlock.create(
-                                { id, condition, action },
+                                { id, condition, action, name: name ?? '' },
                                 tr.doc.slice(from, to).content
                             );
 
