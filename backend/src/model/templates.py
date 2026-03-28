@@ -11,6 +11,26 @@ class TemplateAttribute(BaseModel):
     defaultValue: Optional[Any] = Field(None, description="Default value for the attribute")
     trackerIds: List[str] = Field(default_factory=list, description="List of associated tracker IDs from the document")
 
+# Supporting models for rule conditions
+class TemplateRuleConditionItem(BaseModel):
+    fieldKey: str = Field(..., description="Attribute/field key used in the condition")
+    operator: str = Field(..., description="Operator, e.g. 'equals', 'not_equals', 'greater', 'less'")
+    value: str = Field(..., description="Value to compare against (stored as string)")
+
+
+class TemplateRuleCondition(BaseModel):
+    join: Optional[Literal["and", "or"]] = Field("and", description="How to join multiple items")
+    items: List[TemplateRuleConditionItem] = Field(..., description="List of condition items")
+
+
+class TemplateRule(BaseModel):
+    ruleId: str = Field(..., description="Unique identifier for the rule")
+    name: str = Field(..., description="Name of the rule")
+    action: Literal["show", "hide"] = Field("show", description="Action when condition matches: 'show' or 'hide'")
+    condition: Optional[TemplateRuleCondition] = Field(None, description="Condition group that controls the rule (join + items)")
+    content: Any = Field(..., description="JSON representation of the conditional block's content (ProseMirror node JSON)")
+    
+
 # Schema definition for a template
 class Template(BaseModel):
     id: str = Field(..., description="Unique identifier for the template")
@@ -22,6 +42,7 @@ class Template(BaseModel):
     htmlContent: str = Field(..., description="HTML content of the template")
     jsonContent: Any = Field(..., description="JSON representation of the template - ProseMirror format")
     attributes: List[TemplateAttribute] = Field(default_factory=list, description="List of attributes associated with the template")
+    rules: List[TemplateRule] = Field(default_factory=list, description="List of rules associated with the template")
     createdAt: str = Field(default_factory=datetime.now(timezone.utc).isoformat(), description="Timestamp (UTC timestamp in ISO format) when the template was created")
 
     class Config:
@@ -34,6 +55,7 @@ class TemplateCreateRequest(BaseModel):
     htmlContent: str = Field(default="", description="HTML content of the template")
     jsonContent: Any = Field(..., description="JSON representation of the template - ProseMirror format")
     attributes: List[TemplateAttribute] = Field(default_factory=list, description="List of attributes associated with the template")
+    rules: List[TemplateRule] = Field(default_factory=list, description="List of rules associated with the template")
 
 class TemplateResponse(Template):
     class Config:
