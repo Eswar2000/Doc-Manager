@@ -1,4 +1,3 @@
-// src/editor/editor.tsx
 import React, { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -43,6 +42,7 @@ import {
 import { ResizableImage } from "./resizable-image";
 import { TableBubbleMenu } from "./table-bubble-menu";
 import { AttributeField } from "./attribute-field";
+import { ConditionalBlock } from "./conditional-block";
 
 // Custom FontSize extension
 const FontSize = Mark.create({
@@ -76,7 +76,7 @@ const FontSize = Mark.create({
   },
 });
 
-interface TemplateEditorProps {
+interface EditorProps {
   initialContent?: string;
   onChange?: (html: string) => void;
   onEditorReady?: (editor: any) => void;
@@ -108,7 +108,7 @@ const getCurrentFontFamily = (editor: any) => {
   return fontFamily;
 };
 
-const TemplateEditor: React.FC<TemplateEditorProps> = ({
+const Editor: React.FC<EditorProps> = ({
   initialContent = "",
   onChange,
   onEditorReady,
@@ -142,6 +142,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
       FontFamily,
       FontSize,
       AttributeField,
+      ConditionalBlock
     ],
     content: initialContent,
     editorProps: {
@@ -462,4 +463,4 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   );
 };
 
-export default TemplateEditor;
+export default Editor;

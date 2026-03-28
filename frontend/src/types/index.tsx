@@ -18,7 +18,7 @@ import type { ColumnDef, Table } from "@tanstack/react-table";
 
 export type AttributeType = "number" | "text" | "date" | "email";
 
-export type FormFieldType = "text" | "textarea" | "select" | "number";
+export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions";
 
 export type EditorMode = 'template' | 'snippet';
 
@@ -119,6 +119,8 @@ export interface DynamicField {
   required?: boolean;
   maxLength?: number; // for text and textarea
   options?: string[]; // for select
+  // For condition-groups: provide available attribute options and operator list
+  operatorOptions?: string[];
 }
 
 export interface DynamicDialogProps {

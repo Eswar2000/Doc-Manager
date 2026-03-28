@@ -1,9 +1,12 @@
 import React from "react";
-import TemplateEditor from "../editor/editor";
-import type { Placeholder, EditorInitialData } from "../../types/index";
+import Editor from "../editor/editor";
+import DynamicDialog from "../dialog-box/dynamic-dialog";
+import type { Placeholder, EditorInitialData, DynamicField, AttributeProps } from "../../types/index";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { templateApi } from "@/api/templates";
+import { attributeApi } from "@/api/attributes";
+
 import { toast } from "sonner";
 
 import {
@@ -26,7 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical, X } from "lucide-react";
+import { EllipsisVertical, X, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -34,17 +37,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "../ui/spinner";
+import { TextSelection } from "prosemirror-state";
 
-const placeholders: Placeholder[] = [
-  { id: "1", label: "Client Name" },
-  { id: "2", label: "Contract Date" },
-  { id: "3", label: "Total Amount" },
-  { id: "4", label: "Signature" },
-  { id: "5", label: "Company Name" },
-  { id: "6", label: "Effective Date" },
-  { id: "7", label: "Recipient Email" },
-  { id: "8", label: "Document Title" },
-];
 
 export default function EditorPage() {
   const location = useLocation();
@@ -53,6 +47,21 @@ export default function EditorPage() {
 
   const initialData = location.state?.initialData as EditorInitialData | undefined;
   const mode = location.state?.mode || "template";
+
+  const {
+    data: attributes = [],
+    // isLoading: isAttributesLoading,
+    // isError: isAttributesError,
+    // error: attributesError,
+  } = useQuery<AttributeProps[]>({
+    queryKey: ['attributes'],
+    queryFn: attributeApi.fetchAttributes,
+    staleTime: 3000 * 60,
+    retry: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: false,
+    refetchOnMount: true,
+  });
 
   const [editor, setEditor] = React.useState<any>(null);
   const [isEditMode, setIsEditMode] = React.useState(false);
@@ -80,6 +89,26 @@ export default function EditorPage() {
   const [required, setRequired] = React.useState(false);
   const [hidden, setHidden] = React.useState(false);
   const [defaultValue, setDefaultValue] = React.useState("");
+
+  const [ruleDialogOpen, setRuleDialogOpen] = React.useState(false);
+  const [editingRule, setEditingRule] = React.useState<{
+    id: string | null; // if null, then new rule
+    pos?: number; // only for editing (existing rules)
+    // multiple conditions support: { join: 'and'|'or', items: [{fieldKey, operator, value}] }
+    condition: { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
+    action: "show" | "hide";
+    name: string;
+  } | null>(null);
+  const [rules, setRules] = React.useState<Array<{ id: string | null; pos: number; condition: any; action: "show" | "hide"; name: string }>>([]);
+
+  const getRuleDialogFields = (): DynamicField[] => {
+    const usedAttributes = attributes.filter(attr => attributeCounts[attr.id.toString()] > 0);
+    return [
+      { name: "name", label: "Rule name", type: "text", required: true, maxLength: 100 },
+      { name: "conditions", label: "Conditions (combine with AND / OR)", type: "conditions", required: true, options: usedAttributes.map(attr => attr.name), operatorOptions: ["equals", "not_equals", "greater", "less"] },
+      { name: "action", label: "Action when condition is true", type: "select", required: true, options: ["show", "hide"] },
+    ];
+  }
 
   // Recalculate counts by scanning the document
   const recalculateFieldCounts = () => {
@@ -114,15 +143,31 @@ export default function EditorPage() {
     });
   };
 
+  // initial rules scan
+  const scanRules = () => {
+    const found: Array<{ id: string | null; pos: number; condition: any; action: "show" | "hide"; name: string }> = [];
+    editor.state.doc.descendants((node: any, pos: number) => {
+      if (node.type && node.type.name === 'conditionalBlock') {
+        found.push({ id: node.attrs?.id ?? null, pos, condition: node.attrs?.condition ?? null, action: node.attrs?.action ?? 'show', name: node.attrs?.name ?? '' });
+      }
+    });
+    setRules(found);
+  };
+
   // Safe real-time sync on every document change
   React.useEffect(() => {
     if (editor) {
       recalculateFieldCounts(); // Initial count
 
+      scanRules();
+
       const handler = ({ transaction }: { transaction: any }) => {
         if (transaction.docChanged) {
           // Queue to next tick — prevents infinite update loops
-          setTimeout(recalculateFieldCounts, 0);
+          setTimeout(() => {
+            recalculateFieldCounts();
+            scanRules();
+          }, 0);
         }
       };
 
@@ -133,6 +178,20 @@ export default function EditorPage() {
       };
     }
   }, [editor]);
+
+  // Listen for edit events dispatched from the conditional block node view
+  React.useEffect(() => {
+    const handler = (e: any) => {
+      const detail = e?.detail;
+      if (!detail) return;
+      const { id, pos, condition, action, name } = detail;
+      setEditingRule({ id: id ?? null, pos, condition: condition ?? null, action: action ?? 'show', name: name ?? '' });
+      setRuleDialogOpen(true);
+    };
+
+    window.addEventListener('edit-conditional-block', handler);
+    return () => window.removeEventListener('edit-conditional-block', handler);
+  }, []);
 
   // Load editor content when initialData is provided (when editing existing templates or snippets)
   React.useEffect(() => {
@@ -169,12 +228,6 @@ export default function EditorPage() {
         defaultValue: string | null;
       }>();
 
-    // First, build a map from label -> original id (from placeholders)
-    const labelToId = new Map<string, string>();
-    placeholders.forEach(p => {
-      labelToId.set(p.label, p.id);
-    });
-
     // Traverse document to collect trackerIds per label
     editor.state.doc.descendants((node: any) => {
       if (node.type.name === "attributeField") {
@@ -185,7 +238,7 @@ export default function EditorPage() {
         };
 
         if (label && trackerId && fieldKey) {
-          const attributeId = labelToId.get(label) || "custom";
+          const attributeId = fieldKey;
 
           // Get config from our React state
           const config = attributeConfig[fieldKey] || {
@@ -194,8 +247,8 @@ export default function EditorPage() {
             defaultValue: null,
           };
 
-          if (!attributeMap.has(label)) {
-            attributeMap.set(label, {
+          if (!attributeMap.has(attributeId)) {
+            attributeMap.set(attributeId, {
               attributeId,
               label,
               required: config.required,
@@ -205,12 +258,49 @@ export default function EditorPage() {
             });
           }
 
-          attributeMap.get(label)!.trackerIds.push(trackerId);
+          attributeMap.get(attributeId)!.trackerIds.push(trackerId);
         }
       }
     });
 
     const attributes = Array.from(attributeMap.values());
+
+    const rules: Array<{
+      ruleId: string;
+      name: string;
+      action: "show" | "hide";
+      condition: {
+        join: "and" | "or";
+        items: Array<{ fieldKey: string; operator: string; value: string }>;
+      };
+      content: any;
+    }> = [];
+
+    // Traverse document again to extract conditional blocks and their content
+    editor.state.doc.descendants((node: any, pos: number) => {
+      if (node.type?.name === "conditionalBlock" && node.attrs?.id) {
+        const { id, condition, action, name = "Untitled Rule" } = node.attrs;
+
+        // Extract the INNER content as ProseMirror JSON (excluding the wrapper itself)
+        const from = pos + 1;
+        const to = pos + node.nodeSize - 1;
+
+        let contentJson: any = { type: "doc", content: [] };
+
+        if (from < to) {
+          const slice = editor.state.doc.slice(from, to);
+          contentJson = slice.toJSON();
+        }
+
+        rules.push({
+          ruleId: String(id),
+          name: String(name || "Untitled Rule"),
+          action: (action || "show") as "show" | "hide",
+          condition: condition || { join: "and", items: [] },
+          content: contentJson,
+        });
+      }
+    });
 
     const savedData = {
       name,
@@ -218,6 +308,7 @@ export default function EditorPage() {
       htmlContent: html,
       jsonContent: json,
       attributes,
+      rules
     };
 
     try {
@@ -230,14 +321,18 @@ export default function EditorPage() {
           console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
         }
       } else {
-        console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+        if (mode === 'template' && initialData?.id) {
+          await templateApi.updateTemplate(initialData.id, savedData);
+        } else {
+          console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+        }
       }
 
       if (mode === 'template') {
         queryClient.invalidateQueries({ queryKey: ['templates'] });
       }
 
-      toast.success("Successfully created", {
+      toast.success(isCreate ? "Successfully created" : "Successfully updated", {
         description: isCreate ? `${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully.` : `${mode.charAt(0).toUpperCase() + mode.slice(1)} updated successfully.`,
         duration: 2000,
         closeButton: false,
@@ -391,7 +486,7 @@ export default function EditorPage() {
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor */}
       <div className="flex-[3] p-8 overflow-auto">
-        <TemplateEditor
+        <Editor
           onEditorReady={setEditor}
         />
       </div>
@@ -470,12 +565,12 @@ export default function EditorPage() {
               </AccordionTrigger>
               <AccordionContent className="px-6 pt-2 pb-4">
                 <div className="space-y-2">
-                  {placeholders.map((placeholder) => {
-                    const count = attributeCounts[placeholder.id] || 0;
+                  {attributes.map((attr) => {
+                    const count = attributeCounts[attr.id.toString()] || 0;
                     const isActive = count > 0;
 
                     return (
-                      <div key={placeholder.id} className="group relative">
+                      <div key={attr.id} className="group relative">
                         <Button
                           variant="outline"
                           size="sm"
@@ -485,10 +580,13 @@ export default function EditorPage() {
           hover:bg-indigo-100/70 hover:border-indigo-600 hover:shadow-md hover:-translate-y-px
           active:translate-y-0
         `}
-                          onClick={() => handleAttributeClick(placeholder)}
+                          onClick={() => handleAttributeClick({
+                            id: attr.id.toString(),
+                            label: attr.name,
+                          })}
                           disabled={!editor}
                         >
-                          <span className="truncate pr-2">{placeholder.label}</span>
+                          <span className="truncate pr-2">{attr.name}</span>
                           <div className="flex items-center gap-2">
                             {isActive && (
                               <Badge
@@ -514,7 +612,10 @@ export default function EditorPage() {
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openConfigModalDirectly(placeholder);
+                                  openConfigModalDirectly({
+                                    id: attr.id.toString(),
+                                    label: attr.name,
+                                  });
                                 }}
                               >
                                 Update Config
@@ -523,7 +624,10 @@ export default function EditorPage() {
                                 className="text-red-600 focus:text-red-600 focus:bg-red-50"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedPlaceholder(placeholder);
+                                  setSelectedPlaceholder({
+                                    id: attr.id.toString(),
+                                    label: attr.name,
+                                  });
                                   setDeleteConfirmOpen(true);
                                 }}
                               >
@@ -560,9 +664,59 @@ export default function EditorPage() {
                   Conditional Rules
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pt-4 pb-6">
-                  <p className="text-sm text-gray-500 italic text-center">
-                    Show/hide logic and dynamic content coming soon
-                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full mb-4 border-dashed border-indigo-400 text-indigo-600 hover:bg-indigo-50"
+                    onClick={() => {
+                      setEditingRule(null);
+                      setRuleDialogOpen(true);
+                    }}
+                    disabled={!editor || Object.keys(attributeCounts).length === 0}
+                  >
+                    + Add Conditional Rule
+                  </Button>
+                  <div className="mt-2 space-y-2">
+                    {rules.length === 0 ? (
+                      <div className="flex items-center justify-center py-2">
+                        <p className="text-sm text-gray-500 italic">No conditional rules yet</p>
+                      </div>
+                    ) : (
+                      rules.map((r) => (
+                        <div
+                          key={r.id ?? String(r.pos)}
+                          className="flex items-center justify-between p-2 rounded-md border border-gray-100 hover:bg-gray-50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="text-xs">
+                              {r.action === 'show' ? (
+                                <div className="p-1 rounded bg-emerald-50" title="Show">
+                                  <Eye className="h-4 w-4 text-emerald-600" />
+                                </div>
+                              ) : (
+                                <div className="p-1 rounded bg-red-50" title="Hide">
+                                  <EyeOff className="h-4 w-4 text-red-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-sm font-normal text-gray-700">{r.name || (r.condition ? 'Rule' : 'Unnamed')}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingRule({ id: r.id, pos: r.pos, condition: r.condition, action: r.action, name: r.name });
+                                setRuleDialogOpen(true);
+                              }}
+                              className="text-indigo-600 hover:text-indigo-700"
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             )}
@@ -741,6 +895,104 @@ export default function EditorPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DynamicDialog
+        open={ruleDialogOpen}
+        title={editingRule ? "Edit Conditional Rule" : "Add Conditional Rule"}
+        description="Control when this section of the template appears or is hidden."
+        fields={getRuleDialogFields()}
+        initialValues={
+          editingRule?.condition && editingRule.action
+            ? {
+              name: editingRule.name ?? '',
+              conditions: editingRule.condition,
+              action: editingRule.action,
+            }
+            : {}
+        }
+        submitButtonText={editingRule ? "Update Rule" : "Add Rule"}
+        cancelButtonText="Cancel"
+        onUpdate={(values: Record<string, any>) => {
+          const { name, conditions, action } = values;
+
+          if (!name || String(name).trim() === "") {
+            toast.error("Rule name is required");
+            return;
+          }
+
+          if (!conditions || !Array.isArray(conditions.items) || conditions.items.length === 0 || !action) {
+            toast.error("Please fill all required fields");
+            return;
+          }
+
+          const conditionGroup = {
+            join: conditions.join ?? 'and',
+            items: conditions.items.map((it: any) => ({ fieldKey: it.fieldKey, operator: it.operator, value: String(it.value) }))
+          };
+
+          // Determine whether to wrap selection or insert new block
+          const hasSelection = editor && !editor.state.selection.empty;
+
+          if (editingRule && editingRule.id) {
+            // Update the existing conditional block node at the saved position
+            const idToFind = editingRule.id;
+            if (!idToFind) {
+              toast.error("Failed to update rule: missing id");
+            } else if (editor) {
+              // Prefer locating node by id (more robust than stored pos)
+              let foundPos: number | null = null;
+              editor.state.doc.descendants((node: any, pos: number) => {
+                if (node.type && node.type.name === 'conditionalBlock' && node.attrs && node.attrs.id === idToFind) {
+                  foundPos = pos;
+                  return false; // stop iteration
+                }
+                return true;
+              });
+
+              if (foundPos === null) {
+                toast.error('Failed to update rule: block not found in document');
+              } else {
+                try {
+                  const node = editor.state.doc.nodeAt(foundPos);
+                  if (!node) throw new Error('node missing at foundPos');
+                  const schema = editor.schema;
+                  const newAttrs = { ...(node.attrs || {}), condition: conditionGroup, action, name };
+                  const newNode = schema.nodes.conditionalBlock.create(newAttrs, node.content);
+                  let tr2 = editor.state.tr.replaceWith(foundPos, foundPos + node.nodeSize, newNode);
+                  tr2 = tr2.setSelection(TextSelection.create(tr2.doc, foundPos + 1));
+                  editor.view.dispatch(tr2);
+                  toast.success('Rule updated');
+                } catch (err: any) {
+                  toast.error('Failed to update rule: ' + (err?.message || String(err)));
+                }
+              }
+            }
+          } else if (hasSelection) {
+            // Wrap the current selection
+            editor.chain().focus().wrapInConditionalBlock({
+              condition: conditionGroup,
+              action: action as "show" | "hide",
+              name: name,
+            } as any).run();
+            toast.success("Conditional rule applied to selected content");
+          } else {
+            // No selection - insert new block
+            editor.chain().focus().insertConditionalBlock({
+              condition: conditionGroup,
+              action: action as "show" | "hide",
+              name: name,
+            } as any).run();
+            toast.success("New conditional block added");
+          }
+
+          setRuleDialogOpen(false);
+          setEditingRule(null);
+        }}
+        onCancel={() => {
+          setRuleDialogOpen(false);
+          setEditingRule(null);
+        }}
+      />
     </div>
   );
 }
