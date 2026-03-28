@@ -92,9 +92,9 @@ export default function EditorPage() {
 
   const [ruleDialogOpen, setRuleDialogOpen] = React.useState(false);
   const [editingRule, setEditingRule] = React.useState<{
-    id: string | null;          // null = new rule
-    pos?: number;               // only for edit
-    // condition now supports a group: { join: 'and'|'or', items: [{fieldKey, operator, value}] }
+    id: string | null; // if null, then new rule
+    pos?: number; // only for editing (existing rules)
+    // multiple conditions support: { join: 'and'|'or', items: [{fieldKey, operator, value}] }
     condition: { join?: 'and' | 'or'; items: { fieldKey: string; operator: string; value: string }[] } | null;
     action: "show" | "hide";
     name: string;
@@ -976,7 +976,7 @@ export default function EditorPage() {
             } as any).run();
             toast.success("Conditional rule applied to selected content");
           } else {
-            // No selection → insert new block
+            // No selection - insert new block
             editor.chain().focus().insertConditionalBlock({
               condition: conditionGroup,
               action: action as "show" | "hide",
