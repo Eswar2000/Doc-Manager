@@ -321,14 +321,18 @@ export default function EditorPage() {
           console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
         }
       } else {
-        console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+        if (mode === 'template' && initialData?.id) {
+          await templateApi.updateTemplate(initialData.id, savedData);
+        } else {
+          console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
+        }
       }
 
       if (mode === 'template') {
         queryClient.invalidateQueries({ queryKey: ['templates'] });
       }
 
-      toast.success("Successfully created", {
+      toast.success(isCreate ? "Successfully created" : "Successfully updated", {
         description: isCreate ? `${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully.` : `${mode.charAt(0).toUpperCase() + mode.slice(1)} updated successfully.`,
         duration: 2000,
         closeButton: false,
