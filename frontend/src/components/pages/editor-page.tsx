@@ -265,12 +265,50 @@ export default function EditorPage() {
 
     const attributes = Array.from(attributeMap.values());
 
+    const rules: Array<{
+      ruleId: string;
+      name: string;
+      action: "show" | "hide";
+      condition: {
+        join: "and" | "or";
+        items: Array<{ fieldKey: string; operator: string; value: string }>;
+      };
+      content: any;
+    }> = [];
+
+    // Traverse document again to extract conditional blocks and their content
+    editor.state.doc.descendants((node: any, pos: number) => {
+      if (node.type?.name === "conditionalBlock" && node.attrs?.id) {
+        const { id, condition, action, name = "Untitled Rule" } = node.attrs;
+
+        // Extract the INNER content as ProseMirror JSON (excluding the wrapper itself)
+        const from = pos + 1;
+        const to = pos + node.nodeSize - 1;
+
+        let contentJson: any = { type: "doc", content: [] };
+
+        if (from < to) {
+          const slice = editor.state.doc.slice(from, to);
+          contentJson = slice.toJSON();
+        }
+
+        rules.push({
+          ruleId: String(id),
+          name: String(name || "Untitled Rule"),
+          action: (action || "show") as "show" | "hide",
+          condition: condition || { join: "and", items: [] },
+          content: contentJson,
+        });
+      }
+    });
+
     const savedData = {
       name,
       description,
       htmlContent: html,
       jsonContent: json,
       attributes,
+      rules
     };
 
     try {
