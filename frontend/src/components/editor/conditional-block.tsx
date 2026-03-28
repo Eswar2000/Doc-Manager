@@ -237,7 +237,7 @@ export const ConditionalBlock = Node.create({
                                 const id = uuidv4();
 
                                 const content = editor.schema.nodes.paragraph.create({}, [
-                                    editor.schema.text("Conditional content – edit me"),
+                                    editor.schema.text("Conditional content - edit me"),
                                 ]);
 
                                 const block = editor.schema.nodes.conditionalBlock.create(
