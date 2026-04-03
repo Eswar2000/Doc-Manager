@@ -1,6 +1,6 @@
 # Backend Setup (Python FastAPI)
 
-This service powers the Template Manager backend, handling placehoder management, template management, versioning, and document generation.
+This service powers the **Template Manager** backend, handling placehoder management, template management, versioning, and document generation.
 
 ---
 
@@ -13,7 +13,7 @@ This service powers the Template Manager backend, handling placehoder management
 
 ## 🚀 Setup
 
-### 1. Create Virtual Environment
+### 1. Create Virtual Environment (only first time)
 
 ```bash
 python -m venv .venv
@@ -26,7 +26,7 @@ python -m venv .venv
 .venv\Scripts\activate
 ```
 
-### 3. Install Dependencies
+### 3. Install Dependencies (only first time)
 
 ```bash
 pip install -r requirements.txt
