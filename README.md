@@ -75,3 +75,18 @@ It supports:
 - Backend: Python
 - Database: CosmosDB
 - Editor: Tiptap Editor
+
+---
+
+## 🧑‍💻 Development Setup
+
+For local development, refer to the service-specific setup guides:
+
+- Backend → `backend/README.md`
+- Frontend → `frontend/README.md`
+
+### Quick Flow
+
+1. Start the backend server
+2. Start the frontend server
+3. Open `http://localhost:5173` in your browser
