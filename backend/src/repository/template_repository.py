@@ -4,11 +4,9 @@ from fastapi import HTTPException
 from typing import Literal, Optional
 import uuid
 from datetime import datetime, timezone
-from prosemirror.model import Node, DOMSerializer
-from prosemirror.schema.basic import schema
 from copy import deepcopy
 from src.db.client import get_container
-from src.utils.template_utils import replace_attribute_fields, validate_attribute_values, normalize_marks, normalize_node_types, sanitize_node_types
+from src.utils.template_utils import render_html_from_template, validate_attribute_values
 
 from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
 
@@ -237,22 +235,7 @@ class TemplateRepository:
             raise HTTPException(status_code=404, detail="Template not found")
         
         print(f"Get_Template_Content: Successfully retrieved content for template ID {template_id}")
-        try:
-            # Create a copy and replace custom nodes with plain nodes (so that parser does not fail on unknown node types).
-            json_copy = deepcopy(template.jsonContent)
-
-            replace_attribute_fields(json_copy)
-            normalize_node_types(json_copy)
-            normalize_marks(json_copy)
-            sanitize_node_types(json_copy, schema)
-
-            doc_node = Node.from_json(schema, json_copy)
-            serializer = DOMSerializer.from_schema(schema)
-            html_output = serializer.serialize_fragment(doc_node.content)
-            return str(html_output)
-        except Exception as e:
-            print(f"Get_Template_Content: ProseMirror conversion failed for template ID {template_id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to convert template content: {str(e)}")
+        return template.htmlContent
         
     async def generate_document(self, template_id: str, attribute_values: dict) -> str:
         print(f"Generate_Document: Starting document generation for template ID {template_id}")
@@ -266,20 +249,7 @@ class TemplateRepository:
             print(f"Generate_Document: Missing required attributes for template ID {template_id}: {missing}")
             raise HTTPException(status_code=400, detail={"message": "Missing required attributes", "missing": missing})
         
-
         print(f"Generate_Document: Successfully retrieved template for ID {template_id}")
-        try:
-            json_copy = deepcopy(template.jsonContent)
-
-            replace_attribute_fields(json_copy, resolved)
-            normalize_node_types(json_copy)
-            normalize_marks(json_copy)
-            sanitize_node_types(json_copy, schema)
-
-            doc_node = Node.from_json(schema, json_copy)
-            serializer = DOMSerializer.from_schema(schema)
-            html_output = serializer.serialize_fragment(doc_node.content)
-            return str(html_output)
-        except Exception as e:
-            print(f"Generate_Document: ProseMirror conversion failed for template ID {template_id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to generate document content: {str(e)}")
+        print(f"Generate_Document: Resolved attribute values: {resolved}")
+        html_content = render_html_from_template(template.htmlContent, resolved)
+        return html_content
