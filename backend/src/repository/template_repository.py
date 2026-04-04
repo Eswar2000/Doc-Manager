@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from prosemirror.model import Node, Schema, DOMSerializer
 from prosemirror.schema.basic import schema
+from copy import deepcopy
 from src.db.client import get_container
 
 from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
@@ -236,7 +237,41 @@ class TemplateRepository:
         
         print(f"Get_Template_Content: Successfully retrieved content for template ID {template_id}")
         try:
-            doc_node = Node.from_json(schema, template.jsonContent)
+            # Create a copy and replace custom nodes with plain nodes (so that parser does not fail on unknown node types).
+            json_copy = deepcopy(template.jsonContent)
+
+            def replace_attribute_fields(node):
+                if not isinstance(node, dict):
+                    return
+                content = node.get("content")
+                if isinstance(content, list):
+                    i = 0
+                    while i < len(content):
+                        child = content[i]
+                        if isinstance(child, dict) and child.get("type") == "attributeField":
+                            attrs = child.get("attrs", {}) or {}
+                            label = attrs.get("label") or ""
+                            placeholder = f"{{{{ {label} }}}}" if label else ""
+
+                            # Replace the attributeField node with a text node
+                            content[i] = {"type": "text", "text": placeholder}
+
+                            # If the next sibling is a text node (always blank), remove it
+                            next_idx = i + 1
+                            if next_idx < len(content):
+                                nxt = content[next_idx]
+                                if isinstance(nxt, dict) and nxt.get("type") == "text":
+                                    del content[next_idx]
+
+                            i += 1
+                            continue
+
+                        replace_attribute_fields(child)
+                        i += 1
+
+            replace_attribute_fields(json_copy)
+
+            doc_node = Node.from_json(schema, json_copy)
             serializer = DOMSerializer.from_schema(schema)
             html_output = serializer.serialize_fragment(doc_node.content)
             return str(html_output)
