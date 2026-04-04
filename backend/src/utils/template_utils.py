@@ -1,3 +1,5 @@
+from src.model.templates import TemplateAttribute
+
 def replace_attribute_fields(node, defaults: dict | None = None):
     if not isinstance(node, dict):
         return
@@ -31,3 +33,32 @@ def replace_attribute_fields(node, defaults: dict | None = None):
 
             replace_attribute_fields(child, defaults)
             i += 1
+
+
+def validate_attribute_values(values: dict, attributes: list[TemplateAttribute]) -> tuple[dict, list[dict]]:
+    resolved: dict = {}
+    missing: list[dict] = []
+
+    for a in attributes or []:
+        label = a.label
+        attribute_id = a.attributeId
+
+        # Prefer value by label, then by attribute id
+        if label is not None and label in values:
+            val = values[label]
+        elif attribute_id is not None and (str(attribute_id) in values or attribute_id in values):
+            # Accept both string and non-string keys
+            val = values.get(str(attribute_id), values.get(attribute_id))
+        else:
+            val = a.defaultValue
+
+        # Empty-string should be considered a provided value (not missing)
+        has_value = val is not None and not (isinstance(val, str) and val == "")
+
+        if a.required and not has_value:
+            missing.append({"label": label, "attributeId": attribute_id})
+
+        key = label if label else str(attribute_id)
+        resolved[key] = "" if val is None else val
+
+        return resolved, missing

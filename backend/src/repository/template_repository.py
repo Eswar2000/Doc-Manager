@@ -4,11 +4,11 @@ from fastapi import HTTPException
 from typing import Literal, Optional
 import uuid
 from datetime import datetime, timezone
-from prosemirror.model import Node, Schema, DOMSerializer
+from prosemirror.model import Node, DOMSerializer
 from prosemirror.schema.basic import schema
 from copy import deepcopy
 from src.db.client import get_container
-from src.utils.template_utils import replace_attribute_fields
+from src.utils.template_utils import replace_attribute_fields, validate_attribute_values
 
 from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
 
@@ -250,3 +250,30 @@ class TemplateRepository:
         except Exception as e:
             print(f"Get_Template_Content: ProseMirror conversion failed for template ID {template_id}: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to convert template content: {str(e)}")
+        
+    async def generate_document(self, template_id: str, attribute_values: dict) -> str:
+        print(f"Generate_Document: Starting document generation for template ID {template_id}")
+        template = await self.get_template_by_id(template_id)
+        if not template:
+            print(f"Generate_Document: No template found with ID {template_id}")
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        resolved, missing = validate_attribute_values(attribute_values, template.attributes)
+        if missing:
+            print(f"Generate_Document: Missing required attributes for template ID {template_id}: {missing}")
+            raise HTTPException(status_code=400, detail={"message": "Missing required attributes", "missing": missing})
+        
+
+        print(f"Generate_Document: Successfully retrieved template for ID {template_id}")
+        try:
+            json_copy = deepcopy(template.jsonContent)
+
+            replace_attribute_fields(json_copy, resolved)
+
+            doc_node = Node.from_json(schema, json_copy)
+            serializer = DOMSerializer.from_schema(schema)
+            html_output = serializer.serialize_fragment(doc_node.content)
+            return str(html_output)
+        except Exception as e:
+            print(f"Generate_Document: ProseMirror conversion failed for template ID {template_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to generate document content: {str(e)}")

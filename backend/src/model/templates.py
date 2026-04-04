@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
-from typing import List, Optional, Literal, Any
+from typing import List, Optional, Literal, Any, Dict
 
 # Schema definition of attribute used inside a template
 class TemplateAttribute(BaseModel):
@@ -66,3 +66,7 @@ class TemplateVersionInfo(BaseModel):
     parentTemplateId: Optional[str] = Field(None, description="ID of the parent (the root) template")
     version: int = Field(..., description="Version number of the template")
     state: Literal["active", "archived"] = Field(..., description="State of the template")
+
+class DocumentGenerationRequest(BaseModel):
+    attributeValues: Dict[str, str] = Field(..., description="Key-value pairs (string->string) of attribute labels/IDs and their corresponding values to be used for document generation")
+    templateId: str = Field(..., description="ID of the template to use for document generation")

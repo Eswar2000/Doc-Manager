@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
-from src.model.templates import TemplateCreateRequest, TemplateResponse, Template, TemplateVersionInfo
+from src.model.templates import TemplateCreateRequest, DocumentGenerationRequest, TemplateResponse, Template, TemplateVersionInfo
 from typing import List, Optional, Literal
 
 router = APIRouter(prefix="/templates", tags=["templates"], responses={500: {"description": "Internal Server Error"}})
@@ -146,3 +146,26 @@ async def get_template_content(template_id: str, service: TemplateService = Depe
     except Exception as e:
         print("Get template content endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving template content", "error": str(e)})
+    
+@router.post(
+    "/generate",
+    response_model=str,
+    summary="Generate a document based on a template and provided attribute values",
+    responses={
+        200: {"description": "Document generated successfully"},
+        400: {"description": "Missing required attributes or invalid input"},
+        404: {"description": "Template not found"},
+    }
+)
+async def generate_document(request: DocumentGenerationRequest, service: TemplateService = Depends(get_template_service)):
+    print("Generate document endpoint called")
+    try:
+        generated_doc = await service.generate_document(request.templateId, request.attributeValues)
+        print("Generate document endpoint: Document generated successfully")
+        return generated_doc
+    except HTTPException as e:
+        print("Generate document endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Generate document endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during document generation", "error": str(e)})
