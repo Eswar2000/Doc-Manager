@@ -1,4 +1,4 @@
-def replace_attribute_fields(node):
+def replace_attribute_fields(node, defaults: dict | None = None):
     if not isinstance(node, dict):
         return
     content = node.get("content")
@@ -9,12 +9,17 @@ def replace_attribute_fields(node):
             if isinstance(child, dict) and child.get("type") == "attributeField":
                 attrs = child.get("attrs", {}) or {}
                 label = attrs.get("label") or ""
-                placeholder = f"{{{{ {label} }}}}" if label else ""
+
+                if defaults is not None and label in defaults:
+                    value = defaults.get(label)
+                    replacement_text = "" if value is None else str(value)
+                else:
+                    replacement_text = f"{{{{ {label} }}}}" if label else ""
 
                 # Replace the attributeField node with a text node
-                content[i] = {"type": "text", "text": placeholder}
+                content[i] = {"type": "text", "text": replacement_text}
 
-                # If the next sibling is a text node (always blank), remove it
+                # If the next sibling is a text node (often blank), remove it
                 next_idx = i + 1
                 if next_idx < len(content):
                     nxt = content[next_idx]
@@ -24,5 +29,5 @@ def replace_attribute_fields(node):
                 i += 1
                 continue
 
-            replace_attribute_fields(child)
+            replace_attribute_fields(child, defaults)
             i += 1
