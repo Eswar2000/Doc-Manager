@@ -8,6 +8,7 @@ from prosemirror.model import Node, Schema, DOMSerializer
 from prosemirror.schema.basic import schema
 from copy import deepcopy
 from src.db.client import get_container
+from src.utils.template_utils import replace_attribute_fields
 
 from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
 
@@ -239,35 +240,6 @@ class TemplateRepository:
         try:
             # Create a copy and replace custom nodes with plain nodes (so that parser does not fail on unknown node types).
             json_copy = deepcopy(template.jsonContent)
-
-            def replace_attribute_fields(node):
-                if not isinstance(node, dict):
-                    return
-                content = node.get("content")
-                if isinstance(content, list):
-                    i = 0
-                    while i < len(content):
-                        child = content[i]
-                        if isinstance(child, dict) and child.get("type") == "attributeField":
-                            attrs = child.get("attrs", {}) or {}
-                            label = attrs.get("label") or ""
-                            placeholder = f"{{{{ {label} }}}}" if label else ""
-
-                            # Replace the attributeField node with a text node
-                            content[i] = {"type": "text", "text": placeholder}
-
-                            # If the next sibling is a text node (always blank), remove it
-                            next_idx = i + 1
-                            if next_idx < len(content):
-                                nxt = content[next_idx]
-                                if isinstance(nxt, dict) and nxt.get("type") == "text":
-                                    del content[next_idx]
-
-                            i += 1
-                            continue
-
-                        replace_attribute_fields(child)
-                        i += 1
 
             replace_attribute_fields(json_copy)
 
