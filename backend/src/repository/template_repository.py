@@ -4,6 +4,8 @@ from fastapi import HTTPException
 from typing import Literal, Optional
 import uuid
 from datetime import datetime, timezone
+from prosemirror.model import Node, Schema, DOMSerializer
+from prosemirror.schema.basic import schema
 from src.db.client import get_container
 
 from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
@@ -224,3 +226,20 @@ class TemplateRepository:
         except exceptions.CosmosHttpResponseError as e:
             print(f"Get_Version_History: Error occurred while fetching version history: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while fetching version history: {str(e)}")
+        
+    async def get_template_content(self, template_id: str) -> str:
+        print(f"Get_Template_Content: Fetching content for template ID {template_id}")
+        template = await self.get_template_by_id(template_id)
+        if not template:
+            print(f"Get_Template_Content: No template found with ID {template_id}")
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        print(f"Get_Template_Content: Successfully retrieved content for template ID {template_id}")
+        try:
+            doc_node = Node.from_json(schema, template.jsonContent)
+            serializer = DOMSerializer.from_schema(schema)
+            html_output = serializer.serialize_fragment(doc_node.content)
+            return str(html_output)
+        except Exception as e:
+            print(f"Get_Template_Content: ProseMirror conversion failed for template ID {template_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to convert template content: {str(e)}")

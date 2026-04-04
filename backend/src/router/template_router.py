@@ -124,3 +124,25 @@ async def get_version_history(template_id: str, service: TemplateService = Depen
     except Exception as e:
         print("Get version history endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving version history", "error": str(e)})
+    
+@router.get(
+    "/{template_id}/content",
+    response_model=str,
+    summary="Get the content of a template in HTML format",
+    responses={
+        200: {"description": "Template content retrieved successfully"},
+        404: {"description": "Template not found"},
+    }
+)
+async def get_template_content(template_id: str, service: TemplateService = Depends(get_template_service)):
+    print("Get template content endpoint called")
+    try:
+        content = await service.get_template_content(template_id)
+        print("Get template content endpoint: Content retrieved successfully")
+        return content
+    except HTTPException as e:
+        print("Get template content endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Get template content endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving template content", "error": str(e)})
