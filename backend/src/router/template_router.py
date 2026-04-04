@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
+from src.utils.pdf_utils import html_to_pdf_bytes
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
 from src.model.templates import TemplateCreateRequest, DocumentGenerationRequest, TemplateResponse, Template, TemplateVersionInfo
@@ -149,10 +150,10 @@ async def get_template_content(template_id: str, service: TemplateService = Depe
     
 @router.post(
     "/generate",
-    response_model=str,
-    summary="Generate a document based on a template and provided attribute values",
+    response_class=Response,
+    summary="Generate a document based on a template and provided attribute values (returns PDF)",
     responses={
-        200: {"description": "Document generated successfully"},
+        200: {"description": "PDF generated successfully"},
         400: {"description": "Missing required attributes or invalid input"},
         404: {"description": "Template not found"},
     }
@@ -160,9 +161,16 @@ async def get_template_content(template_id: str, service: TemplateService = Depe
 async def generate_document(request: DocumentGenerationRequest, service: TemplateService = Depends(get_template_service)):
     print("Generate document endpoint called")
     try:
-        generated_doc = await service.generate_document(request.templateId, request.attributeValues)
-        print("Generate document endpoint: Document generated successfully")
-        return generated_doc
+        # Generate HTML from template + values
+        generated_html = await service.generate_document(request.templateId, request.attributeValues)
+        print("Generate document endpoint: HTML generated successfully")
+
+        # Convert HTML to PDF bytes
+        pdf_bytes = await html_to_pdf_bytes(generated_html, title=f"Template {request.templateId}")
+        
+        filename = f"template-{request.templateId}.pdf"
+        print("Generate document endpoint: PDF generated successfully")
+        return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=\"{filename}\""})
     except HTTPException as e:
         print("Generate document endpoint: HTTPException occurred:", e.detail)
         raise e
