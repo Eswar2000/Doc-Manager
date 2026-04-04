@@ -62,3 +62,145 @@ def validate_attribute_values(values: dict, attributes: list[TemplateAttribute])
         resolved[key] = "" if val is None else val
 
         return resolved, missing
+
+
+def normalize_marks(node):
+    """Traverse the ProseMirror JSON and normalize/remove marks so the
+    server-side `prosemirror` basic schema can parse it.
+
+    Conversions applied:
+    - `bold` -> `strong`
+    - `italic` -> `em`
+    - `fontSize` -> removed (font-size handled client-side)
+    - `textStyle` -> removed (font-family handled client-side)
+    - `underline` -> removed
+
+    The function mutates the input `node` in-place.
+    """
+    if not isinstance(node, dict):
+        return
+
+    # Normalize marks on this node if present
+    marks = node.get("marks")
+    if isinstance(marks, list):
+        new_marks = []
+        for m in marks:
+            if not isinstance(m, dict):
+                continue
+            mtype = m.get("type")
+            # map client mark names to prosemirror basic schema names
+            if mtype == "bold":
+                new_marks.append({"type": "strong"})
+            elif mtype == "italic":
+                new_marks.append({"type": "em"})
+            # drop marks that basic schema doesn't support or that are styling-only
+            elif mtype in ("fontSize", "textStyle", "underline", "textStyle"):
+                # skip
+                continue
+            else:
+                # Preserve any marks that already look compatible
+                new_marks.append(m)
+
+        if new_marks:
+            node["marks"] = new_marks
+        else:
+            node.pop("marks", None)
+
+    # Recurse into children
+    content = node.get("content")
+    if isinstance(content, list):
+        for child in content:
+            normalize_marks(child)
+
+
+def normalize_node_types(node):
+    """Normalize node `type` values from client-style camelCase to
+    ProseMirror basic schema snake_case equivalents so `Node.from_json`
+    can parse them.
+
+    Example mappings:
+    - `hardBreak` -> `hard_break`
+    - `bulletList` -> `bullet_list`
+    - `orderedList` -> `ordered_list`
+    - `listItem` -> `list_item`
+    - `tableRow` -> `table_row`
+    - `tableCell` -> `table_cell`
+    - `tableHeader` -> `table_header`
+
+    The function mutates the input `node` in-place.
+    """
+    if not isinstance(node, dict):
+        return
+
+    mapping = {
+        "hardBreak": "hard_break",
+        "bulletList": "bullet_list",
+        "orderedList": "ordered_list",
+        "listItem": "list_item",
+        "tableRow": "table_row",
+        "tableCell": "table_cell",
+        "tableHeader": "table_header",
+        # attributeField should already be replaced by replace_attribute_fields,
+        # but map it to a text node if it slips through.
+        "attributeField": "text",
+    }
+
+    t = node.get("type")
+    if isinstance(t, str) and t in mapping:
+        node["type"] = mapping[t]
+
+    # Recurse into children
+    content = node.get("content")
+    if isinstance(content, list):
+        for child in content:
+            normalize_node_types(child)
+
+
+def sanitize_node_types(node, schema):
+    """Replace unknown node types (w.r.t. provided `schema`) with safe
+    equivalents so `Node.from_json` won't raise Unknown node type errors.
+
+    - If a node's `type` exists in `schema.nodes`, keep it.
+    - Else, try a small camelCase -> snake_case mapping.
+    - Else, if the node has `text`, convert it to a `text` node preserving the text.
+    - Else, replace with an empty `paragraph` node.
+
+    The function mutates `node` in-place and requires the `schema` object
+    from `prosemirror.schema.basic`.
+    """
+    if not isinstance(node, dict):
+        return
+
+    mapping = {
+        "hardBreak": "hard_break",
+        "bulletList": "bullet_list",
+        "orderedList": "ordered_list",
+        "listItem": "list_item",
+        "tableRow": "table_row",
+        "tableCell": "table_cell",
+        "tableHeader": "table_header",
+    }
+
+    t = node.get("type")
+    if isinstance(t, str):
+        if t not in schema.nodes:
+            mapped = mapping.get(t)
+            if mapped and mapped in schema.nodes:
+                node["type"] = mapped
+            else:
+                # Fallback replacements
+                if "text" in node:
+                    # convert to a plain text node
+                    text_val = node.get("text")
+                    node.clear()
+                    node.update({"type": "text", "text": text_val})
+                else:
+                    # replace with an empty paragraph
+                    node.clear()
+                    node.update({"type": "paragraph", "content": []})
+
+    # Recurse into children
+    content = node.get("content")
+    if isinstance(content, list):
+        for child in content:
+            sanitize_node_types(child, schema)

@@ -8,7 +8,7 @@ from prosemirror.model import Node, DOMSerializer
 from prosemirror.schema.basic import schema
 from copy import deepcopy
 from src.db.client import get_container
-from src.utils.template_utils import replace_attribute_fields, validate_attribute_values
+from src.utils.template_utils import replace_attribute_fields, validate_attribute_values, normalize_marks, normalize_node_types, sanitize_node_types
 
 from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
 
@@ -242,6 +242,9 @@ class TemplateRepository:
             json_copy = deepcopy(template.jsonContent)
 
             replace_attribute_fields(json_copy)
+            normalize_node_types(json_copy)
+            normalize_marks(json_copy)
+            sanitize_node_types(json_copy, schema)
 
             doc_node = Node.from_json(schema, json_copy)
             serializer = DOMSerializer.from_schema(schema)
@@ -269,6 +272,9 @@ class TemplateRepository:
             json_copy = deepcopy(template.jsonContent)
 
             replace_attribute_fields(json_copy, resolved)
+            normalize_node_types(json_copy)
+            normalize_marks(json_copy)
+            sanitize_node_types(json_copy, schema)
 
             doc_node = Node.from_json(schema, json_copy)
             serializer = DOMSerializer.from_schema(schema)
