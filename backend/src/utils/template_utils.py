@@ -1,6 +1,7 @@
-from src.model.templates import TemplateAttribute
+from src.model.templates import TemplateAttribute, TemplateRule, TemplateRuleCondition, TemplateRuleConditionItem
 import re
 import html
+from bs4 import BeautifulSoup
 
 def validate_attribute_values(values: dict, attributes: list[TemplateAttribute]) -> tuple[dict, list[dict]]:
     resolved: dict = {}
@@ -49,3 +50,132 @@ def render_html_from_template(html_content: str, resolved: dict) -> str:
         return match.group(0)
 
     return pattern.sub(_repl, html_content)
+
+def _eval_item(item: TemplateRuleConditionItem, values: dict) -> bool:
+    if item is None:
+        return False
+
+    field = item.fieldKey
+    operator = item.operator
+    right = item.value
+
+    # Fetch left operand's value from `values` using fieldKey; if missing, it will be treated as None
+    left = values.get(field)
+
+    op_name = str(operator).lower()
+    op_map = {
+        'equals': 'eq', 'equal': 'eq', '==': 'eq',
+        'not_equals': 'neq', 'notequals': 'neq', '!=': 'neq',
+        'contains': 'contains',
+        'in': 'in',
+        'matches': 'regex', 'regex': 'regex',
+        'gt': 'gt', 'gte': 'gte', 'lt': 'lt', 'lte': 'lte',
+    }
+
+    mapped = op_map.get(op_name, op_name)
+
+    # Numeric comparisons
+    try:
+        if mapped == 'eq':
+            return left == right
+        if mapped == 'neq':
+            return left != right
+        if mapped == 'gt':
+            return float(left) > float(right)
+        if mapped == 'gte':
+            return float(left) >= float(right)
+        if mapped == 'lt':
+            return float(left) < float(right)
+        if mapped == 'lte':
+            return float(left) <= float(right)
+    except (TypeError, ValueError):
+        pass
+
+    # List or string containment
+    if mapped == 'in':
+        try:
+            return left in right
+        except Exception:
+            return False
+
+    # List or string containment
+    if mapped == 'contains':
+        try:
+            return (isinstance(left, str) and str(right) in left) or (isinstance(left, (list, tuple)) and right in left)
+        except Exception:
+            return False
+
+    # Regex match - right is pattern, left is tested string
+    if mapped == 'regex':
+        try:
+            pattern = re.compile(str(right))
+            return bool(pattern.search('' if left is None else str(left)))
+        except re.error:
+            return False
+
+    # Exists check - true if left value is provided (not None or empty string), right value is ignored
+    if mapped == 'exists':
+        return left is not None and not (isinstance(left, str) and left == "")
+
+    # Unknown operator - for safety, return False
+    return False
+
+def evaluate_condition(node: TemplateRuleCondition, values: dict) -> bool:
+    if not node:
+        return False
+
+    join = node.join
+    items = node.items
+
+    results = [_eval_item(it, values) for it in items]
+    return all(results) if join == 'and' else any(results)
+
+def evaluate_rule(rule: TemplateRule, values: dict) -> dict:
+    rule_id = rule.ruleId
+    cond = rule.condition
+    action_type = rule.action
+    passed = evaluate_condition(cond, values)
+
+    return {'id': rule_id, 'passed': passed, 'action': action_type}
+
+def evaluate_rules(rules: list[TemplateRule], values: dict) -> list[dict]:
+    return [evaluate_rule(r, values) for r in rules or []]
+
+def apply_rules_to_html(rules: list[TemplateRule], html_content: str, values: dict) -> str:
+    """Apply rule results to HTML content and return modified HTML.
+
+    For each rule we look up an element with `id` equal to the rule id. The rule's
+    `action` decides semantics:
+    - action 'show'  -> element is kept when condition passed, removed otherwise
+    - action 'hide'  -> element is removed when condition passed, kept otherwise
+
+    Elements are removed from the output using BeautifulSoup's `decompose()`.
+    """
+    if not html_content:
+        return ""
+
+    results = evaluate_rules(rules, values)
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    for res in results:
+        rule_id = res.get('id')
+        if not rule_id:
+            continue
+        el = soup.find(id=rule_id)
+        if not el:
+            continue
+
+        action = res.get('action', 'show')
+        passed = res.get('passed', False)
+
+        # Determine whether element should be visible after applying rule
+        if action == 'show':
+            visible = bool(passed)
+        else:  # 'hide'
+            visible = not bool(passed)
+
+        if not visible:
+            el.decompose()
+
+    return str(soup)
