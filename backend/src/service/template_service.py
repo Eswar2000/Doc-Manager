@@ -21,3 +21,9 @@ class TemplateService:
 
     async def get_version_history(self, template_id: int) -> list[TemplateVersionInfo]:
         return await self.repo.get_version_history(template_id)
+    
+    async def get_template_content(self, template_id: int) -> str:
+        return await self.repo.get_template_content(template_id)
+    
+    async def generate_document(self, template_id: int, attribute_values: dict) -> str:
+        return await self.repo.generate_document(template_id, attribute_values)

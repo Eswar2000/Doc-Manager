@@ -32,15 +32,21 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 4. Run Server
+### 4. Install Playwright Chromium Browser (only first time)
+
+```bash
+python -m playwright install chromium
+```
+
+### 5. Run Server
 
 ```bash
 uv run uvicorn src.main:app --reload --port 8000
 ```
 
-Server will start in `http://localhost:8000`
+Server will start in `http://localhost:8000`. Since we are running async playwright to generate PDF from HTML content, avoid using `--reload` as it forces a `SelectorEventLoop` which will throw when generating documents.
 
-### 5. Deactivate Virtual Environment
+### 6. Deactivate Virtual Environment
 
 ```bash
 deactivate

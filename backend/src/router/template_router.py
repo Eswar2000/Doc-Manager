@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
+from src.utils.pdf_utils import html_to_pdf_bytes
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
-from src.model.templates import TemplateCreateRequest, TemplateResponse, Template, TemplateVersionInfo
+from src.model.templates import TemplateCreateRequest, DocumentGenerationRequest, TemplateResponse, Template, TemplateVersionInfo
 from typing import List, Optional, Literal
 
 router = APIRouter(prefix="/templates", tags=["templates"], responses={500: {"description": "Internal Server Error"}})
@@ -124,3 +125,55 @@ async def get_version_history(template_id: str, service: TemplateService = Depen
     except Exception as e:
         print("Get version history endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving version history", "error": str(e)})
+    
+@router.get(
+    "/{template_id}/content",
+    response_model=str,
+    summary="Get the content of a template in HTML format",
+    responses={
+        200: {"description": "Template content retrieved successfully"},
+        404: {"description": "Template not found"},
+    }
+)
+async def get_template_content(template_id: str, service: TemplateService = Depends(get_template_service)):
+    print("Get template content endpoint called")
+    try:
+        content = await service.get_template_content(template_id)
+        print("Get template content endpoint: Content retrieved successfully")
+        return content
+    except HTTPException as e:
+        print("Get template content endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Get template content endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving template content", "error": str(e)})
+    
+@router.post(
+    "/generate",
+    response_class=Response,
+    summary="Generate a document based on a template and provided attribute values (returns PDF)",
+    responses={
+        200: {"description": "PDF generated successfully"},
+        400: {"description": "Missing required attributes or invalid input"},
+        404: {"description": "Template not found"},
+    }
+)
+async def generate_document(request: DocumentGenerationRequest, service: TemplateService = Depends(get_template_service)):
+    print("Generate document endpoint called")
+    try:
+        # Generate HTML from template + values
+        generated_html = await service.generate_document(request.templateId, request.attributeValues)
+        print("Generate document endpoint: HTML generated successfully")
+
+        # Convert HTML to PDF bytes
+        pdf_bytes = await html_to_pdf_bytes(generated_html, title=f"Template {request.templateId}")
+        
+        filename = f"template-{request.templateId}.pdf"
+        print("Generate document endpoint: PDF generated successfully")
+        return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=\"{filename}\""})
+    except HTTPException as e:
+        print("Generate document endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Generate document endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during document generation", "error": str(e)})

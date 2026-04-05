@@ -5,6 +5,7 @@ from typing import Literal, Optional
 import uuid
 from datetime import datetime, timezone
 from src.db.client import get_container
+from src.utils.template_utils import render_html_from_template, validate_attribute_values, apply_rules_to_html
 
 from src.model.templates import Template, TemplateCreateRequest, TemplateVersionInfo
 
@@ -224,3 +225,33 @@ class TemplateRepository:
         except exceptions.CosmosHttpResponseError as e:
             print(f"Get_Version_History: Error occurred while fetching version history: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while fetching version history: {str(e)}")
+        
+    async def get_template_content(self, template_id: str) -> str:
+        print(f"Get_Template_Content: Fetching content for template ID {template_id}")
+        template = await self.get_template_by_id(template_id)
+        if not template:
+            print(f"Get_Template_Content: No template found with ID {template_id}")
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        print(f"Get_Template_Content: Successfully retrieved content for template ID {template_id}")
+        return template.htmlContent
+        
+    async def generate_document(self, template_id: str, attribute_values: dict) -> str:
+        print(f"Generate_Document: Starting document generation for template ID {template_id}")
+        template = await self.get_template_by_id(template_id)
+        if not template:
+            print(f"Generate_Document: No template found with ID {template_id}")
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        resolved, missing = validate_attribute_values(attribute_values, template.attributes)
+        if missing:
+            print(f"Generate_Document: Missing required attributes for template ID {template_id}: {missing}")
+            raise HTTPException(status_code=400, detail={"message": "Missing required attributes", "missing": missing})
+        
+        print(f"Generate_Document: Successfully retrieved template for ID {template_id}")
+        print(f"Generate_Document: Resolved attribute values: {resolved}")
+        html_content = render_html_from_template(template.htmlContent, resolved)
+        
+        # Apply rule-based transformations (remove or keep sections) before returning
+        html_content = apply_rules_to_html(template.rules, html_content, resolved)
+        return html_content
