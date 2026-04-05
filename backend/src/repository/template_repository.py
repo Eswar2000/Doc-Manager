@@ -225,7 +225,49 @@ class TemplateRepository:
         except exceptions.CosmosHttpResponseError as e:
             print(f"Get_Version_History: Error occurred while fetching version history: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while fetching version history: {str(e)}")
-        
+
+    async def rollback_template_version(self, template_id: str) -> bool:
+        print("Rollback_Template_Version: Starting template rollback process")
+        container = await self._get_container()
+        try:
+            current_template = await self.get_template_by_id(template_id)
+            if not current_template:
+                print(f"Rollback_Template_Version: No template found with ID {template_id} to rollback")
+                return False
+            
+            # By default, this method returns template versions in increasing order of version number
+            template_history = await self.get_version_history(template_id)
+            latest_template = template_history[-1]
+
+            if latest_template.templateId != template_id:
+                print(f"Rollback_Template_Version: Template with ID {template_id} is not the latest version and cannot be rolled back")
+                raise HTTPException(status_code=400, detail="Only the latest version of a template can be rolled back")
+            
+            if latest_template.state != "active":
+                print(f"Rollback_Template_Version: Template with ID {template_id} is not active and cannot be rolled back")
+                raise HTTPException(status_code=400, detail="Only active templates can be rolled back")
+            
+            # next immediate version will become active as this template gets deleted
+            next_latest_template_id = template_history[-2].templateId if len(template_history) > 1 else None
+
+            # delete the latest version to rollback to previous version
+            await container.delete_item(item=template_id, partition_key=current_template.name)
+            print(f"Rollback_Template_Version: Template with ID {template_id} rolled back successfully")
+
+            # promote the next latest version to active if it exists and is not already active
+            if next_latest_template_id:
+                next_latest_template = await self.get_template_by_id(next_latest_template_id)
+                if next_latest_template and next_latest_template.state != "active":
+                    await container.replace_item(item=next_latest_template_id, body={**next_latest_template.model_dump(by_alias=True), "state": "active"})
+                    print(f"Rollback_Template_Version: Promoted template with ID {next_latest_template_id} to active state")
+            return True
+        except exceptions.CosmosHttpResponseError as e:
+            if e.status_code == 404:
+                print(f"Rollback_Template_Version: No template found with ID {template_id} to rollback")
+                return False
+            print(f"Rollback_Template_Version: Error occurred while rolling back template: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while rolling back template: {str(e)}")
+
     async def get_template_content(self, template_id: str) -> str:
         print(f"Get_Template_Content: Fetching content for template ID {template_id}")
         template = await self.get_template_by_id(template_id)

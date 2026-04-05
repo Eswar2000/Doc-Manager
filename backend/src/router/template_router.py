@@ -125,7 +125,29 @@ async def get_version_history(template_id: str, service: TemplateService = Depen
     except Exception as e:
         print("Get version history endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving version history", "error": str(e)})
-    
+
+@router.delete(
+    "/{template_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Roollback to previous version of a template (if exists)",
+    responses={
+        204: {"description": "Template rolled back successfully"},
+        404: {"description": "Template not found"},
+        500: {"description": "Unexpected server error"}
+    }
+)
+async def rollback_template_version(template_id: str, service: TemplateService = Depends(get_template_service)):
+    print(f"Rollback template version endpoint called for ID: {template_id}")
+
+    rolled_back = await service.rollback_template_version(template_id)
+
+    if not rolled_back:
+        print(f"Rollback template version endpoint: Template not found: {template_id}")
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    print(f"Rollback template version endpoint: Successfully rolled back template {template_id}")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 @router.get(
     "/{template_id}/content",
     response_model=str,
