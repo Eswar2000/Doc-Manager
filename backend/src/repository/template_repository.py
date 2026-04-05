@@ -4,7 +4,6 @@ from fastapi import HTTPException
 from typing import Literal, Optional
 import uuid
 from datetime import datetime, timezone
-from copy import deepcopy
 from src.db.client import get_container
 from src.utils.template_utils import render_html_from_template, validate_attribute_values, apply_rules_to_html
 
@@ -252,6 +251,7 @@ class TemplateRepository:
         print(f"Generate_Document: Successfully retrieved template for ID {template_id}")
         print(f"Generate_Document: Resolved attribute values: {resolved}")
         html_content = render_html_from_template(template.htmlContent, resolved)
+        
         # Apply rule-based transformations (remove or keep sections) before returning
         html_content = apply_rules_to_html(template.rules, html_content, resolved)
         return html_content
