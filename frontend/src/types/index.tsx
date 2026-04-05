@@ -119,8 +119,9 @@ export interface DynamicField {
   required?: boolean;
   maxLength?: number; // for text and textarea
   options?: string[]; // for select
-  // For condition-groups: provide available attribute options and operator list
-  operatorOptions?: string[];
+
+  // operatorOptions can be either a global array or a map from attribute name to operator list
+  operatorOptions?: string[] | Record<string, string[]>;
 }
 
 export interface DynamicDialogProps {

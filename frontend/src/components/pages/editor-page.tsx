@@ -103,9 +103,23 @@ export default function EditorPage() {
 
   const getRuleDialogFields = (): DynamicField[] => {
     const usedAttributes = attributes.filter(attr => attributeCounts[attr.id.toString()] > 0);
+    // Build operator map keyed by attribute name
+    const operatorMap: Record<string, string[]> = {};
+    usedAttributes.forEach((attr) => {
+      const t = (attr as any).type as string | undefined;
+      if (t === 'number' || t === 'date') {
+        operatorMap[attr.name] = ['equals', 'not_equals', 'greater_than', 'greater_than_or_equal', 'less_than', 'less_than_or_equal', 'exists'];
+      } else if (t === 'text' || t === 'email') {
+        operatorMap[attr.name] = ['equals', 'not_equals', 'contains', 'exists'];
+      } else {
+        // fallback to text-like operators
+        operatorMap[attr.name] = ['equals', 'not_equals', 'contains', 'exists'];
+      }
+    });
+
     return [
       { name: "name", label: "Rule name", type: "text", required: true, maxLength: 100 },
-      { name: "conditions", label: "Conditions (combine with AND / OR)", type: "conditions", required: true, options: usedAttributes.map(attr => attr.name), operatorOptions: ["equals", "not_equals", "greater", "less"] },
+      { name: "conditions", label: "Conditions (combine with AND / OR)", type: "conditions", required: true, options: usedAttributes.map(attr => attr.name), operatorOptions: operatorMap },
       { name: "action", label: "Action when condition is true", type: "select", required: true, options: ["show", "hide"] },
     ];
   }
