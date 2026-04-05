@@ -17,5 +17,8 @@ export const templateApi = {
     updateTemplate: async (templateId: string, templateData: Omit<TemplateProps, 'id' | 'createdAt' | 'state' | 'version' | 'parentTemplateId'>): Promise<TemplateProps> => {
         const updated_template = await api.put<TemplateProps>(`/templates/${templateId}`, templateData);
         return updated_template.data;
-    }
+    },
+    rollbackTemplate: async (templateId: string): Promise<void> => {
+        await api.post(`/templates/${templateId}/rollback`);
+    },
 }
