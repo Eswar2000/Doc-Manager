@@ -69,9 +69,22 @@ export default function TemplatesPage() {
                 <DataTableColumnHeader column={column} title="State" />
             ),
             cell: ({ row }) => {
+                const state = row.getValue("state") as string;
+                const isActive = state.toLowerCase() === "active";
+
                 return (
-                    <div className="flex w-[100px] items-center">
-                        <span className="capitalize"> {row.getValue("state")}</span>
+                    <div className="flex w-[110px] items-center">
+                        <span
+                            className={`
+                        inline-flex items-center px-3.5 py-1 text-xs font-medium rounded-full border
+                        ${isActive
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                    : "bg-rose-50 text-rose-700 border-rose-300"
+                                }
+                    `}
+                        >
+                            {state.charAt(0).toUpperCase() + state.slice(1)}
+                        </span>
                     </div>
                 );
             },
@@ -196,7 +209,7 @@ export default function TemplatesPage() {
             </div>
             {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} />}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
-            {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => {navigate('/attributes')}}/>}
+            {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => { navigate('/attributes') }} />}
         </div>
     );
 }
