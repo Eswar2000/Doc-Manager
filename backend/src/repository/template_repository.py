@@ -64,7 +64,7 @@ class TemplateRepository:
             raise HTTPException(status_code=500, detail=f"Database error while creating template version: {str(e)}")
 
     async def get_template_by_id(self, template_id: str) -> Optional[Template]:
-        print("Get_Template_By_ID: Starting template creation process")
+        print("Get_Template_By_ID: Starting template fetch process")
         container = await self._get_container()
 
         try:
