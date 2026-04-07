@@ -125,13 +125,13 @@ export default function TemplatesPage() {
                 const templateRowActions: TableAction<TemplateProps>[] = [
                     {
                         title: "View Details",
-                        icon: <Eye className="h-4 w-4" />,
+                        icon: <Eye className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => { console.log("viewing details of template: " + row.original.name) }
                     },
                     {
                         title: "Delete",
-                        icon: <Trash2 className="h-4 w-4" />,
+                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
                         variant: "destructive",
                         onClick: () => { console.log("Deleting template: " + row.original.name) }
                     }
@@ -140,7 +140,7 @@ export default function TemplatesPage() {
                 if (row.original.state === "active") {
                     templateRowActions.unshift({
                         title: "Edit",
-                        icon: <Pencil className="h-4 w-4" />,
+                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => {
                             const original = row.original;
