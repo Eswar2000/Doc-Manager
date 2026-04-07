@@ -1,5 +1,5 @@
 import { api } from './index';
-import type { TemplateProps } from '../types/index';
+import type { TemplateProps, TemplateRollbackProps } from '../types/index';
 
 export const templateApi = {
     fetchTemplates: async (): Promise<TemplateProps[]> => {
@@ -18,7 +18,7 @@ export const templateApi = {
         const updated_template = await api.put<TemplateProps>(`/templates/${templateId}`, templateData);
         return updated_template.data;
     },
-    rollbackTemplate: async (templateId: string): Promise<void> => {
-        await api.post(`/templates/${templateId}/rollback`);
+    rollbackTemplate: async (rollbackRequest: TemplateRollbackProps): Promise<void> => {
+        await api.post(`/templates/rollback`, { ...rollbackRequest });
     },
 }

@@ -68,6 +68,11 @@ export interface TemplateProps {
   }>,
 }
 
+export interface TemplateRollbackProps {
+  srcTemplateId: string;
+  destTemplateId?: string;
+}
+
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
