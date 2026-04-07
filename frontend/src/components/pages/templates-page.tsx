@@ -53,7 +53,7 @@ export default function TemplatesPage() {
             cell: ({ row }) => {
                 return (
                     <div className="flex space-x-2">
-                        <span className="max-w-[500px] truncate capitalize">
+                        <span className="max-w-[500px] truncate">
                             {row.getValue("description")}
                         </span>
                     </div>
@@ -69,9 +69,22 @@ export default function TemplatesPage() {
                 <DataTableColumnHeader column={column} title="State" />
             ),
             cell: ({ row }) => {
+                const state = row.getValue("state") as string;
+                const isActive = state.toLowerCase() === "active";
+
                 return (
-                    <div className="flex w-[100px] items-center">
-                        <span className="capitalize"> {row.getValue("state")}</span>
+                    <div className="flex w-[110px] items-center">
+                        <span
+                            className={`
+                        inline-flex items-center px-3.5 py-1 text-xs font-medium rounded-full border
+                        ${isActive
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                    : "bg-rose-50 text-rose-700 border-rose-300"
+                                }
+                    `}
+                        >
+                            {state.charAt(0).toUpperCase() + state.slice(1)}
+                        </span>
                     </div>
                 );
             },
@@ -125,13 +138,13 @@ export default function TemplatesPage() {
                 const templateRowActions: TableAction<TemplateProps>[] = [
                     {
                         title: "View Details",
-                        icon: <Eye className="h-4 w-4" />,
+                        icon: <Eye className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => { console.log("viewing details of template: " + row.original.name) }
                     },
                     {
                         title: "Delete",
-                        icon: <Trash2 className="h-4 w-4" />,
+                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
                         variant: "destructive",
                         onClick: () => { console.log("Deleting template: " + row.original.name) }
                     }
@@ -140,7 +153,7 @@ export default function TemplatesPage() {
                 if (row.original.state === "active") {
                     templateRowActions.unshift({
                         title: "Edit",
-                        icon: <Pencil className="h-4 w-4" />,
+                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => {
                             const original = row.original;
@@ -196,7 +209,7 @@ export default function TemplatesPage() {
             </div>
             {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} />}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
-            {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => {navigate('/attributes')}}/>}
+            {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => { navigate('/attributes') }} />}
         </div>
     );
 }

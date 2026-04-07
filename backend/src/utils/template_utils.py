@@ -66,10 +66,11 @@ def _eval_item(item: TemplateRuleConditionItem, values: dict) -> bool:
     op_map = {
         'equals': 'eq', 'equal': 'eq', '==': 'eq',
         'not_equals': 'neq', 'notequals': 'neq', '!=': 'neq',
-        'contains': 'contains',
-        'in': 'in',
-        'matches': 'regex', 'regex': 'regex',
-        'gt': 'gt', 'gte': 'gte', 'lt': 'lt', 'lte': 'lte',
+        'matches': 'regex',
+        'greater_than': 'gt',
+        'greater_than_or_equal': 'gte',
+        'less_than': 'lt',
+        'less_than_or_equal': 'lte'
     }
 
     mapped = op_map.get(op_name, op_name)

@@ -67,6 +67,10 @@ class TemplateVersionInfo(BaseModel):
     version: int = Field(..., description="Version number of the template")
     state: Literal["active", "archived"] = Field(..., description="State of the template")
 
+class TemplateRollbackRequest(BaseModel):
+    srcTemplateId: str = Field(..., description="ID of the current template")
+    destTemplateId: Optional[str] = Field(None, description="ID of the destination template to roll back to if exists")
+
 class DocumentGenerationRequest(BaseModel):
     attributeValues: Dict[str, str] = Field(..., description="Key-value pairs (string->string) of attribute labels/IDs and their corresponding values to be used for document generation")
     templateId: str = Field(..., description="ID of the template to use for document generation")

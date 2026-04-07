@@ -14,6 +14,7 @@ import { attributeApi } from "@/api/attributes";
 import { Loader } from "../loader/loader";
 import { ErrorState } from "../error-state/error-state";
 import { toast } from "sonner";
+import { Pencil, Trash2 } from "lucide-react";
 
 export default function AttributesPage() {
   const navigate = useNavigate();
@@ -138,10 +139,13 @@ export default function AttributesPage() {
           [
             {
               title: "Edit",
+              icon: <Pencil className="h-4 w-4 text-indigo-500" />,
+              variant: "secondary",
               onClick: () => openEdit(row.original),
             },
             {
               title: "Delete",
+              icon: <Trash2 className="h-4 w-4 text-destructive" />,
               variant: "destructive",
               onClick: async () => deleteRow(row.original),
             }

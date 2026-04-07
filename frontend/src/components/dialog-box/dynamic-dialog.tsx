@@ -262,9 +262,25 @@ export default function DynamicDialog({
                                                         <SelectValue placeholder="Operator" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {(field.operatorOptions ?? ['equals', 'not_equals', 'greater', 'less']).map((op) => (
-                                                            <SelectItem key={op} value={op}>{op.replace('_', ' ')}</SelectItem>
-                                                        ))}
+                                                        {(() => {
+                                                            // Determine operator list for this row.
+                                                            const defaultOps = ['equals', 'not_equals', 'greater_than', 'greater_than_or_equal', 'less_than', 'less_than_or_equal', 'contains', 'exists'];
+                                                            let ops: string[] = [];
+                                                            if (Array.isArray(field.operatorOptions)) {
+                                                                ops = field.operatorOptions as string[];
+                                                            } else if (field.operatorOptions && typeof field.operatorOptions === 'object') {
+                                                                const map = field.operatorOptions as Record<string, string[]>;
+                                                                const key = row.fieldKey as string;
+                                                                ops = (key && map[key]) ? map[key] : Object.values(map).flat();
+                                                            }
+                                                            if (!ops || ops.length === 0) ops = defaultOps;
+                                                            // dedupe while preserving order
+                                                            const seen = new Set<string>();
+                                                            const uniq = ops.filter((o) => (seen.has(o) ? false : (seen.add(o), true)));
+                                                            return uniq.map((op) => (
+                                                                <SelectItem key={op} value={op}>{op.replace(/_/g, ' ')}</SelectItem>
+                                                            ));
+                                                        })()}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
