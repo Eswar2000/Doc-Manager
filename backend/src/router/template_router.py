@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from src.utils.pdf_utils import html_to_pdf_bytes
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
-from src.model.templates import TemplateCreateRequest, DocumentGenerationRequest, TemplateResponse, Template, TemplateVersionInfo
+from src.model.templates import TemplateCreateRequest, DocumentGenerationRequest, TemplateResponse, Template, TemplateRollbackRequest, TemplateVersionInfo
 from typing import List, Optional, Literal
 
 router = APIRouter(prefix="/templates", tags=["templates"], responses={500: {"description": "Internal Server Error"}})
@@ -127,25 +127,26 @@ async def get_version_history(template_id: str, service: TemplateService = Depen
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during retrieving version history", "error": str(e)})
 
 @router.post(
-    "/{template_id}/rollback",
+    "/rollback",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Rollback to previous version of a template (if exists)",
+    summary="Rollback to specified version of a template (if exists), else rollback to previous version",
     responses={
         204: {"description": "Template rolled back successfully"},
+        400: {"description": "Invalid rollback request"},
         404: {"description": "Template not found"},
         500: {"description": "Unexpected server error"}
     }
 )
-async def rollback_template_version(template_id: str, service: TemplateService = Depends(get_template_service)):
-    print(f"Rollback template version endpoint called for ID: {template_id}")
+async def rollback_template_version(request: TemplateRollbackRequest, service: TemplateService = Depends(get_template_service)):
+    print(f"Rollback template version endpoint called for ID: {request.srcTemplateId}")
 
-    rolled_back = await service.rollback_template_version(template_id)
+    rolled_back = await service.rollback_template_version(request.srcTemplateId, request.destTemplateId)
 
     if not rolled_back:
-        print(f"Rollback template version endpoint: Template not found: {template_id}")
+        print(f"Rollback template version endpoint: Template not found: {request.srcTemplateId}")
         raise HTTPException(status_code=404, detail="Template not found")
 
-    print(f"Rollback template version endpoint: Successfully rolled back template {template_id}")
+    print(f"Rollback template version endpoint: Successfully rolled back template {request.srcTemplateId} to {request.destTemplateId if request.destTemplateId else 'previous version'}")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.get(

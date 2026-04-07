@@ -226,7 +226,7 @@ class TemplateRepository:
             print(f"Get_Version_History: Error occurred while fetching version history: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while fetching version history: {str(e)}")
 
-    async def rollback_template_version(self, template_id: str) -> bool:
+    async def rollback_template_version(self, template_id: str, dest_template_id: Optional[str] = None) -> bool:
         print("Rollback_Template_Version: Starting template rollback process")
         container = await self._get_container()
         try:
@@ -237,6 +237,15 @@ class TemplateRepository:
             
             # By default, this method returns template versions in increasing order of version number
             template_history = await self.get_version_history(template_id)
+
+            # Confirm if the dest_template_id is part of template version, if it is not None
+            match = None
+            if dest_template_id:
+                match = next((item for item in template_history if item.templateId == dest_template_id), None)
+                if not match:
+                    print(f"Rollback_Template_Version: Template with ID {dest_template_id} is not the part of the lineage")
+                    raise HTTPException(status_code=400, detail="Rollback can only happen if destination template ID is part of the template lineage")
+
             latest_template = template_history[-1]
 
             if latest_template.templateId != template_id:
@@ -246,12 +255,17 @@ class TemplateRepository:
             if latest_template.state != "active":
                 print(f"Rollback_Template_Version: Template with ID {template_id} is not active and cannot be rolled back")
                 raise HTTPException(status_code=400, detail="Only active templates can be rolled back")
-            
+
             # next immediate version will become active as this template gets deleted
-            next_latest_template_id = template_history[-2].templateId if len(template_history) > 1 else None
+            next_latest_template_id = match.templateId if match else (template_history[-2].templateId if len(template_history) > 1 else None)
+            
+            for item in reversed(template_history):
+                if item.templateId == next_latest_template_id:
+                    break
+                await container.delete_item(item=item.templateId, partition_key=current_template.name)
+                print(f"Rollback_Template_Version: Deleted template version with ID {item.templateId} during rollback process")
 
             # delete the latest version to rollback to previous version
-            await container.delete_item(item=template_id, partition_key=current_template.name)
             print(f"Rollback_Template_Version: Template with ID {template_id} rolled back successfully")
 
             # promote the next latest version to active if it exists and is not already active

@@ -22,8 +22,8 @@ class TemplateService:
     async def get_version_history(self, template_id: int) -> list[TemplateVersionInfo]:
         return await self.repo.get_version_history(template_id)
     
-    async def rollback_template_version(self, template_id: str) -> bool:
-        return await self.repo.rollback_template_version(template_id)
+    async def rollback_template_version(self, src_template_id: str, dest_template_id: Optional[str]) -> bool:
+        return await self.repo.rollback_template_version(src_template_id, dest_template_id)
     
     async def get_template_content(self, template_id: int) -> str:
         return await self.repo.get_template_content(template_id)
