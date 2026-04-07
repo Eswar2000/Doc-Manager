@@ -18,6 +18,10 @@ export const templateApi = {
         const updated_template = await api.put<TemplateProps>(`/templates/${templateId}`, templateData);
         return updated_template.data;
     },
+    fetchTemplateVersions: async (templateId: string): Promise<TemplateProps[]> => {
+        const versions = await api.get<TemplateProps[]>(`/templates/${templateId}/versions`);
+        return versions.data;
+    },
     rollbackTemplate: async (rollbackRequest: TemplateRollbackProps): Promise<void> => {
         await api.post(`/templates/rollback`, { ...rollbackRequest });
     },

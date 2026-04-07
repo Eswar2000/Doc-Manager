@@ -66,6 +66,20 @@ export interface TemplateProps {
     defaultValue: string | null;
     trackerIds: string[];
   }>,
+  rules: Array<{
+    ruleId: string;
+    name: string;
+    action: 'show' | 'hide';
+    condition: {
+      join: 'and' | 'or';
+      items: Array<{
+        field: string;
+        operator: string;
+        value?: string;
+      }>
+    },
+    content: any;
+  }>,
 }
 
 export interface TemplateRollbackProps {
