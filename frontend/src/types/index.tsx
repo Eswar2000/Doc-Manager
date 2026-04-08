@@ -87,6 +87,11 @@ export interface TemplateRollbackProps {
   destTemplateId?: string;
 }
 
+export interface DocumentGenerationProps {
+  templateId: string;
+  attributeValues: Record<string, string>;
+}
+
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
