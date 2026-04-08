@@ -73,7 +73,7 @@ export interface TemplateProps {
     condition: {
       join: 'and' | 'or';
       items: Array<{
-        field: string;
+        fieldKey: string;
         operator: string;
         value?: string;
       }>

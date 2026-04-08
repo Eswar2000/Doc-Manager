@@ -285,7 +285,7 @@ export default function EditorPage() {
       action: "show" | "hide";
       condition: {
         join: "and" | "or";
-        items: Array<{ fieldKey: string; operator: string; value: string }>;
+        items: Array<{ fieldKey: string; operator: string; value?: string }>;
       };
       content: any;
     }> = [];
