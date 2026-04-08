@@ -283,7 +283,7 @@ export default function AttributesPage() {
       </div>
       {!isLoading && !isError && <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => setCreateDialogOpen(true)} />}
       {isLoading && <Loader screenHeader="Loading your attributes" screenMessage="Please wait till we fetch your attributes" />}
-      {isError && <ErrorState title="Failed to load attributes" description={error?.message || "We couldn't load the attributes right now."} onRetry={() => refetch()} onHome={() => { navigate('/templates') }} />}
+      {isError && <ErrorState title="Failed to load attributes" description={error?.message || "We couldn't load the attributes right now."} onRetry={() => refetch()} />}
 
       {editingItem && (
         <DynamicDialog
