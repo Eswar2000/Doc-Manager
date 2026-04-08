@@ -142,18 +142,18 @@ export default function TemplatesPage() {
                         onClick: () => { console.log("viewing details of template: " + row.original.name) }
                     },
                     {
-                        title: "Delete",
-                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
-                        variant: "destructive",
-                        onClick: () => { console.log("Deleting template: " + row.original.name) }
-                    },
-                    {
                         title: "Use",
-                        icon: <Pencil className="h-4 w-4 text-green-500" />,
+                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => {
                             navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
                         }
+                    },
+                    {
+                        title: "Delete",
+                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
+                        variant: "destructive",
+                        onClick: () => { console.log("Deleting template: " + row.original.name) }
                     }
                 ];
 
