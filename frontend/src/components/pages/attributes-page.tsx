@@ -7,7 +7,6 @@ import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useState } from "react";
 import type { DynamicField } from "../../types/index";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
-import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { attributeApi } from "@/api/attributes";
@@ -17,7 +16,6 @@ import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 
 export default function AttributesPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const {

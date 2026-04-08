@@ -19,7 +19,6 @@ export default function TemplatesPage() {
         isLoading,
         isError,
         error,
-        refetch,
     } = useQuery({
         queryKey: ['templates'], // unique cache key
         queryFn: templateApi.fetchTemplates,
