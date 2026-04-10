@@ -171,7 +171,7 @@ export default function DocGenerationPage() {
                         disabled={isGenerating}
                         className="bg-[#4F39F6] hover:bg-[#3f2be6] px-8"
                     >
-                        {isGenerating ? "Generating PDF..." : "Generate Document"}
+                        Generate Document
                     </Button>
                 </div>
             </div>
