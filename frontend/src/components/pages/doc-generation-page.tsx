@@ -14,6 +14,7 @@ import { CalendarIcon, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Loader } from "../loader/loader";
 import { ErrorState } from "../error-state/error-state";
+import { OverlayLoader } from "../overlay-loader/overlay-loader";
 
 export default function DocGenerationPage() {
     const { templateId } = useParams<{ templateId: string }>();
@@ -67,7 +68,11 @@ export default function DocGenerationPage() {
 
     return (
         <div className="h-full flex-1 flex-col space-y-2 p-8 md:flex">
-            
+            <OverlayLoader
+                show={isGenerating}
+                message="Generating your document, please wait..."
+            />
+
             {/* Top Bar */}
             <div className="border-b bg-white">
                 <div className="mx-auto px-6 py-4 flex items-center justify-between">
@@ -83,7 +88,7 @@ export default function DocGenerationPage() {
 
             {/* Attributes Form */}
             <div className="w-full px-6 py-10">
-                <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+                <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(300px,max-content))]">
                     {template.attributes?.map((attr: any) => {
                         const isRequired = attr.required;
                         const isHidden = attr.hidden;
