@@ -112,6 +112,7 @@ export default function DocGenerationPage() {
                                                 variant="outline"
                                                 className={cn(
                                                     "w-full justify-start text-left font-normal",
+                                                    "border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-1 focus-visible:ring-indigo-500 transition-colors duration-150",
                                                     !formValues[attr.attributeId] && "text-muted-foreground"
                                                 )}
                                             >
@@ -124,8 +125,15 @@ export default function DocGenerationPage() {
                                         <PopoverContent className="w-auto p-0">
                                             <Calendar
                                                 mode="single"
-                                                selected={formValues[attr.attributeId] ? new Date(formValues[attr.attributeId]) : undefined}
-                                                onSelect={(date) => handleChange(attr.attributeId, date?.toISOString() || "")}
+                                                selected={
+                                                    formValues[attr.attributeId] 
+                                                    ? new Date(formValues[attr.attributeId])
+                                                    : undefined
+                                                }
+                                                onSelect={(date) => {
+                                                    if (!date) return;
+                                                    handleChange(attr.attributeId, format(date, "dd-MM-yyyy"));
+                                                }}
                                             />
                                         </PopoverContent>
                                     </Popover>
