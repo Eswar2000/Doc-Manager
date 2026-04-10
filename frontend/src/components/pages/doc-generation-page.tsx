@@ -139,7 +139,7 @@ export default function DocGenerationPage() {
                                         value={formValues[attr.attributeId] || ""}
                                         onChange={(e) => handleChange(attr.attributeId, e.target.value)}
                                         required={isRequired}
-                                        className="h-11"
+                                        className="focus-visible:ring-1 transition-colors duration-150 border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
                                     />
                                 )}
                             </div>
