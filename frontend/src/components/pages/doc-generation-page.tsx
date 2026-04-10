@@ -63,19 +63,93 @@ export default function DocGenerationPage() {
     };
 
     if (isLoading) return <Loader screenHeader="Loading your template" screenMessage="Please wait till we fetch the template" />;
-    if (isError) return <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => { navigate('/templates') }} />;
+    if (isError || !template) return <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => { navigate('/templates') }} />;
 
     return (
         <div className="h-full flex-1 flex-col space-y-2 p-8 md:flex">
+            
             {/* Top Bar */}
             <div className="border-b bg-white">
                 <div className="mx-auto px-6 py-4 flex items-center justify-between">
                     <div>
-                        <h1 className="text-xl font-semibold">{template?.name}</h1>
+                        <h1 className="text-xl font-semibold">{template.name}</h1>
                         <p className="text-sm text-gray-500">Fill in the details to generate the document</p>
                     </div>
                     <Button variant="ghost" onClick={() => navigate('/templates')}>
                         <X className="h-5 w-5" />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Attributes Form */}
+            <div className="w-full px-6 py-10">
+                <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+                    {template.attributes?.map((attr: any) => {
+                        const isRequired = attr.required;
+                        const isHidden = attr.hidden;
+
+                        return (
+                            <div key={attr.attributeId} className="space-y-2">
+                                <Label className="flex items-center gap-2 text-base">
+                                    {attr.label}
+                                    {isRequired && <span className="text-red-500">*</span>}
+                                    {isHidden && (
+                                        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                                            <Info className="h-3.5 w-3.5" /> metadata only
+                                        </span>
+                                    )}
+                                </Label>
+
+                                {attr.type === "date" ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !formValues[attr.attributeId] && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {formValues[attr.attributeId]
+                                                    ? format(new Date(formValues[attr.attributeId]), "PPP")
+                                                    : "Select date"}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={formValues[attr.attributeId] ? new Date(formValues[attr.attributeId]) : undefined}
+                                                onSelect={(date) => handleChange(attr.attributeId, date?.toISOString() || "")}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : (
+                                    <Input
+                                        type={
+                                            attr.type === "email" ? "email" :
+                                                attr.type === "number" ? "number" : "text"
+                                        }
+                                        placeholder={`Enter ${attr.label}`}
+                                        value={formValues[attr.attributeId] || ""}
+                                        onChange={(e) => handleChange(attr.attributeId, e.target.value)}
+                                        required={isRequired}
+                                        className="h-11"
+                                    />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-8">
+                    <Button
+                        onClick={handleGenerate}
+                        disabled={isGenerating}
+                        className="bg-[#4F39F6] hover:bg-[#3f2be6] px-8"
+                    >
+                        {isGenerating ? "Generating PDF..." : "Generate Document"}
                     </Button>
                 </div>
             </div>
