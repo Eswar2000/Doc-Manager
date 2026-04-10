@@ -22,6 +22,7 @@ export default function DocGenerationPage() {
 
     const [formValues, setFormValues] = useState<Record<string, string>>({});
     const [isGenerating, setIsGenerating] = useState(false);
+    const [openPopover, setOpenPopover] = useState<string | null>(null);
 
     const { data: template, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['template', templateId],
@@ -106,7 +107,11 @@ export default function DocGenerationPage() {
                                 </Label>
 
                                 {attr.type === "date" ? (
-                                    <Popover>
+                                    <Popover
+                                        open={openPopover === attr.attributeId}
+                                        onOpenChange={(open) =>
+                                            setOpenPopover(open ? attr.attributeId : null)
+                                        }>
                                         <PopoverTrigger asChild>
                                             <Button
                                                 variant="outline"
@@ -122,17 +127,21 @@ export default function DocGenerationPage() {
                                                     : "Select date"}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
+                                        <PopoverContent className="w-auto p-2 border border-indigo-300 bg-white shadow-lg rounded-lg">
                                             <Calendar
                                                 mode="single"
                                                 selected={
-                                                    formValues[attr.attributeId] 
-                                                    ? new Date(formValues[attr.attributeId])
-                                                    : undefined
+                                                    formValues[attr.attributeId]
+                                                        ? new Date(formValues[attr.attributeId])
+                                                        : undefined
                                                 }
                                                 onSelect={(date) => {
                                                     if (!date) return;
                                                     handleChange(attr.attributeId, format(date, "dd-MM-yyyy"));
+                                                    setOpenPopover(null);
+                                                }}
+                                                classNames={{
+                                                    cell: "p-2"
                                                 }}
                                             />
                                         </PopoverContent>
