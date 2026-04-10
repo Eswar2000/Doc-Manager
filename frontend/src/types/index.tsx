@@ -63,6 +63,7 @@ export interface TemplateProps {
     label: string;
     required: boolean;
     hidden: boolean;
+    type: AttributeType;
     defaultValue: string | null;
     trackerIds: string[];
   }>,
