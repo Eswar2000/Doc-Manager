@@ -170,6 +170,11 @@ export interface LoaderProps {
   screenMessage: string
 }
 
+export type OverlayLoaderProps = {
+  show: boolean;
+  message?: string;
+}
+
 export interface ErrorStateProps {
   title?: string;
   description?: string;
