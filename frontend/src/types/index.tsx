@@ -63,6 +63,7 @@ export interface TemplateProps {
     label: string;
     required: boolean;
     hidden: boolean;
+    type: AttributeType;
     defaultValue: string | null;
     trackerIds: string[];
   }>,
@@ -73,7 +74,7 @@ export interface TemplateProps {
     condition: {
       join: 'and' | 'or';
       items: Array<{
-        field: string;
+        fieldKey: string;
         operator: string;
         value?: string;
       }>
@@ -85,6 +86,11 @@ export interface TemplateProps {
 export interface TemplateRollbackProps {
   srcTemplateId: string;
   destTemplateId?: string;
+}
+
+export interface DocumentGenerationProps {
+  templateId: string;
+  attributeValues: Record<string, string>;
 }
 
 export interface DataTableProps<TData, TValue> {
@@ -163,6 +169,11 @@ export type Placeholder = {
 export interface LoaderProps {
   screenHeader: string,
   screenMessage: string
+}
+
+export type OverlayLoaderProps = {
+  show: boolean;
+  message?: string;
 }
 
 export interface ErrorStateProps {

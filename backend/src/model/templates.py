@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 from typing import List, Optional, Literal, Any, Dict
+from src.model.attributes import AttributeType
 
 # Schema definition of attribute used inside a template
 class TemplateAttribute(BaseModel):
@@ -8,6 +9,7 @@ class TemplateAttribute(BaseModel):
     label: str = Field(..., description="Name of the attribute")
     required: bool = Field(..., description="Indicates if the attribute is mandatory")
     hidden: bool = Field(..., description="Indicates if the attribute is hidden")
+    type: AttributeType = Field(..., description="Data type of the attribute, e.g. 'text', 'number', 'date'")
     defaultValue: Optional[Any] = Field(None, description="Default value for the attribute")
     trackerIds: List[str] = Field(default_factory=list, description="List of associated tracker IDs from the document")
 

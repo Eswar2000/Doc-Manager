@@ -7,7 +7,6 @@ import { DataTableRowActions } from "../data-table/data-table-row-actions";
 import { useState } from "react";
 import type { DynamicField } from "../../types/index";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
-import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { attributeApi } from "@/api/attributes";
@@ -17,7 +16,6 @@ import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 
 export default function AttributesPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const {
@@ -283,7 +281,7 @@ export default function AttributesPage() {
       </div>
       {!isLoading && !isError && <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => setCreateDialogOpen(true)} />}
       {isLoading && <Loader screenHeader="Loading your attributes" screenMessage="Please wait till we fetch your attributes" />}
-      {isError && <ErrorState title="Failed to load attributes" description={error?.message || "We couldn't load the attributes right now."} onRetry={() => refetch()} onHome={() => { navigate('/templates') }} />}
+      {isError && <ErrorState title="Failed to load attributes" description={error?.message || "We couldn't load the attributes right now."} onRetry={() => refetch()} />}
 
       {editingItem && (
         <DynamicDialog

@@ -5,6 +5,7 @@ import MainLayout from './components/main-layout';
 import AttributesPage from './components/pages/attributes-page';
 import EditorPage from './components/pages/editor-page';
 import TemplatesPage from './components/pages/templates-page';
+import DocGenerationPage from './components/pages/doc-generation-page';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/snippets" element={<EditorPage />} />
           <Route path="/editor" element={<EditorPage />} />
+          <Route path='/templates/:templateId/generate' element={<DocGenerationPage />} />
         </Route>
       </Routes>
 

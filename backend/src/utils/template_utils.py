@@ -1,6 +1,8 @@
+from src.model.attributes import AttributeType
 from src.model.templates import TemplateAttribute, TemplateRule, TemplateRuleCondition, TemplateRuleConditionItem
 import re
 import html
+import datetime
 from bs4 import BeautifulSoup
 
 def validate_attribute_values(values: dict, attributes: list[TemplateAttribute]) -> tuple[dict, list[dict]]:
@@ -24,6 +26,27 @@ def validate_attribute_values(values: dict, attributes: list[TemplateAttribute])
 
         if a.required and not has_value:
             missing.append({"label": label, "attributeId": attribute_id})
+        
+        if has_value and a.type:
+            is_valid = _eval_attribute_type(val, a.type)
+            if not is_valid:
+                if a.type == AttributeType.NUMBER:
+                    error_msg = f"Expected a number but got '{val}'"
+                elif a.type == AttributeType.EMAIL:
+                    error_msg = f"Expected an email but got '{val}'"
+                elif a.type == AttributeType.DATE:
+                    error_msg = f"Expected a date in format DD-MM-YYYY but got '{val}'"
+                elif a.type == AttributeType.TEXT:
+                    error_msg = f"Expected text but got '{val}'"
+                else:
+                    error_msg = f"Invalid value '{val}'"
+                
+                missing.append({
+                    "label": label, 
+                    "attributeId": attribute_id, 
+                    "error": error_msg, 
+                    "value": val
+                })
 
         key = label if label else str(attribute_id)
         resolved[key] = "" if val is None else val
@@ -50,6 +73,27 @@ def render_html_from_template(html_content: str, resolved: dict) -> str:
         return match.group(0)
 
     return pattern.sub(_repl, html_content)
+
+def _eval_attribute_type(value: any, expected_type: AttributeType):
+    if value is None or value == "":
+        return True
+    
+    try:
+        if expected_type == AttributeType.NUMBER:
+            float(value)
+            return True
+        elif expected_type == AttributeType.EMAIL:
+            return re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", str(value)) is not None
+        elif expected_type == AttributeType.DATE:
+            datetime.strptime(value, "%d-%m-%Y")
+            return True
+        elif expected_type == AttributeType.TEXT:
+            return isinstance(value, str)
+        else:
+            return False
+    except Exception:
+        return False
+
 
 def _eval_item(item: TemplateRuleConditionItem, values: dict) -> bool:
     if item is None:

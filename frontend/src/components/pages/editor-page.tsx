@@ -1,7 +1,7 @@
 import React from "react";
 import Editor from "../editor/editor";
 import DynamicDialog from "../dialog-box/dynamic-dialog";
-import type { Placeholder, EditorInitialData, DynamicField, AttributeProps } from "../../types/index";
+import type { Placeholder, EditorInitialData, DynamicField, AttributeProps, AttributeType } from "../../types/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { templateApi } from "@/api/templates";
@@ -239,6 +239,7 @@ export default function EditorPage() {
         trackerIds: string[];
         required: boolean;
         hidden: boolean;
+        type: AttributeType;
         defaultValue: string | null;
       }>();
 
@@ -260,6 +261,7 @@ export default function EditorPage() {
             hidden: false,
             defaultValue: null,
           };
+          const attributeMeta = attributes.find(a => a.id.toString() === attributeId);
 
           if (!attributeMap.has(attributeId)) {
             attributeMap.set(attributeId, {
@@ -267,6 +269,7 @@ export default function EditorPage() {
               label,
               required: config.required,
               hidden: config.hidden,
+              type: attributeMeta ? attributeMeta.type : 'text',
               defaultValue: config.defaultValue,
               trackerIds: [],
             });
@@ -277,7 +280,7 @@ export default function EditorPage() {
       }
     });
 
-    const attributes = Array.from(attributeMap.values());
+    const attributesList = Array.from(attributeMap.values());
 
     const rules: Array<{
       ruleId: string;
@@ -285,7 +288,7 @@ export default function EditorPage() {
       action: "show" | "hide";
       condition: {
         join: "and" | "or";
-        items: Array<{ fieldKey: string; operator: string; value: string }>;
+        items: Array<{ fieldKey: string; operator: string; value?: string }>;
       };
       content: any;
     }> = [];
@@ -321,7 +324,7 @@ export default function EditorPage() {
       description,
       htmlContent: html,
       jsonContent: json,
-      attributes,
+      attributes: attributesList,
       rules
     };
 

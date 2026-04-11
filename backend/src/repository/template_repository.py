@@ -301,8 +301,8 @@ class TemplateRepository:
         
         resolved, missing = validate_attribute_values(attribute_values, template.attributes)
         if missing:
-            print(f"Generate_Document: Missing required attributes for template ID {template_id}: {missing}")
-            raise HTTPException(status_code=400, detail={"message": "Missing required attributes", "missing": missing})
+            print(f"Generate_Document: Missing required attributes or invalid values provided to it for template ID {template_id}: {missing}")
+            raise HTTPException(status_code=400, detail={"message": "Missing required attributes or invalid values provided", "missing": missing})
         
         print(f"Generate_Document: Successfully retrieved template for ID {template_id}")
         print(f"Generate_Document: Resolved attribute values: {resolved}")

@@ -1,5 +1,5 @@
 import { api } from './index';
-import type { TemplateProps, TemplateRollbackProps } from '../types/index';
+import type { TemplateProps, TemplateRollbackProps, DocumentGenerationProps } from '../types/index';
 
 export const templateApi = {
     fetchTemplates: async (): Promise<TemplateProps[]> => {
@@ -25,4 +25,10 @@ export const templateApi = {
     rollbackTemplate: async (rollbackRequest: TemplateRollbackProps): Promise<void> => {
         await api.post(`/templates/rollback`, { ...rollbackRequest });
     },
+    generateDocument: async (docGenRequest: DocumentGenerationProps): Promise<Blob> => {
+        const response = await api.post(`/templates/generate`, docGenRequest, {
+            responseType: 'blob',
+        });
+        return response.data;
+    }
 }

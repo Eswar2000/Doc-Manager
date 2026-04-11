@@ -19,7 +19,6 @@ export default function TemplatesPage() {
         isLoading,
         isError,
         error,
-        refetch,
     } = useQuery({
         queryKey: ['templates'], // unique cache key
         queryFn: templateApi.fetchTemplates,
@@ -143,6 +142,14 @@ export default function TemplatesPage() {
                         onClick: () => { console.log("viewing details of template: " + row.original.name) }
                     },
                     {
+                        title: "Use",
+                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
+                        variant: "secondary",
+                        onClick: () => {
+                            navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
+                        }
+                    },
+                    {
                         title: "Delete",
                         icon: <Trash2 className="h-4 w-4 text-destructive" />,
                         variant: "destructive",
@@ -209,7 +216,7 @@ export default function TemplatesPage() {
             </div>
             {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} />}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
-            {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} onRetry={() => refetch()} onHome={() => { navigate('/attributes') }} />}
+            {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} />}
         </div>
     );
 }
