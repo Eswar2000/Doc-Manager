@@ -34,8 +34,53 @@ export default function DocGenerationPage() {
         setFormValues(prev => ({ ...prev, [key]: value }));
     };
 
+    const validateForm = () => {
+        if (!template) return;
+
+        const errors: Record<string, string> = {};
+        template.attributes?.forEach((attr: any) => {
+            const value = formValues[attr.attributeId];
+
+            if (attr.required && (!value || value.trim() === "")) {
+                errors[attr.attributeId] = `${attr.label} is required`;
+            }
+        });
+
+        return errors;
+    };
+
     const handleGenerate = async () => {
         if (!templateId) return;
+
+        const errors = validateForm();
+        if (errors && Object.keys(errors).length > 0) {
+            const MAX_ERRORS_TO_SHOW = 1;
+
+            const errorList = Object.values(errors);
+            const visibleErrors = errorList.slice(0, MAX_ERRORS_TO_SHOW);
+            const remainingCount = errorList.length - visibleErrors.length;
+
+            toast.error(
+                <div className="space-y-2">
+                    <div className="font-semibold text-sm text-red-600">
+                        Please fix the following validation errors:
+                    </div>
+
+                    <ul className="list-disc pl-5 text-sm space-y-1">
+                        {visibleErrors.map((err, idx) => (
+                            <li key={idx}>{err}</li>
+                        ))}
+                    </ul>
+
+                    {remainingCount > 0 && (
+                        <div className="text-xs text-red-100">
+                            + {remainingCount} more error{remainingCount > 1 ? "s" : ""}
+                        </div>
+                    )}
+                </div>
+            );
+            return;
+        }
 
         setIsGenerating(true);
         try {
