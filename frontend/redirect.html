@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MSAL Redirect Bridge</title>
+</head>
+<body>
+  <p style="text-align: center; margin-top: 40px; font-family: system-ui;">Completing sign-in...</p>
+
+  <script type="module">
+    import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+
+    broadcastResponseToMainFrame()
+      .catch((error) => {
+        console.error("MSAL redirect bridge failed:", error);
+      })
+      .finally(() => {
+        // Close popup or iframe quickly
+        window.close();
+      });
+  </script>
+</body>
+</html>
