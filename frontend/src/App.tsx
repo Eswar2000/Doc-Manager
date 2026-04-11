@@ -11,17 +11,27 @@ import DocGenerationPage from './components/pages/doc-generation-page';
 import LoginPage from './components/pages/login-page';
 
 export default function App() {
-  const { instance } = useMsal();
+  const { instance, inProgress } = useMsal();
   const isAuthenticated = useIsAuthenticated();
 
   const handleLogin = async () => {
     try {
-      await instance.loginRedirect(loginRequest); 
-      // or use loginRedirect() if you prefer redirect flow
+      await instance.loginRedirect(loginRequest);
     } catch (error) {
       console.error('Login failed:', error);
     }
   };
+
+  if (inProgress !== 'none') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-950 to-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-9 h-9 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-indigo-200 text-lg font-medium">Loading Template Studio...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -38,10 +48,10 @@ export default function App() {
         />
         <Route element={
           isAuthenticated ? (
-              <MainLayout />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            <MainLayout />
+          ) : (
+            <Navigate to="/login" replace />
+          )
         }>
           <Route path="/" element={<AttributesPage />} />
           <Route path="/attributes" element={<AttributesPage />} />
@@ -50,6 +60,13 @@ export default function App() {
           <Route path="/editor" element={<EditorPage />} />
           <Route path='/templates/:templateId/generate' element={<DocGenerationPage />} />
         </Route>
+
+        <Route
+          path="*"
+          element={
+            <Navigate to={isAuthenticated ? "/" : "/login"}
+              replace />}
+        />
       </Routes>
 
       {/* Toaster for notifications */}
@@ -58,7 +75,6 @@ export default function App() {
         position="bottom-left"
         closeButton
         duration={3000}
-        
       />
     </BrowserRouter>
   )

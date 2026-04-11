@@ -1,7 +1,7 @@
 // components/auth/LoginPage.tsx
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import logo from "../../../public/template-studio-brand.svg";
+import logo from "../../assets/template-studio-brand.svg";
 
 interface LoginPageProps {
   onLogin: () => void;
