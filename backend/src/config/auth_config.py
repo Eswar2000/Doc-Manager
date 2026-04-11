@@ -8,5 +8,8 @@ azure_scheme = MultiTenantAzureAuthorizationCodeBearer(
     },
 
     # For development, we can skip issuer validation to allow tokens from any tenant. In production, this should be set to True and the allowed tenants should be specified.
-    validate_iss=False
+    validate_iss=False,
+
+    # This allows users from any tenant to authenticate. In production, you might want to restrict this to specific tenants.
+    allow_guest_users=True
 )
