@@ -11,8 +11,9 @@ It supports:
 - Dynamic placeholders
 - Conditional content rendering
 - Template versioning
+- Document generation
 - Reusable snippets (upcoming)
-- Document generation (upcoming)
+- AI assisted template creation (upcoming)
 
 ---
 
@@ -41,19 +42,24 @@ It supports:
 - Supports multiple data types (string, number, boolean, etc.)
 - Drives both rendering and validation
 
+### 6. Document Generation
+- Generate final documents by filling placeholder values
+- Form-driven input system
+- Currently supporting PDF export
+
 ---
 
 ## 🧩 Upcoming Features
-
-### Document Generation
-- Generate final documents by filling placeholder values
-- Form-driven input system
-- Export options (PDF)
 
 ### Snippet Management
 - Define reusable content blocks (e.g., disclaimers, terms)
 - Centralized updates across templates
 - Plug-and-play integration within templates
+
+### AI Driven Template Creation
+- Share as many final documents (as PDFs)
+- The system detects patterns across the documents to generate 1 template
+- Detection of placeholders, rules and reusable blocks with help of AI
 
 ---
 
@@ -82,8 +88,8 @@ It supports:
 
 For local development, refer to the service-specific setup guides:
 
-- Backend → `backend/README.md`
-- Frontend → `frontend/README.md`
+- [Backend Documentation](./backend/README.md)
+- [Frontend Documentation](./frontend/README.md)
 
 ### Quick Flow
 

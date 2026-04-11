@@ -1,20 +1,28 @@
+import token
 from typing import Optional
 from azure.cosmos.aio import CosmosClient
+from azure.identity.aio import DefaultAzureCredential
 from fastapi import FastAPI
 
 from src.config.settings import settings
 
 _client: Optional[CosmosClient] = None
+_credential: Optional[DefaultAzureCredential] = None
 
 async def get_cosmos_client() -> CosmosClient:
     """
     Returns the shared CosmosClient instance (lazy initialization).
     Recommended way for most FastAPI + Cosmos applications.
     """
-    global _client
+    global _client, _credential
 
     if _client is None:
-        _client = CosmosClient.from_connection_string(settings.cosmos_connection_string,)
+        _credential = DefaultAzureCredential()
+
+        _client = CosmosClient(
+            url=settings.cosmos_endpoint,
+            credential=_credential
+        )
     return _client
 
 
