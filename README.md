@@ -13,7 +13,7 @@ It supports:
 - Template versioning
 - Document generation
 - Reusable snippets (upcoming)
-- AI assisted template creation
+- AI assisted template creation (upcoming)
 
 ---
 
