@@ -8,7 +8,7 @@ This service powers the **Template Manager** backend, handling placehoder manage
 
 - Python 3.10+
 - Pip
-- Azure access required - [See setup instructions](#azure-setup-for-cosmos-db-access)
+- Azure access required - [See setup instructions](#-azure-setup-for-cosmos-db-access)
 
 ---
 
