@@ -27,7 +27,7 @@ export default function App() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-950 to-slate-950 flex items-center justify-center">
         <div className="text-center">
           <div className="w-9 h-9 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-          <p className="text-indigo-200 text-lg font-medium">Loading Template Studio...</p>
+          <p className="text-indigo-200 text-lg font-medium">Please wait...</p>
         </div>
       </div>
     );

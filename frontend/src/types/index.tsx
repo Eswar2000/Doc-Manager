@@ -3,7 +3,8 @@ export interface SidebarItemProps {
     text: string;
     active?: boolean;
     alert?: boolean;
-    to: string;
+    to?: string;
+    onClick?: () => void;
 }
 
 export interface SidebarChildrenProps {
