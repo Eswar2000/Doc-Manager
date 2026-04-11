@@ -140,17 +140,17 @@ az cosmosdb sql role assignment create \
 This project uses **Cosmos DB Built-in Data Contributor** role.
 
 It allows:
-- ✔ Read documents
-- ✔ Create documents
-- ✔ Update documents
-- ✔ Delete documents
-- ✔ Query containers
+ ✔ Read documents
+ ✔ Create documents
+ ✔ Update documents
+ ✔ Delete documents
+ ✔ Query containers
 
 This does **NOT** allow:
-- ❌ Deleting Cosmos DB account
-- ❌ Creating/deleting databases
-- ❌ Changing infrastructure (RU/s, firewall, networking)
-- ❌ Subscription-level changes
+ ❌ Deleting Cosmos DB account
+ ❌ Creating/deleting databases
+ ❌ Changing infrastructure (RU/s, firewall, networking)
+ ❌ Subscription-level changes
 
 ### 6. Verify Access
 
