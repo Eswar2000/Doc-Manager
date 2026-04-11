@@ -66,7 +66,7 @@ COSMOS_ENDPOINT=https://<your_database_account>.documents.azure.com:443/
 
 ---
 
-## Azure Setup for Cosmos DB Access
+## 🔐 Azure Setup for Cosmos DB Access
 
 This project uses **Azure Cosmos DB with Azure AD (RBAC-based authentication)** for secure access. No database credentials are stored in code.
 
