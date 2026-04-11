@@ -1,11 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>MSAL Redirect Bridge</title>
+  <meta charset="UTF-8" />
+  <title>Completing Sign-in</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      /* Tailwind equivalent gradient */
+      background: linear-gradient(to bottom right,
+          #1e1b4b,
+          /* indigo-950 */
+          #020617,
+          /* slate-950 */
+          #020617
+          /* slate-950 */
+        );
+
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #c7d2fe;
+      /* indigo-200 */
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    .text {
+      font-size: 18px;
+      font-weight: 500;
+    }
+  </style>
 </head>
+
 <body>
-  <p style="text-align: center; margin-top: 40px; font-family: system-ui;">Completing sign-in...</p>
+  <div class="container">
+    <div class="text">Please wait...</div>
+  </div>
 
   <script type="module">
     import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
@@ -15,9 +52,9 @@
         console.error("MSAL redirect bridge failed:", error);
       })
       .finally(() => {
-        // Close popup or iframe quickly
         window.close();
       });
   </script>
 </body>
+
 </html>
