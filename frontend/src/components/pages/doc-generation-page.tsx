@@ -20,6 +20,7 @@ export default function DocGenerationPage() {
     const { templateId } = useParams<{ templateId: string }>();
     const navigate = useNavigate();
 
+    const [fileName, setFileName] = useState("");
     const [formValues, setFormValues] = useState<Record<string, string>>({});
     const [isGenerating, setIsGenerating] = useState(false);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
@@ -38,6 +39,15 @@ export default function DocGenerationPage() {
         if (!template) return;
 
         const errors: Record<string, string> = {};
+        const FILE_NAME_REGEX = /^[a-zA-Z0-9 _-]+$/;
+        if (!fileName || fileName.trim() === "") {
+            errors["fileName"] = "File name is required";
+        } else if (!FILE_NAME_REGEX.test(fileName)) {
+            errors["fileName"] = "File name contains invalid characters";
+        } else if (fileName.length > 50) {
+            errors["fileName"] = "File name should not exceed 50 characters";
+        }
+
         template.attributes?.forEach((attr: any) => {
             const value = formValues[attr.attributeId];
 
@@ -95,7 +105,7 @@ export default function DocGenerationPage() {
 
             const link = document.createElement("a");
             link.href = url;
-            link.download = `${template?.name || "document"}.pdf`;
+            link.download = `${fileName.trim()}.pdf`;
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -134,6 +144,23 @@ export default function DocGenerationPage() {
 
             {/* Attributes Form */}
             <div className="w-full px-6 py-10">
+                <div className="mb-8 w-[300px]">
+                    <Label className="flex items-center gap-2 text-base">
+                        File Name <span className="text-red-500">*</span>
+                    </Label>
+
+                    <Input
+                        placeholder="Enter File Name"
+                        value={fileName}
+                        onChange={(e) => setFileName(e.target.value)}
+                        className="mt-2 focus-visible:ring-1 transition-colors duration-150 border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
+                    />
+
+                    <p className="text-xs text-gray-600 mt-1">
+                        Only letters, numbers, spaces, hyphens, and underscores allowed
+                    </p>
+                </div>
+
                 <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(300px,max-content))]">
                     {template.attributes?.map((attr: any) => {
                         const isRequired = attr.required;
