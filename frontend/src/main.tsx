@@ -3,11 +3,9 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-import { useAuthProvider } from './auth/auth-proider.tsx';
+import { useAuthProvider } from './auth/auth-provider.tsx';
 
 const { AuthProvider } = useAuthProvider();
-
 
 const queryClient = new QueryClient({
   defaultOptions: {

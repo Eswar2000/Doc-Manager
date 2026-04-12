@@ -1,8 +1,5 @@
 import axios from 'axios';
-import { PublicClientApplication } from '@azure/msal-browser';
-import { msalConfig } from '../auth/msal-config';
-
-const msalInstance = new PublicClientApplication(msalConfig);
+import { msalInstance } from '../auth/msal-instance';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:8000';
 
@@ -25,6 +22,8 @@ msalInstance.initialize().then(() => {
           account,
         });
         config.headers['Authorization'] = `Bearer ${tokenResponse.accessToken}`;
+      } else {
+        console.warn('No active account found. User might not be logged in.');
       }
       return config;
     }, (error) => Promise.reject(error)
