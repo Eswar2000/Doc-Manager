@@ -135,7 +135,7 @@ class TemplateRepository:
             print(f"List_Templates: Error occurred while listing templates: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while listing templates: {str(e)}")
 
-    async def archive_template(self, template: Template) -> bool:
+    async def archive_template(self, template: Template, current_user: dict) -> bool:
         print("Archive_Template: Starting template archival process")
 
         if not template:
@@ -149,6 +149,7 @@ class TemplateRepository:
         try:    
             template_to_update = template.model_dump(by_alias=True)
             template_to_update["state"] = "archived"
+            template_to_update["modifiedBy"] = current_user
             await container.replace_item(item=template.id, body=template_to_update)
             print(f"Archive_Template: Template with ID {template.id} archived successfully")
             return True
@@ -159,7 +160,7 @@ class TemplateRepository:
                 raise HTTPException(status_code=409, detail="Concurrency conflict — template updated by another process")
             return False
         
-    async def update_template(self, template_id: str, payload: TemplateCreateRequest) -> Template:
+    async def update_template(self, template_id: str, payload: TemplateCreateRequest, current_user: dict) -> Template:
         print(f"Update_Template: Starting update for template ID {template_id}")
 
         existing_template = await self.get_template_by_id(template_id)
@@ -174,7 +175,7 @@ class TemplateRepository:
         root_v1_id = existing_template.parentTemplateId or existing_template.id
         print(f"Update_Template: Root v1 ID determined as {root_v1_id}")
 
-        archived_template = await self.archive_template(existing_template)
+        archived_template = await self.archive_template(existing_template, current_user)
         if not archived_template:
             print(f"Update_Template: Failed to archive existing template with ID {template_id}")
             raise HTTPException(status_code=500, detail="Failed to archive existing template")
@@ -195,7 +196,8 @@ class TemplateRepository:
             version=new_version,
             state="active",
             parentTemplateId=root_v1_id,
-            createdAt=now
+            createdAt=now,
+            createdBy=current_user
         )
 
         print(f"Update_Template: Preparing new version {new_version} with ID {new_template.id}")

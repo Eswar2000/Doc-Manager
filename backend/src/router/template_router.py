@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from src.utils.pdf_utils import html_to_pdf_bytes
+from src.utils.auth_utils import get_current_user
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
 from src.model.templates import TemplateCreateRequest, DocumentGenerationRequest, TemplateResponse, Template, TemplateRollbackRequest, TemplateVersionInfo
@@ -91,10 +92,10 @@ async def list_templates(name: Optional[str] = None, desc: Optional[str] = None,
         404: {"description": "Template not found"},
     }
 )
-async def update_template(template_id: str, payload: TemplateCreateRequest, service: TemplateService = Depends(get_template_service)):
+async def update_template(template_id: str, payload: TemplateCreateRequest, current_user: dict = Depends(get_current_user), service: TemplateService = Depends(get_template_service)):
     print("Update template endpoint called")
     try:
-        updated_template = await service.update_template(template_id, payload)
+        updated_template = await service.update_template(template_id, payload, current_user)
         print("Update template endpoint: Template updated successfully")
         return updated_template
     except HTTPException as e:
