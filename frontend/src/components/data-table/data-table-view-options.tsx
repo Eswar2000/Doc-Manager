@@ -40,6 +40,16 @@ export function DataTableViewOptions<TData>({
               typeof column.accessorFn !== "undefined" && column.getCanHide()
           )
           .map((column) => {
+
+            const title = 
+              typeof column.columnDef.header === "string"
+                ? column.columnDef.header
+                : column.id === "actions"
+                ? "Actions"
+                : column.id
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^./, (str) => str.toUpperCase());
+
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
@@ -47,7 +57,7 @@ export function DataTableViewOptions<TData>({
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {title}
               </DropdownMenuCheckboxItem>
             );
           })}
