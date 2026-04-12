@@ -150,6 +150,7 @@ class TemplateRepository:
         try:    
             template_to_update = template.model_dump(by_alias=True)
             template_to_update["state"] = "archived"
+            template_to_update["modifiedAt"] = datetime.now(timezone.utc).isoformat()
             template_to_update["modifiedBy"] = current_user
             await container.replace_item(item=template.id, body=template_to_update)
             print(f"Archive_Template: Template with ID {template.id} archived successfully")
