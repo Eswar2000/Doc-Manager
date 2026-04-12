@@ -4,11 +4,11 @@ import { loginRequest } from './auth/msal-config';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import './App.css';
 import MainLayout from './components/main-layout';
-import AttributesPage from './components/pages/attributes-page';
-import EditorPage from './components/pages/editor-page';
-import TemplatesPage from './components/pages/templates-page';
-import DocGenerationPage from './components/pages/doc-generation-page';
-import LoginPage from './components/pages/login-page';
+import AttributesPage from './pages/attributes-page';
+import EditorPage from './pages/editor-page';
+import TemplatesPage from './pages/templates-page';
+import DocGenerationPage from './pages/doc-generation-page';
+import LoginPage from './pages/login-page';
 
 export default function App() {
   const { instance, inProgress } = useMsal();

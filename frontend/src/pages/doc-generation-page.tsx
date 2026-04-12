@@ -12,9 +12,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Loader } from "../loader/loader";
-import { ErrorState } from "../error-state/error-state";
-import { OverlayLoader } from "../overlay-loader/overlay-loader";
+import { Loader } from "@/components/loader/loader";
+import { ErrorState } from "@/components/error-state/error-state";
+import { OverlayLoader } from "@/components/overlay-loader/overlay-loader";
 
 export default function DocGenerationPage() {
     const { templateId } = useParams<{ templateId: string }>();

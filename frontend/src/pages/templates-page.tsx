@@ -1,15 +1,14 @@
-import { DataTable } from "../data-table/data-table";
-import { getColumns } from "../data-table/columns";
-import type { TemplateProps, TableAction } from "../../types/index";
-import { DataTableColumnHeader } from "../data-table/data-table-column-header";
-import { DataTableRowActions } from "../data-table/data-table-row-actions";
+import { DataTable } from "@/components/data-table/data-table";
+import { getColumns } from "@/components/data-table/columns";
+import type { TemplateProps, TableAction, EditorInitialData } from "@/types/index";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2, Pencil, Eye } from "lucide-react";
-import type { EditorInitialData } from "../../types/index";
 import { templateApi } from "@/api/templates";
-import { Loader } from "../loader/loader";
-import { ErrorState } from "../error-state/error-state";
+import { Loader } from "@/components/loader/loader";
+import { ErrorState } from "@/components/error-state/error-state";
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
