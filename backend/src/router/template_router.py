@@ -24,10 +24,10 @@ async def get_template_service():
         422: {"description": "Pydantic validation error"}
     }
 )
-async def create_template(payload: TemplateCreateRequest, service: TemplateService = Depends(get_template_service)):
+async def create_template(payload: TemplateCreateRequest, current_user: dict = Depends(get_current_user), service: TemplateService = Depends(get_template_service)):
     print("Create template endpoint called")
     try:
-        created_template = await service.create_new_template(payload)
+        created_template = await service.create_new_template(payload, current_user)
         print("Create template endpoint: Template created successfully")
         return created_template
     except HTTPException as e:
