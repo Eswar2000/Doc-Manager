@@ -47,6 +47,11 @@ It supports:
 - Form-driven input system
 - Currently supporting PDF export
 
+### 7. Authentication
+- Secure login using Microsoft Entra ID (OAuth 2.0 with MSAL)
+- Access tokens are automatically attached to all API requests
+- Backend validates tokens to ensure only authenticated users can access APIs
+
 ---
 
 ## 🧩 Upcoming Features
@@ -96,3 +101,14 @@ For local development, refer to the service-specific setup guides:
 1. Start the backend server
 2. Start the frontend server
 3. Open `http://localhost:5173` in your browser
+
+---
+
+## 📚 Documentation
+
+Detailed guides and internal setup notes are available in the `/docs` folder:
+
+- 🔐 [Authentication Setup](./docs/auth-setup.md)  
+  Complete guide for configuring Microsoft Entra ID, MSAL integration (frontend), and token validation (backend)
+
+---

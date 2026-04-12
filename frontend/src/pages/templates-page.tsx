@@ -1,15 +1,15 @@
-import { DataTable } from "../data-table/data-table";
-import { getColumns } from "../data-table/columns";
-import type { TemplateProps, TableAction } from "../../types/index";
-import { DataTableColumnHeader } from "../data-table/data-table-column-header";
-import { DataTableRowActions } from "../data-table/data-table-row-actions";
+import { DataTable } from "@/components/data-table/data-table";
+import { getColumns } from "@/components/data-table/columns";
+import type { TemplateProps, TableAction, EditorInitialData } from "@/types/index";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2, Pencil, Eye } from "lucide-react";
-import type { EditorInitialData } from "../../types/index";
 import { templateApi } from "@/api/templates";
-import { Loader } from "../loader/loader";
-import { ErrorState } from "../error-state/error-state";
+import { Loader } from "@/components/loader/loader";
+import { ErrorState } from "@/components/error-state/error-state";
+import type { ColumnFiltersState } from "@tanstack/table-core";
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
@@ -134,20 +134,12 @@ export default function TemplatesPage() {
             id: "actions",
             accessorKey: "actions",
             cell: ({ row }) => {
-                const templateRowActions: TableAction<TemplateProps>[] = [
+                const templateBaseActions: TableAction<TemplateProps>[] = [
                     {
                         title: "View Details",
                         icon: <Eye className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => { console.log("viewing details of template: " + row.original.name) }
-                    },
-                    {
-                        title: "Use",
-                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
-                        variant: "secondary",
-                        onClick: () => {
-                            navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
-                        }
                     },
                     {
                         title: "Delete",
@@ -157,8 +149,8 @@ export default function TemplatesPage() {
                     }
                 ];
 
-                if (row.original.state === "active") {
-                    templateRowActions.unshift({
+                const activeTemplateActions: TableAction<TemplateProps>[] = [
+                    {
                         title: "Edit",
                         icon: <Pencil className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
@@ -183,8 +175,19 @@ export default function TemplatesPage() {
                             };
                             navigate('/editor', { state: { initialData, mode: 'template' } })
                         },
-                    });
-                }
+                    },
+                    {
+                        title: "Use",
+                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
+                        variant: "secondary",
+                        onClick: () => {
+                            navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
+                        }
+                    },
+                ];
+
+                const isActive = row.original.state === "active";
+                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...activeTemplateActions, ...templateBaseActions] : [...templateBaseActions];
 
                 return <DataTableRowActions row={row} actions={templateRowActions} />
             }
@@ -203,6 +206,14 @@ export default function TemplatesPage() {
         },
     ]
 
+    // Default filter to show only active templates on initial load
+    const initialColumnFilters: ColumnFiltersState = [
+        {
+            id: "state",
+            value: ["active"],
+        },
+    ];
+
     const createNewTemplate = () => {
         navigate('/editor', { state: { mode: 'template' } })
     }
@@ -214,7 +225,7 @@ export default function TemplatesPage() {
                     <span>Manage Templates</span>
                 </h2>
             </div>
-            {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} />}
+            {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} initialColumnFilters={initialColumnFilters} />}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
             {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} />}
         </div>

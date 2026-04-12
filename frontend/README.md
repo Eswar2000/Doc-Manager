@@ -37,7 +37,11 @@ Create a `.env.local` file in the `frontend/` directory and define the required 
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000/
+VITE_AZURE_CLIENT_ID=...
+VITE_AZURE_TENANT_ID=...
 ```
+
+`AZURE_CLIENT_ID` AND `AZURE_TENANT_ID` can be obtained from the Microsoft Entra ID app registration. The repository owner will be able to share this information.
 
 ---
 

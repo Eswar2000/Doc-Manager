@@ -33,13 +33,14 @@ export function DataTable<TData, TValue>({
   filterColumnKey,
   facetedFilters,
   showCreateButton,
-  onCreate
+  onCreate,
+  initialColumnFilters = [],
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+    initialColumnFilters
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 

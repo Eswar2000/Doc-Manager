@@ -1,17 +1,16 @@
 
-import { DataTable } from "../data-table/data-table";
-import { getColumns } from "../data-table/columns";
-import type { AttributeProps } from "../../types/index";
-import { DataTableColumnHeader } from "../data-table/data-table-column-header";
-import { DataTableRowActions } from "../data-table/data-table-row-actions";
+import { DataTable } from "@/components/data-table/data-table";
+import { getColumns } from "@/components/data-table/columns";
+import type { AttributeProps, DynamicField } from "@/types/index";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useState } from "react";
-import type { DynamicField } from "../../types/index";
-import DynamicDialog from "../dialog-box/dynamic-dialog";
+import DynamicDialog from "@/components/dialog-box/dynamic-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { attributeApi } from "@/api/attributes";
-import { Loader } from "../loader/loader";
-import { ErrorState } from "../error-state/error-state";
+import { Loader } from "@/components/loader/loader";
+import { ErrorState } from "@/components/error-state/error-state";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 

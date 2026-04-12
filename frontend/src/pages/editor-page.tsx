@@ -1,7 +1,7 @@
 import React from "react";
-import Editor from "../editor/editor";
-import DynamicDialog from "../dialog-box/dynamic-dialog";
-import type { Placeholder, EditorInitialData, DynamicField, AttributeProps, AttributeType } from "../../types/index";
+import Editor from "@/components/editor/editor";
+import DynamicDialog from "@/components/dialog-box/dynamic-dialog";
+import type { Placeholder, EditorInitialData, DynamicField, AttributeProps, AttributeType } from "@/types/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { templateApi } from "@/api/templates";
@@ -36,7 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Spinner } from "../ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { TextSelection } from "prosemirror-state";
 
 
