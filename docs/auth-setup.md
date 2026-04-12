@@ -30,7 +30,7 @@ Add these to backend and frontend .env files.
 
 ### 3. Scope Creation
 
-1. Go to **App Registration** &rarr; **<your-app-name>** &rarr; **Expose an API**.
+1. Go to **App Registration** &rarr; **Select your app - **`<your-app-name` &rarr; **Expose an API**.
 2. Setup application ID URI.
 ```bash
 api://<your-client-id>
