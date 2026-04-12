@@ -133,20 +133,12 @@ export default function TemplatesPage() {
             id: "actions",
             accessorKey: "actions",
             cell: ({ row }) => {
-                const templateRowActions: TableAction<TemplateProps>[] = [
+                const templateBaseActions: TableAction<TemplateProps>[] = [
                     {
                         title: "View Details",
                         icon: <Eye className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => { console.log("viewing details of template: " + row.original.name) }
-                    },
-                    {
-                        title: "Use",
-                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
-                        variant: "secondary",
-                        onClick: () => {
-                            navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
-                        }
                     },
                     {
                         title: "Delete",
@@ -156,8 +148,8 @@ export default function TemplatesPage() {
                     }
                 ];
 
-                if (row.original.state === "active") {
-                    templateRowActions.unshift({
+                const activeTemplateActions: TableAction<TemplateProps>[] = [
+                    {
                         title: "Edit",
                         icon: <Pencil className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
@@ -182,8 +174,19 @@ export default function TemplatesPage() {
                             };
                             navigate('/editor', { state: { initialData, mode: 'template' } })
                         },
-                    });
-                }
+                    },
+                    {
+                        title: "Use",
+                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
+                        variant: "secondary",
+                        onClick: () => {
+                            navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
+                        }
+                    },
+                ];
+
+                const isActive = row.original.state === "active";
+                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...activeTemplateActions, ...templateBaseActions] : [...templateBaseActions];
 
                 return <DataTableRowActions row={row} actions={templateRowActions} />
             }
