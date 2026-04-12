@@ -62,7 +62,11 @@ Create a `.env` file in the `backend/src/` directory and define the required var
 ```env
 COSMOS_DATABASE_NAME=your_database_name
 COSMOS_ENDPOINT=https://<your_database_account>.documents.azure.com:443/
+AZURE_CLIENT_ID=...
+AZURE_TENANT_ID=...
 ```
+
+`AZURE_CLIENT_ID` AND `AZURE_TENANT_ID` can be obtained from the Microsoft Entra ID app registration. The repository owner will be able to share this information.
 
 ---
 
