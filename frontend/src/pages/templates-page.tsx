@@ -9,6 +9,7 @@ import { Trash2, Pencil, Eye } from "lucide-react";
 import { templateApi } from "@/api/templates";
 import { Loader } from "@/components/loader/loader";
 import { ErrorState } from "@/components/error-state/error-state";
+import type { ColumnFiltersState } from "@tanstack/table-core";
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
@@ -205,6 +206,14 @@ export default function TemplatesPage() {
         },
     ]
 
+    // Default filter to show only active templates on initial load
+    const initialColumnFilters: ColumnFiltersState = [
+        {
+            id: "state",
+            value: ["active"],
+        },
+    ];
+
     const createNewTemplate = () => {
         navigate('/editor', { state: { mode: 'template' } })
     }
@@ -216,7 +225,7 @@ export default function TemplatesPage() {
                     <span>Manage Templates</span>
                 </h2>
             </div>
-            {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} />}
+            {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} initialColumnFilters={initialColumnFilters} />}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
             {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} />}
         </div>

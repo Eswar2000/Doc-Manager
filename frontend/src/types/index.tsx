@@ -1,3 +1,5 @@
+import type { ColumnDef, Table, ColumnFiltersState } from "@tanstack/react-table";
+
 export interface SidebarItemProps {
     icon: any;
     text: string;
@@ -14,8 +16,6 @@ export interface SidebarChildrenProps {
 export interface SidebarContextType {
     expanded: boolean;
 }
-
-import type { ColumnDef, Table } from "@tanstack/react-table";
 
 export type AttributeType = "number" | "text" | "date" | "email";
 
@@ -101,6 +101,7 @@ export interface DataTableProps<TData, TValue> {
   facetedFilters?: FacetedFilterConfig[];
   showCreateButton?: boolean;
   onCreate?: () => void;
+  initialColumnFilters?: ColumnFiltersState;
 }
 
 export interface FacetedFilterOption {
