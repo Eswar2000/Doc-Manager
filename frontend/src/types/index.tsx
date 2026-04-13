@@ -17,6 +17,13 @@ export interface SidebarContextType {
     expanded: boolean;
 }
 
+export interface CurrentUser {
+    name: string;
+    email: string;
+    initials: string;
+    userId?: string;
+}
+
 export type AttributeType = "number" | "text" | "date" | "email";
 
 export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions";

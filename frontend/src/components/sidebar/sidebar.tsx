@@ -1,6 +1,7 @@
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import { useState, createContext } from "react";
 import type { SidebarChildrenProps, SidebarContextType } from "../../types/index";
+import SidebarUserProfile from "./sidebar-user-profile";
 import logo from "../../assets/brand-logo.svg";
 
 export const SidebarContext = createContext<SidebarContextType>({ expanded: true });
@@ -24,6 +25,9 @@ export default function Sidebar({ children }: SidebarChildrenProps) {
                         {children}
                     </ul>
                 </SidebarContext.Provider>
+                <div className="border-t border-gray-100 p-4 mt-auto">
+                    <SidebarUserProfile expanded={expanded} />
+                </div>
             </nav>
         </aside>
     )
