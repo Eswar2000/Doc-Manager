@@ -48,7 +48,7 @@ class Template(BaseModel):
     rules: List[TemplateRule] = Field(default_factory=list, description="List of rules associated with the template")
     createdAt: str = Field(default_factory=datetime.now(timezone.utc).isoformat(), description="Timestamp (UTC timestamp in ISO format) when the template was created")
     modifiedAt: Optional[str] = Field(None, description="Timestamp (UTC timestamp in ISO format) when the template was last modified")
-    createdBy: Optional[User] = Field(None, description="User information of the creator")
+    createdBy: User = Field(..., description="User information of the creator")
     modifiedBy: Optional[User] = Field(None, description="User information of the last modifier")
 
     class Config:
