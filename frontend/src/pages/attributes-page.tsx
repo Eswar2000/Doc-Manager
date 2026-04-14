@@ -123,7 +123,8 @@ export default function AttributesPage() {
         });
         return (
           <div className="flex w-[160px] items-center">
-            <span className="capitalize">{formattedDate} {formattedTime}</span>
+            {row.getValue("modifiedAt") && <span className="capitalize">{formattedDate} {formattedTime}</span>}
+            {!row.getValue("modifiedAt") && <span className="text-muted-foreground">-</span>}
           </div>
         );
       },
