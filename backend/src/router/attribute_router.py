@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from src.repository.attribute_repository import AttributeRepository
 from src.service.attribute_service import AttributeService
+from src.model.common import User
 from src.model.attributes import AttributeCreateRequest, AttributeFilterByTenantRequest, AttributeResponse, Attribute, AttributeType, AttributeUpdateRequest
+from src.utils.auth_utils import get_current_user
 from typing import List, Optional
 
 router = APIRouter(prefix="/attributes", tags=["attributes"], responses={500: {"description": "Internal Server Error"}})
@@ -21,10 +23,10 @@ async def get_attribute_service():
         422: {"description": "Pydantic validation error"}
     }
 )
-async def create_attribute(payload: AttributeCreateRequest, service: AttributeService = Depends(get_attribute_service)):
+async def create_attribute(payload: AttributeCreateRequest, current_user: User = Depends(get_current_user), service: AttributeService = Depends(get_attribute_service)):
     print("Create attribute endpoint called")
     try:
-        created_attribute = await service.create_new_attribute(payload)
+        created_attribute = await service.create_new_attribute(payload, current_user)
         print("Create attribute endpoint: Attribute created successfully")
         return created_attribute
     except HTTPException as e:

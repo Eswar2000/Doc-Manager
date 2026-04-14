@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 from typing import Optional
 from enum import Enum
+from src.model.common import User
 
 class AttributeType(str, Enum):
     TEXT = "text"
@@ -22,6 +23,8 @@ class Attribute(BaseModel):
     type: AttributeType = Field(..., description="Type of the attribute")
     createdAt: str = Field(default_factory=datetime.now(timezone.utc).isoformat(), description="Timestamp (UTC timestamp in ISO format) when the attribute was created")
     updatedAt: str = Field(default_factory=datetime.now(timezone.utc).isoformat(), description="Timestamp (UTC timestamp in ISO format) when the attribute was updated")
+    createdBy: User = Field(..., description="User information of the creator")
+    updatedBy: Optional[User] = Field(None, description="User information of the last updater")
     tenantId: str = Field(None, description="Identifier for the tenant to which the attribute belongs")
 
     class Config:

@@ -4,8 +4,8 @@ from fastapi import HTTPException
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
+from src.model.common import User
 from src.db.client import get_container
-
 from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType, AttributeUpdateRequest
 
 class AttributeRepository:
@@ -15,7 +15,7 @@ class AttributeRepository:
     async def _get_container(self) -> ContainerProxy:
         return await get_container(container_name="attributes")
 
-    async def create_attribute(self, data: AttributeCreateRequest) -> Attribute:
+    async def create_attribute(self, data: AttributeCreateRequest, current_user: User) -> Attribute:
         print("Create_Attribute: Starting attribute creation process")
         container = await self._get_container()
         now = datetime.now(timezone.utc).isoformat()
@@ -27,6 +27,7 @@ class AttributeRepository:
             type=data.type,
             createdAt=now,
             updatedAt=now,
+            createdBy=current_user,
             tenantId=data.tenantId if data.tenantId else "default"
         )
 
