@@ -235,13 +235,13 @@ export default function TemplatesPage() {
         },
     ]
 
-    // Default filter to show only active templates on initial load
-    const initialColumnFilters: ColumnFiltersState = [
+    // Controlled column filter to show only active templates on initial load
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
         {
             id: "state",
             value: ["active"],
         },
-    ];
+    ]);
 
     const createNewTemplate = () => {
         navigate('/editor', { state: { mode: 'template' } })
@@ -255,7 +255,18 @@ export default function TemplatesPage() {
                 </h2>
             </div>
             <OverlayLoader show={loading} message="Please wait..." />
-            {!isLoading && !isError && !loading && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} initialColumnFilters={initialColumnFilters} />}
+            {!isLoading && !isError && !loading && (
+                <DataTable
+                    data={templates}
+                    columns={cols}
+                    filterColumnKey="name"
+                    facetedFilters={filterConfigs}
+                    showCreateButton={true}
+                    onCreate={() => createNewTemplate()}
+                    columnFilters={columnFilters}
+                    onColumnFiltersChange={setColumnFilters}
+                />
+            )}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
             {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} />}
         </div>

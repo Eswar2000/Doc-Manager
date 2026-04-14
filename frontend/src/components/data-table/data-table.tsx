@@ -34,15 +34,29 @@ export function DataTable<TData, TValue>({
   facetedFilters,
   showCreateButton,
   onCreate,
-  initialColumnFilters = [],
+  columnFilters: controlledColumnFilters,
+  onColumnFiltersChange,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    initialColumnFilters
-  );
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  // Internal state for column filters when not controlled by parent
+  const [internalFilters, setInternalFilters] = React.useState<ColumnFiltersState>([]);
+  
+  const columnFilters = controlledColumnFilters !== undefined ? controlledColumnFilters : internalFilters;
+
+  const setColumnFilters = (updater: any) => {
+    const newFilters = typeof updater === "function" 
+      ? updater(columnFilters) 
+      : updater;
+
+    if (controlledColumnFilters !== undefined && onColumnFiltersChange) {
+      onColumnFiltersChange(newFilters);
+    } else {
+      setInternalFilters(newFilters);
+    }
+  };
 
   const table = useReactTable({
     data,

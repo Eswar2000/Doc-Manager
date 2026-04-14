@@ -119,7 +119,10 @@ export interface DataTableProps<TData, TValue> {
   facetedFilters?: FacetedFilterConfig[];
   showCreateButton?: boolean;
   onCreate?: () => void;
-  initialColumnFilters?: ColumnFiltersState;
+
+  // Optional - only needed when you want controlled filters
+  columnFilters?: ColumnFiltersState;
+  onColumnFiltersChange?: (filters: ColumnFiltersState) => void;
 }
 
 export interface FacetedFilterOption {
