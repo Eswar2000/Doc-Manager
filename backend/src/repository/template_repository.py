@@ -286,6 +286,10 @@ class TemplateRepository:
             print(f"Rollback_Template_Version: Error occurred while rolling back template: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while rolling back template: {str(e)}")
 
+    async def delete_template_by_id(self, template_id: str) -> bool:
+        print(f"Delete_Template_By_ID: Starting deletion process for template ID {template_id}")
+        return await self.rollback_template_version(template_id)
+
     async def get_template_content(self, template_id: str) -> str:
         print(f"Get_Template_Content: Fetching content for template ID {template_id}")
         template = await self.get_template_by_id(template_id)

@@ -150,6 +150,28 @@ async def rollback_template_version(request: TemplateRollbackRequest, service: T
     print(f"Rollback template version endpoint: Successfully rolled back template {request.srcTemplateId} to {request.destTemplateId if request.destTemplateId else 'previous version'}")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+@router.delete(
+    "/{template_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a template by ID (rolls back to previous version or deletes if only one version exists)",
+    responses={
+        204: {"description": "Template deleted successfully"},
+        404: {"description": "Template not found"},
+        500: {"description": "Unexpected server error"}
+    }
+)
+async def delete_template_by_id(template_id: str, service: TemplateService = Depends(get_template_service)):
+    print(f"Delete template endpoint called for ID: {template_id}")
+
+    deleted = await service.delete_template_by_id(template_id)
+
+    if not deleted:
+        print(f"Delete template endpoint: Template not found: {template_id}")
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    print(f"Delete template endpoint: Successfully deleted template {template_id}")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 @router.get(
     "/{template_id}/content",
     response_model=str,

@@ -25,6 +25,9 @@ class TemplateService:
     async def rollback_template_version(self, src_template_id: str, dest_template_id: Optional[str]) -> bool:
         return await self.repo.rollback_template_version(src_template_id, dest_template_id)
     
+    async def delete_template_by_id(self, template_id: str) -> bool:
+        return await self.repo.delete_template_by_id(template_id)
+
     async def get_template_content(self, template_id: int) -> str:
         return await self.repo.get_template_content(template_id)
     
