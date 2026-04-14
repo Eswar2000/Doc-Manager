@@ -17,6 +17,19 @@ export interface SidebarContextType {
     expanded: boolean;
 }
 
+export interface CurrentUser {
+    name: string;
+    email: string;
+    initials: string;
+    userId?: string;
+}
+
+export interface User {
+  userId: string;
+  name: string;
+  email: string;
+}
+
 export type AttributeType = "number" | "text" | "date" | "email";
 
 export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions";
@@ -45,7 +58,9 @@ export interface AttributeProps {
   description: string,
   type: AttributeType,
   createdAt: string,
-  updatedAt: string,
+  modifiedAt?: string,
+  createdBy: User,
+  modifiedBy?: User,
   tenantId?: string
 }
 
@@ -59,6 +74,9 @@ export interface TemplateProps {
   htmlContent: string,
   jsonContent: any,
   createdAt: string,
+  modifiedAt?: string,
+  createdBy: User,
+  modifiedBy?: User,
   attributes: Array<{
     attributeId: string;
     label: string;
@@ -101,7 +119,10 @@ export interface DataTableProps<TData, TValue> {
   facetedFilters?: FacetedFilterConfig[];
   showCreateButton?: boolean;
   onCreate?: () => void;
-  initialColumnFilters?: ColumnFiltersState;
+
+  // Optional - only needed when you want controlled filters
+  columnFilters?: ColumnFiltersState;
+  onColumnFiltersChange?: (filters: ColumnFiltersState) => void;
 }
 
 export interface FacetedFilterOption {

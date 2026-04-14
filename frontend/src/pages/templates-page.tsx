@@ -3,16 +3,21 @@ import { getColumns } from "@/components/data-table/columns";
 import type { TemplateProps, TableAction, EditorInitialData } from "@/types/index";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { Trash2, Pencil, Eye } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Trash2, Pencil, Eye, FileStack } from "lucide-react";
 import { templateApi } from "@/api/templates";
 import { Loader } from "@/components/loader/loader";
+import { OverlayLoader } from "@/components/overlay-loader/overlay-loader";
 import { ErrorState } from "@/components/error-state/error-state";
 import type { ColumnFiltersState } from "@tanstack/table-core";
+import { toast } from "sonner";
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const [loading, setLoading] = useState(false);
 
     const {
         data: templates = [],
@@ -30,6 +35,62 @@ export default function TemplatesPage() {
         refetchOnReconnect: false,
         refetchOnMount: true,
     });
+
+    const handleViewDetails = (template: TemplateProps) => {
+        console.log("viewing details of template: " + template.name);
+    }
+
+    const handleEdit = (template: TemplateProps) => {
+        const attributesConfig = (template.attributes || []).reduce((acc: any, attr: any) => {
+            acc[attr.attributeId] = {
+                required: attr.required,
+                hidden: attr.hidden,
+                defaultValue: attr.defaultValue,
+            };
+            return acc;
+        }, {} as Record<string, { required: boolean; hidden: boolean; defaultValue: string | null }>);
+
+        const initialData: EditorInitialData = {
+            id: template.id,
+            name: template.name,
+            description: template.description,
+            htmlContent: template.htmlContent,
+            jsonContent: template.jsonContent,
+            attributesConfig,
+        };
+
+        navigate('/editor', { state: { initialData, mode: 'template' } });
+    }
+
+    const handleUse = (template: TemplateProps) => {
+        navigate(`/templates/${template.id}/generate`, {
+            state: { templateId: template.id }
+        });
+    };
+
+    const handleDelete = async (template: TemplateProps) => {
+        if (!template.id) return;
+
+        try {
+            setLoading(true);
+            await templateApi.deleteTemplate(template.id);
+            await queryClient.invalidateQueries({ queryKey: ['templates'] });
+
+            toast.success("Successfully deleted", {
+                description: `"${template.name}" has been deleted.`,
+                duration: 2000,
+                closeButton: false,
+            });
+        } catch (err: any) {
+            toast.error("Failed to delete", {
+                description: err?.message || "Something went wrong. Please try again.",
+                duration: 3000,
+                closeButton: false,
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const cols = getColumns<TemplateProps>([
         {
@@ -134,18 +195,14 @@ export default function TemplatesPage() {
             id: "actions",
             accessorKey: "actions",
             cell: ({ row }) => {
+                const template = row.original;
+
                 const templateBaseActions: TableAction<TemplateProps>[] = [
                     {
                         title: "View Details",
                         icon: <Eye className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
-                        onClick: () => { console.log("viewing details of template: " + row.original.name) }
-                    },
-                    {
-                        title: "Delete",
-                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
-                        variant: "destructive",
-                        onClick: () => { console.log("Deleting template: " + row.original.name) }
+                        onClick: () => handleViewDetails(template),
                     }
                 ];
 
@@ -154,40 +211,24 @@ export default function TemplatesPage() {
                         title: "Edit",
                         icon: <Pencil className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
-                        onClick: () => {
-                            const original = row.original;
-                            const attributesConfig = (original.attributes || []).reduce((acc: any, attr: any) => {
-                                acc[attr.attributeId] = {
-                                    required: attr.required,
-                                    hidden: attr.hidden,
-                                    defaultValue: attr.defaultValue,
-                                };
-                                return acc;
-                            }, {} as Record<string, { required: boolean; hidden: boolean; defaultValue: string | null }>);
-
-                            const initialData: EditorInitialData = {
-                                id: original.id,
-                                name: original.name,
-                                description: original.description,
-                                htmlContent: original.htmlContent,
-                                jsonContent: original.jsonContent,
-                                attributesConfig,
-                            };
-                            navigate('/editor', { state: { initialData, mode: 'template' } })
-                        },
+                        onClick: () => handleEdit(template),
                     },
                     {
                         title: "Use",
-                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
+                        icon: <FileStack className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
-                        onClick: () => {
-                            navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
-                        }
+                        onClick: () => handleUse(template),
                     },
+                    {
+                        title: "Delete",
+                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
+                        variant: "destructive",
+                        onClick: () => handleDelete(template),
+                    }
                 ];
 
                 const isActive = row.original.state === "active";
-                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...activeTemplateActions, ...templateBaseActions] : [...templateBaseActions];
+                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...templateBaseActions, ...activeTemplateActions] : templateBaseActions;
 
                 return <DataTableRowActions row={row} actions={templateRowActions} />
             }
@@ -206,13 +247,13 @@ export default function TemplatesPage() {
         },
     ]
 
-    // Default filter to show only active templates on initial load
-    const initialColumnFilters: ColumnFiltersState = [
+    // Controlled column filter to show only active templates on initial load
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
         {
             id: "state",
             value: ["active"],
         },
-    ];
+    ]);
 
     const createNewTemplate = () => {
         navigate('/editor', { state: { mode: 'template' } })
@@ -225,7 +266,19 @@ export default function TemplatesPage() {
                     <span>Manage Templates</span>
                 </h2>
             </div>
-            {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} initialColumnFilters={initialColumnFilters} />}
+            <OverlayLoader show={loading} message="Please wait..." />
+            {!isLoading && !isError && !loading && (
+                <DataTable
+                    data={templates}
+                    columns={cols}
+                    filterColumnKey="name"
+                    facetedFilters={filterConfigs}
+                    showCreateButton={true}
+                    onCreate={() => createNewTemplate()}
+                    columnFilters={columnFilters}
+                    onColumnFiltersChange={setColumnFilters}
+                />
+            )}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
             {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} />}
         </div>

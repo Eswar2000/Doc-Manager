@@ -4,8 +4,8 @@ from fastapi import HTTPException
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
+from src.model.common import User
 from src.db.client import get_container
-
 from src.model.attributes import AttributeCreateRequest, Attribute, AttributeType, AttributeUpdateRequest
 
 class AttributeRepository:
@@ -15,7 +15,7 @@ class AttributeRepository:
     async def _get_container(self) -> ContainerProxy:
         return await get_container(container_name="attributes")
 
-    async def create_attribute(self, data: AttributeCreateRequest) -> Attribute:
+    async def create_attribute(self, data: AttributeCreateRequest, current_user: User) -> Attribute:
         print("Create_Attribute: Starting attribute creation process")
         container = await self._get_container()
         now = datetime.now(timezone.utc).isoformat()
@@ -26,7 +26,7 @@ class AttributeRepository:
             description=data.description.strip() if data.description else None,
             type=data.type,
             createdAt=now,
-            updatedAt=now,
+            createdBy=current_user,
             tenantId=data.tenantId if data.tenantId else "default"
         )
 
@@ -138,7 +138,7 @@ class AttributeRepository:
             print(f"Delete_Attribute_By_ID: Error occurred while deleting attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while deleting attribute: {str(e)}")
         
-    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest) -> Attribute:
+    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest, current_user: User) -> Attribute:
         print("Update_Attribute: Starting attribute update process")
         container = await self._get_container()
 
@@ -154,7 +154,8 @@ class AttributeRepository:
             updated_data["description"] = data.description.strip()
         if data.tenantId is not None:
             updated_data["tenantId"] = data.tenantId
-        updated_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
+        updated_data["modifiedAt"] = datetime.now(timezone.utc).isoformat()
+        updated_data["modifiedBy"] = current_user
 
         try:
             updated_attr = await container.replace_item(item=attribute_id, body=updated_data)
