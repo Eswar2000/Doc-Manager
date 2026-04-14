@@ -26,7 +26,6 @@ class AttributeRepository:
             description=data.description.strip() if data.description else None,
             type=data.type,
             createdAt=now,
-            updatedAt=now,
             createdBy=current_user,
             tenantId=data.tenantId if data.tenantId else "default"
         )
@@ -155,8 +154,8 @@ class AttributeRepository:
             updated_data["description"] = data.description.strip()
         if data.tenantId is not None:
             updated_data["tenantId"] = data.tenantId
-        updated_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
-        updated_data["updatedBy"] = current_user
+        updated_data["modifiedAt"] = datetime.now(timezone.utc).isoformat()
+        updated_data["modifiedBy"] = current_user
 
         try:
             updated_attr = await container.replace_item(item=attribute_id, body=updated_data)
