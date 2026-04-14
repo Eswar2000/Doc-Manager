@@ -40,3 +40,11 @@ class Tenant(BaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
+
+class TenantResponse(Tenant):
+    class Config:
+        populate_by_name = True
+
+class TenantCreateRequest(BaseModel):
+    name: str = Field(..., description="Name of the tenant")
+    description: Optional[str] = Field(None, description="Description of the tenant")

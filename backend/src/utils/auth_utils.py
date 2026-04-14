@@ -9,9 +9,8 @@ class CurrentUser:
     def __call__(self, user: User = Depends(azure_scheme)):
         if not user:
             raise HTTPException(status_code=401, detail="Not authenticated")
-
         user = {
-            "userId": user.oid or user.sub,
+            "userId": user.oid,
             "email": user.email or user.preferred_username or user.upn,
             "name": user.name or user.preferred_username,
         }
