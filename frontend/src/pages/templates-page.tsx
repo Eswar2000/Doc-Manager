@@ -3,16 +3,21 @@ import { getColumns } from "@/components/data-table/columns";
 import type { TemplateProps, TableAction, EditorInitialData } from "@/types/index";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { Trash2, Pencil, Eye } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Trash2, Pencil, Eye, FileStack } from "lucide-react";
 import { templateApi } from "@/api/templates";
 import { Loader } from "@/components/loader/loader";
+import { OverlayLoader } from "@/components/overlay-loader/overlay-loader";
 import { ErrorState } from "@/components/error-state/error-state";
 import type { ColumnFiltersState } from "@tanstack/table-core";
+import { toast } from "sonner";
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const [loading, setLoading] = useState(false);
 
     const {
         data: templates = [],
@@ -140,12 +145,6 @@ export default function TemplatesPage() {
                         icon: <Eye className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => { console.log("viewing details of template: " + row.original.name) }
-                    },
-                    {
-                        title: "Delete",
-                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
-                        variant: "destructive",
-                        onClick: () => { console.log("Deleting template: " + row.original.name) }
                     }
                 ];
 
@@ -178,16 +177,46 @@ export default function TemplatesPage() {
                     },
                     {
                         title: "Use",
-                        icon: <Pencil className="h-4 w-4 text-indigo-500" />,
+                        icon: <FileStack className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
                         onClick: () => {
                             navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
                         }
                     },
+                    {
+                        title: "Delete",
+                        icon: <Trash2 className="h-4 w-4 text-destructive" />,
+                        variant: "destructive",
+                        onClick: async () => {
+                            try {
+                                setLoading(true);
+                                await templateApi.deleteTemplate(row.original.id);
+
+                                queryClient.invalidateQueries({ queryKey: ['templates'] });
+                                setLoading(false);
+
+                                toast.success("Successfully deleted", {
+                                    description: "Template successfully deleted",
+                                    closeButton: false,
+                                    duration: 2000
+                                });
+
+                            } catch (err) {
+                                setLoading(false);
+                                toast.error("Failed to delete", {
+                                    description: err instanceof Error
+                                        ? err.message
+                                        : "Something went wrong. Please check and try again.",
+                                    duration: 3000,
+                                    closeButton: false,
+                                });
+                            }
+                        }
+                    }
                 ];
 
                 const isActive = row.original.state === "active";
-                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...activeTemplateActions, ...templateBaseActions] : [...templateBaseActions];
+                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...templateBaseActions, ...activeTemplateActions] : [...templateBaseActions];
 
                 return <DataTableRowActions row={row} actions={templateRowActions} />
             }
@@ -225,7 +254,8 @@ export default function TemplatesPage() {
                     <span>Manage Templates</span>
                 </h2>
             </div>
-            {!isLoading && !isError && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} initialColumnFilters={initialColumnFilters} />}
+            <OverlayLoader show={loading} message="Please wait..." />
+            {!isLoading && !isError && !loading && <DataTable data={templates} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => createNewTemplate()} initialColumnFilters={initialColumnFilters} />}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}
             {isError && <ErrorState title="Failed to load templates" description={error?.message || "We couldn't load the templates right now."} />}
         </div>

@@ -25,6 +25,9 @@ export const templateApi = {
     rollbackTemplate: async (rollbackRequest: TemplateRollbackProps): Promise<void> => {
         await api.post(`/templates/rollback`, { ...rollbackRequest });
     },
+    deleteTemplate: async (templateId: string): Promise<void> => {
+        await api.delete(`/templates/${templateId}`);
+    },
     generateDocument: async (docGenRequest: DocumentGenerationProps): Promise<Blob> => {
         const response = await api.post(`/templates/generate`, docGenRequest, {
             responseType: 'blob',
