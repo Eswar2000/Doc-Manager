@@ -28,7 +28,7 @@ class TenantRepository:
             # Make the creator of the tenant by default part of members (as admin)
             members=[
                 TenantMember(
-                    userId=current_user.get("userId"),
+                    userId=current_user.get("email"),
                     roles=["admin"]
                 )
             ],

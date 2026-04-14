@@ -6,10 +6,6 @@ azure_scheme = MultiTenantAzureAuthorizationCodeBearer(
     scopes={
         f"api://{settings.azure_client_id}/access_as_user": "Access API as user"
     },
-
-    # Authorize against our tenant
-    openapi_authorization_url=f"https://login.microsoftonline.com/{settings.azure_tenant_id}/oauth2/v2.0/authorize",
-    openapi_token_url=f"https://login.microsoftonline.com/{settings.azure_tenant_id}/oauth2/v2.0/token",
     
     # For development, we can skip issuer validation to allow tokens from any tenant. In production, this should be set to True and the allowed tenants should be specified.
     validate_iss=False,
