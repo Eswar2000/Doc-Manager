@@ -106,12 +106,12 @@ export default function AttributesPage() {
       },
     },
     {
-      accessorKey: "updatedAt",
+      accessorKey: "modifiedAt",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Updated At" />
+        <DataTableColumnHeader column={column} title="Modified At" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("updatedAt"));
+        const date = new Date(row.getValue("modifiedAt"));
         const formattedDate = date.toLocaleDateString("en-US", {
           day: "2-digit",
           month: "short",

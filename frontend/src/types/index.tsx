@@ -24,6 +24,12 @@ export interface CurrentUser {
     userId?: string;
 }
 
+export interface User {
+  userId: string;
+  name: string;
+  email: string;
+}
+
 export type AttributeType = "number" | "text" | "date" | "email";
 
 export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions";
@@ -52,7 +58,9 @@ export interface AttributeProps {
   description: string,
   type: AttributeType,
   createdAt: string,
-  updatedAt: string,
+  modifiedAt?: string,
+  createdBy: User,
+  modifiedBy?: User,
   tenantId?: string
 }
 
@@ -66,6 +74,9 @@ export interface TemplateProps {
   htmlContent: string,
   jsonContent: any,
   createdAt: string,
+  modifiedAt?: string,
+  createdBy: User,
+  modifiedBy?: User,
   attributes: Array<{
     attributeId: string;
     label: string;

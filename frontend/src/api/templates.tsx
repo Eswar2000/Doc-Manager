@@ -10,11 +10,11 @@ export const templateApi = {
         const template = await api.get<TemplateProps>(`/templates/${templateId}`);
         return template.data;
     },
-    createTemplate: async (templateData: Omit<TemplateProps, 'id' | 'createdAt' | 'state' | 'version' | 'parentTemplateId'>): Promise<TemplateProps> => {
+    createTemplate: async (templateData: Omit<TemplateProps, 'id' | 'createdAt' | 'createdBy' | 'modifiedAt' | 'modifiedBy' | 'state' | 'version' | 'parentTemplateId'>): Promise<TemplateProps> => {
         const new_template = await api.post<TemplateProps>('/templates', templateData);
         return new_template.data;
     },
-    updateTemplate: async (templateId: string, templateData: Omit<TemplateProps, 'id' | 'createdAt' | 'state' | 'version' | 'parentTemplateId'>): Promise<TemplateProps> => {
+    updateTemplate: async (templateId: string, templateData: Omit<TemplateProps, 'id' | 'createdAt' | 'createdBy' | 'modifiedAt' | 'modifiedBy' | 'state' | 'version' | 'parentTemplateId'>): Promise<TemplateProps> => {
         const updated_template = await api.put<TemplateProps>(`/templates/${templateId}`, templateData);
         return updated_template.data;
     },
