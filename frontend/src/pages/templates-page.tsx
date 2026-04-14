@@ -36,6 +36,62 @@ export default function TemplatesPage() {
         refetchOnMount: true,
     });
 
+    const handleViewDetails = (template: TemplateProps) => {
+        console.log("viewing details of template: " + template.name);
+    }
+
+    const handleEdit = (template: TemplateProps) => {
+        const attributesConfig = (template.attributes || []).reduce((acc: any, attr: any) => {
+            acc[attr.attributeId] = {
+                required: attr.required,
+                hidden: attr.hidden,
+                defaultValue: attr.defaultValue,
+            };
+            return acc;
+        }, {} as Record<string, { required: boolean; hidden: boolean; defaultValue: string | null }>);
+
+        const initialData: EditorInitialData = {
+            id: template.id,
+            name: template.name,
+            description: template.description,
+            htmlContent: template.htmlContent,
+            jsonContent: template.jsonContent,
+            attributesConfig,
+        };
+
+        navigate('/editor', { state: { initialData, mode: 'template' } });
+    }
+
+    const handleUse = (template: TemplateProps) => {
+        navigate(`/templates/${template.id}/generate`, {
+            state: { templateId: template.id }
+        });
+    };
+
+    const handleDelete = async (template: TemplateProps) => {
+        if (!template.id) return;
+
+        try {
+            setLoading(true);
+            await templateApi.deleteTemplate(template.id);
+            await queryClient.invalidateQueries({ queryKey: ['templates'] });
+
+            toast.success("Successfully deleted", {
+                description: `"${template.name}" has been deleted.`,
+                duration: 2000,
+                closeButton: false,
+            });
+        } catch (err: any) {
+            toast.error("Failed to delete", {
+                description: err?.message || "Something went wrong. Please try again.",
+                duration: 3000,
+                closeButton: false,
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const cols = getColumns<TemplateProps>([
         {
             accessorKey: "name",
@@ -139,12 +195,14 @@ export default function TemplatesPage() {
             id: "actions",
             accessorKey: "actions",
             cell: ({ row }) => {
+                const template = row.original;
+
                 const templateBaseActions: TableAction<TemplateProps>[] = [
                     {
                         title: "View Details",
                         icon: <Eye className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
-                        onClick: () => { console.log("viewing details of template: " + row.original.name) }
+                        onClick: () => handleViewDetails(template),
                     }
                 ];
 
@@ -153,70 +211,24 @@ export default function TemplatesPage() {
                         title: "Edit",
                         icon: <Pencil className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
-                        onClick: () => {
-                            const original = row.original;
-                            const attributesConfig = (original.attributes || []).reduce((acc: any, attr: any) => {
-                                acc[attr.attributeId] = {
-                                    required: attr.required,
-                                    hidden: attr.hidden,
-                                    defaultValue: attr.defaultValue,
-                                };
-                                return acc;
-                            }, {} as Record<string, { required: boolean; hidden: boolean; defaultValue: string | null }>);
-
-                            const initialData: EditorInitialData = {
-                                id: original.id,
-                                name: original.name,
-                                description: original.description,
-                                htmlContent: original.htmlContent,
-                                jsonContent: original.jsonContent,
-                                attributesConfig,
-                            };
-                            navigate('/editor', { state: { initialData, mode: 'template' } })
-                        },
+                        onClick: () => handleEdit(template),
                     },
                     {
                         title: "Use",
                         icon: <FileStack className="h-4 w-4 text-indigo-500" />,
                         variant: "secondary",
-                        onClick: () => {
-                            navigate(`/templates/${row.original.id}/generate`, { state: { templateId: row.original.id } })
-                        }
+                        onClick: () => handleUse(template),
                     },
                     {
                         title: "Delete",
                         icon: <Trash2 className="h-4 w-4 text-destructive" />,
                         variant: "destructive",
-                        onClick: async () => {
-                            try {
-                                setLoading(true);
-                                await templateApi.deleteTemplate(row.original.id);
-
-                                queryClient.invalidateQueries({ queryKey: ['templates'] });
-                                setLoading(false);
-
-                                toast.success("Successfully deleted", {
-                                    description: "Template successfully deleted",
-                                    closeButton: false,
-                                    duration: 2000
-                                });
-
-                            } catch (err) {
-                                setLoading(false);
-                                toast.error("Failed to delete", {
-                                    description: err instanceof Error
-                                        ? err.message
-                                        : "Something went wrong. Please check and try again.",
-                                    duration: 3000,
-                                    closeButton: false,
-                                });
-                            }
-                        }
+                        onClick: () => handleDelete(template),
                     }
                 ];
 
                 const isActive = row.original.state === "active";
-                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...templateBaseActions, ...activeTemplateActions] : [...templateBaseActions];
+                const templateRowActions: TableAction<TemplateProps>[] = isActive ? [...templateBaseActions, ...activeTemplateActions] : templateBaseActions;
 
                 return <DataTableRowActions row={row} actions={templateRowActions} />
             }
