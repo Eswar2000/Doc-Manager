@@ -113,10 +113,10 @@ async def delete_attribute(attribute_id: str, service: AttributeService = Depend
         500: {"description": "Unexpected server error"}
     }
 )
-async def update_attribute(attribute_id: str, payload: AttributeUpdateRequest, service: AttributeService = Depends(get_attribute_service)):
+async def update_attribute(attribute_id: str, payload: AttributeUpdateRequest, current_user: User = Depends(get_current_user), service: AttributeService = Depends(get_attribute_service)):
     print("Update attribute endpoint called")
     try:
-        updated_attribute = await service.update_attribute(attribute_id, payload)
+        updated_attribute = await service.update_attribute(attribute_id, payload, current_user)
         print("Update attribute endpoint: Attribute updated successfully")
         return updated_attribute
     except HTTPException as e:

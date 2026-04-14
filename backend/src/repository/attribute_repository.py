@@ -139,7 +139,7 @@ class AttributeRepository:
             print(f"Delete_Attribute_By_ID: Error occurred while deleting attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while deleting attribute: {str(e)}")
         
-    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest) -> Attribute:
+    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest, current_user: User) -> Attribute:
         print("Update_Attribute: Starting attribute update process")
         container = await self._get_container()
 
@@ -156,6 +156,7 @@ class AttributeRepository:
         if data.tenantId is not None:
             updated_data["tenantId"] = data.tenantId
         updated_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
+        updated_data["updatedBy"] = current_user
 
         try:
             updated_attr = await container.replace_item(item=attribute_id, body=updated_data)
