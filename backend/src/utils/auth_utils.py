@@ -10,12 +10,11 @@ class CurrentUser:
         if not user:
             raise HTTPException(status_code=401, detail="Not authenticated")
         user = {
-            "userId": user.oid,
             "email": user.email or user.preferred_username or user.upn,
             "name": user.name or user.preferred_username,
         }
 
-        if not user["userId"]:
+        if not user["email"]:
             raise HTTPException(status_code=401, detail="Invalid token - missing user identifier")
 
         return user
