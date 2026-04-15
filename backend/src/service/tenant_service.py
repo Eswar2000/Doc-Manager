@@ -1,3 +1,4 @@
+from typing import Optional
 from src.repository.tenant_repository import TenantRepository
 from src.model.tenants import TenantCreateRequest, Tenant
 
@@ -7,3 +8,6 @@ class TenantService:
 
     async def create_new_tenant(self, request: TenantCreateRequest, current_user: dict) -> Tenant:
         return await self.repo.create_tenant(request, current_user)
+    
+    async def get_tenant_by_id(self, tenant_id: str) -> Optional[Tenant]:
+        return await self.repo.get_tenant_by_id(tenant_id)

@@ -1,6 +1,7 @@
 from azure.cosmos.aio import ContainerProxy
 from azure.cosmos import exceptions
 from fastapi import HTTPException
+from typing import Optional
 import uuid
 from datetime import datetime, timezone
 from src.db.client import get_container
@@ -50,3 +51,30 @@ class TenantRepository:
                 raise HTTPException(409, "Tenant ID conflict")
             print("Create_Tenant: End of tenant creation process with error")
             raise HTTPException(status_code=500, detail=f"Database error while creating tenant: {str(e)}")
+        
+    async def get_tenant_by_id(self, tenant_id: str) -> Optional[Tenant]:
+        print("Get_Tenant_By_ID: Starting tenant fetch process")
+        container = await self._get_container()
+
+        try:
+            query = "SELECT * FROM c WHERE c.id = @tenant_id"
+            parameters = [{"name": "@tenant_id", "value": tenant_id}]
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+            if results:
+                print(f"Get_Tenant_By_ID: Tenant found with ID {tenant_id}")
+                return Tenant(**results[0])
+            else:
+                print(f"Get_Tenant_By_ID: No tenant found with ID {tenant_id}")
+                return None
+        except exceptions.CosmosHttpResponseError as e:
+            if e.status_code == 404:
+                print(f"Get_Tenant_By_ID: No tenant found with ID {tenant_id}")
+                return None
+            print(f"Get_Tenant_By_ID: Error occurred while retrieving tenant: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while retrieving tenant: {str(e)}")

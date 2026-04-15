@@ -33,3 +33,29 @@ async def create_tenant(payload: TenantCreateRequest, current_user: dict = Depen
     except Exception as e:
         print("Create tenant endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during tenant creation", "error": str(e)})
+    
+@router.get(
+    "/{tenant_id}",
+    response_model=TenantResponse,
+    summary="Get a tenant by ID",
+    responses={
+        200: {"description": "Tenant retrieved successfully"},
+        404: {"description": "Tenant not found"}
+    }
+)
+async def get_tenant_by_id(tenant_id: str, service: TenantService = Depends(get_tenant_service)):
+    print("Get tenant endpoint called")
+    try:
+        tenant = await service.get_tenant_by_id(tenant_id)
+        if tenant:
+            print("Get tenant endpoint: Tenant retrieved successfully")
+            return tenant
+        else:
+            print("Get tenant endpoint: Tenant not found")
+            raise HTTPException(status_code=404, detail="Tenant not found")
+    except HTTPException as e:
+        print("Get tenant endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Get tenant endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during tenant retrieval", "error": str(e)})
