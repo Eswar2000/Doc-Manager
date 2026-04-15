@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
+from typing import List, Optional
 from src.utils.auth_utils import get_current_user
 from src.repository.tenant_repository import TenantRepository
 from src.service.tenant_service import TenantService
@@ -79,3 +79,22 @@ async def get_tenant_by_id(tenant_id: str, service: TenantService = Depends(get_
     except Exception as e:
         print("Get tenant endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during tenant retrieval", "error": str(e)})
+    
+@router.get(
+    "/",
+    response_model=List[Tenant],
+    summary="List tenants with filters",
+    responses={200: {"description": "List of tenants"}}
+)
+async def list_templates(name: Optional[str] = None, desc: Optional[str] = None, status: Optional[bool] = None, limit: int = 50, offset: int = 0, service: TenantService = Depends(get_tenant_service)):
+    print("List tenants endpoint called")
+    try:
+        tenants = await service.list_tenants(name_contains=name, desc_contains=desc, status=status, limit=limit, offset=offset)
+        print(f"List tenants endpoint: Retrieved {len(tenants)} tenants")
+        return tenants
+    except HTTPException as e:
+        print("List tenants endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("List tenants endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing tenants", "error": str(e)})

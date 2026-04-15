@@ -12,5 +12,8 @@ class TenantService:
     async def get_tenant_by_id(self, tenant_id: str) -> Optional[Tenant]:
         return await self.repo.get_tenant_by_id(tenant_id)
     
+    async def list_tenants(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, status: Optional[bool] = None, limit: int = 50, offset: int = 0) -> list[Tenant]:
+        return await self.repo.list_tenants(name_contains, desc_contains, status, limit, offset)
+    
     async def list_my_tenants(self, current_user: dict) -> List[Tenant]:
         return await self.repo.list_my_tenants(current_user)

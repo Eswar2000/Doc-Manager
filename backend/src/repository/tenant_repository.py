@@ -102,3 +102,47 @@ class TenantRepository:
             print("Get_My_Tenants: Unexpected error occurred:", str(e))
             raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing tenants", "error": str(e)})
 
+    async def list_tenants(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, status: Optional[bool] = None, limit: int = 50, offset: int = 0) -> list[Tenant]:
+        print("List_Tenants: Starting to list all tenants")
+        container = await self._get_container()
+        
+        query = "SELECT * FROM c"
+        parameters = []
+        conditions = []
+
+        if name_contains:
+            print(f"List_Tenants: Filtering tenants with name containing '{name_contains}'")
+            conditions.append("CONTAINS(LOWER(c.name), LOWER(@name))")
+            parameters.append({"name": "@name", "value": name_contains})
+
+        if desc_contains:
+            print(f"List_Tenants: Filtering tenants with description containing '{desc_contains}'")
+            conditions.append("CONTAINS(LOWER(c.description), LOWER(@desc))")
+            parameters.append({"name": "@desc", "value": desc_contains})
+
+        if status is not None:
+            print(f"List_Tenants: Filtering tenants with isActive '{status}'")
+            conditions.append("c.isActive = @status")
+            parameters.append({"name": "@status", "value": status})
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        query += " ORDER BY c.createdAt DESC OFFSET @offset LIMIT @limit"
+        parameters.append({"name": "@offset", "value": offset})
+        parameters.append({"name": "@limit", "value": limit})
+
+        try:
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+
+            print(f"List_Tenants: Retrieved {len(results)} tenants")
+            return [Tenant(**item) for item in results]
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"List_Tenants: Error occurred while listing tenants: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while listing tenants: {str(e)}")
