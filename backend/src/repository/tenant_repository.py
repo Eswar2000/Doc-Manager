@@ -1,7 +1,7 @@
 from azure.cosmos.aio import ContainerProxy
 from azure.cosmos import exceptions
 from fastapi import HTTPException
-from typing import Optional
+from typing import Optional, List
 import uuid
 from datetime import datetime, timezone
 from src.db.client import get_container
@@ -78,3 +78,27 @@ class TenantRepository:
                 return None
             print(f"Get_Tenant_By_ID: Error occurred while retrieving tenant: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while retrieving tenant: {str(e)}")
+    
+    async def list_my_tenants(self, current_user: dict) -> List[Tenant]:
+        print("Get_My_Tenants: Starting my tenants fetch process")
+        container = await self._get_container()
+
+        try:
+            query = "SELECT * FROM c WHERE ARRAY_CONTAINS(c.members, {'userId': @userId}, true)"
+            parameters = [{"name": "@userId", "value": current_user.get("email")}]
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+            results = [item async for item in items]
+
+            print(f"Get_My_Tenants: Retrieved {len(results)} tenants")
+            return [Tenant(**item) for item in results]
+        except HTTPException as e:
+            print("Get_My_Tenants: HTTPException occurred:", e.detail)
+            raise e
+        except Exception as e:
+            print("Get_My_Tenants: Unexpected error occurred:", str(e))
+            raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing tenants", "error": str(e)})
+

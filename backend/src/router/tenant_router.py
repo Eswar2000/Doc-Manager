@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List
 from src.utils.auth_utils import get_current_user
 from src.repository.tenant_repository import TenantRepository
 from src.service.tenant_service import TenantService
-from src.model.tenants import TenantCreateRequest, TenantResponse
+from src.model.tenants import TenantCreateRequest, TenantResponse, Tenant
 
 router = APIRouter(prefix="/tenants", tags=["tenants"], responses={500: {"description": "Internal Server Error"}})
 
@@ -33,7 +34,26 @@ async def create_tenant(payload: TenantCreateRequest, current_user: dict = Depen
     except Exception as e:
         print("Create tenant endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during tenant creation", "error": str(e)})
-    
+
+@router.get(
+    "/my",
+    response_model=List[Tenant],
+    summary="List my tenants",
+    responses={200: {"description": "List of my tenants"}}
+)
+async def list_my_tenants(current_user: dict = Depends(get_current_user), service: TenantService = Depends(get_tenant_service)):
+    print("List my tenants endpoint called")
+    try:
+        tenant = await service.list_my_tenants(current_user)
+        print(f"List my tenants endpoint: Retrieved {len(tenant)} tenants")
+        return tenant
+    except HTTPException as e:
+        print("List my tenants endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("List my tenants endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing tenants", "error": str(e)})
+
 @router.get(
     "/{tenant_id}",
     response_model=TenantResponse,
