@@ -17,3 +17,6 @@ class TenantService:
     
     async def list_my_tenants(self, current_user: dict) -> List[Tenant]:
         return await self.repo.list_my_tenants(current_user)
+    
+    async def update_tenant(self, tenant_id: str, request: TenantCreateRequest) -> Tenant:
+        return await self.repo.update_tenant(tenant_id, request)

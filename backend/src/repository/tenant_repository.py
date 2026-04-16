@@ -146,3 +146,29 @@ class TenantRepository:
         except exceptions.CosmosHttpResponseError as e:
             print(f"List_Tenants: Error occurred while listing tenants: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while listing tenants: {str(e)}")
+
+    async def update_tenant(self, tenant_id: str, data: TenantCreateRequest) -> Tenant:
+        print(f"Update_Tenant: Starting update for tenant ID {tenant_id}")
+        container = await self._get_container()
+
+        tenant = await self.get_tenant_by_id(tenant_id)
+        if not tenant:
+            print(f"Update_Tenant: No tenant found with ID {tenant_id} to update")
+            raise HTTPException(status_code=404, detail="Tenant not found")
+        
+        tenant_to_update = tenant.model_dump(by_alias=True)
+        if data.name is not None:
+            tenant_to_update["name"] = data.name.strip()
+        if data.description is not None:
+            tenant_to_update["description"] = data.description.strip()
+
+        tenant_to_update["modifiedAt"] = datetime.now(timezone.utc).isoformat()
+
+        try:
+            updated_tenant = await container.replace_item(item=tenant.id, body=tenant_to_update)
+            print(f"Update_Tenant: Tenant with ID {tenant.id} updated successfully")
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Update_Tenant: Error occurred while updating tenant: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while updating tenant: {str(e)}")
+
+        return Tenant(**updated_tenant)

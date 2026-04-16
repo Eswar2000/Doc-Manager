@@ -86,7 +86,7 @@ async def get_tenant_by_id(tenant_id: str, service: TenantService = Depends(get_
     summary="List tenants with filters",
     responses={200: {"description": "List of tenants"}}
 )
-async def list_templates(name: Optional[str] = None, desc: Optional[str] = None, status: Optional[bool] = None, limit: int = 50, offset: int = 0, service: TenantService = Depends(get_tenant_service)):
+async def list_tenants(name: Optional[str] = None, desc: Optional[str] = None, status: Optional[bool] = None, limit: int = 50, offset: int = 0, service: TenantService = Depends(get_tenant_service)):
     print("List tenants endpoint called")
     try:
         tenants = await service.list_tenants(name_contains=name, desc_contains=desc, status=status, limit=limit, offset=offset)
@@ -98,3 +98,25 @@ async def list_templates(name: Optional[str] = None, desc: Optional[str] = None,
     except Exception as e:
         print("List tenants endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during listing tenants", "error": str(e)})
+    
+@router.put(
+    "/{tenant_id}",
+    response_model=TenantResponse,
+    summary="Update a tenant's basic information",
+    responses={
+        200: {"description": "Basic information of the tenant updated successfully"},
+        404: {"description": "Tenant not found"},
+    }
+)
+async def update_tenant(tenant_id: str, payload: TenantCreateRequest, service: TenantService = Depends(get_tenant_service)):
+    print("Update tenant endpoint called")
+    try:
+        updated_tenant = await service.update_tenant(tenant_id, payload)
+        print("Update tenant endpoint: Tenant updated successfully")
+        return updated_tenant
+    except HTTPException as e:
+        print("Update tenant endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Update tenant endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during tenant update", "error": str(e)})
