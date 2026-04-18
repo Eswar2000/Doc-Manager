@@ -9,6 +9,7 @@ import EditorPage from './pages/editor-page';
 import TemplatesPage from './pages/templates-page';
 import DocGenerationPage from './pages/doc-generation-page';
 import LoginPage from './pages/login-page';
+import WorkspacePage from './pages/workspace-page';
 
 export default function App() {
   const { instance, inProgress } = useMsal();
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/snippets" element={<EditorPage />} />
           <Route path="/editor" element={<EditorPage />} />
+          <Route path="/workspace" element={<WorkspacePage />} />
           <Route path='/templates/:templateId/generate' element={<DocGenerationPage />} />
         </Route>
 
