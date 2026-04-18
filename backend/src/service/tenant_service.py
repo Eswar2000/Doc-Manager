@@ -26,3 +26,6 @@ class TenantService:
     
     async def remove_member_from_tenant(self, tenant_id: str, member_to_remove: str) -> Tenant:
         return await self.repo.remove_member_from_tenant(tenant_id, member_to_remove)
+    
+    async def update_member_roles(self, tenant_id: str, member_id: str, new_roles: List[TenantRole]) -> Tenant:
+        return await self.repo.update_member_roles(tenant_id, member_id, new_roles)

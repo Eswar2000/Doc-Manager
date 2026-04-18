@@ -231,3 +231,29 @@ class TenantRepository:
         updated_tenant = await self.update_tenant_helper(tenant)
         print(f"Remove_Member_From_Tenant: Member '{member_to_remove}' removed successfully from tenant ID {tenant_id}")
         return updated_tenant
+    
+    async def update_member_roles(self, tenant_id: str, member_id: str, new_roles: List[TenantRole]) -> Tenant:
+        print(f"Update_Tenant_Member_Role: Starting to update roles for member '{member_id}' in tenant ID {tenant_id}")
+        tenant = await self.get_tenant_by_id(tenant_id)
+        if not tenant:
+            print(f"Update_Tenant_Member_Role: No tenant found with ID {tenant_id} to update member role")
+            raise HTTPException(status_code=404, detail="Tenant not found")
+
+        member = next((m for m in tenant.members if m.userId == member_id), None)
+        if not member:
+            print(f"Update_Tenant_Member_Role: User '{member_id}' is not a member of tenant ID {tenant_id} to update role")
+            raise HTTPException(status_code=400, detail="User is not a member of the tenant")
+        
+        # Can not remove admin role from the last admin member of the tenant
+        admin_count = sum(1 for m in tenant.members if "admin" in m.roles)
+        is_last_admin = admin_count == 1 and "admin" in member.roles and "admin" not in new_roles
+
+        if is_last_admin:
+            print(f"Update_Tenant_Member_Role: Cannot remove admin role from the last admin member '{member_id}' in tenant ID {tenant_id}")
+            raise HTTPException(status_code=403, detail="Cannot remove admin role from the last admin member of the tenant")
+        
+        member.roles = new_roles
+
+        updated_tenant = await self.update_tenant_helper(tenant)
+        print(f"Update_Tenant_Member_Role: Roles for member '{member_id}' updated successfully in tenant ID {tenant_id}")
+        return updated_tenant

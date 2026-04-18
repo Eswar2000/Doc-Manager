@@ -167,3 +167,27 @@ async def remove_member_from_tenant(tenant_id: str, member_id: str, service: Ten
     except Exception as e:
         print("Remove member from tenant endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during removing member from tenant", "error": str(e)})
+
+@router.put(
+    "/{tenant_id}/members/{member_id}",
+    response_model=TenantResponse,
+    summary="Update a tenant member's roles",
+    responses={
+        200: {"description": "Member roles updated successfully"},
+        400: {"description": "User is not a member of the tenant"},
+        403: {"description": "Cannot remove the last admin role from the tenant"},
+        404: {"description": "Tenant not found"}
+    }
+)
+async def update_member_roles(tenant_id: str, member_id: str, new_roles: List[TenantRole], service: TenantService = Depends(get_tenant_service)):
+    print("Update member roles endpoint called")
+    try:
+        updated_tenant = await service.update_member_roles(tenant_id, member_id, new_roles)
+        print("Update member roles endpoint: Member roles updated successfully")
+        return updated_tenant
+    except HTTPException as e:
+        print("Update member roles endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Update member roles endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during updating member roles", "error": str(e)})
