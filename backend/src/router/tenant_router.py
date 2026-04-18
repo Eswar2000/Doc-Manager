@@ -3,7 +3,7 @@ from typing import List, Optional
 from src.utils.auth_utils import get_current_user
 from src.repository.tenant_repository import TenantRepository
 from src.service.tenant_service import TenantService
-from src.model.tenants import TenantCreateRequest, TenantResponse, Tenant, TenantRole
+from src.model.tenants import TenantCreateRequest, TenantResponse, Tenant, TenantRole, TenantUpdateRequest, TenantAddMemberRequest
 
 router = APIRouter(prefix="/tenants", tags=["tenants"], responses={500: {"description": "Internal Server Error"}})
 
@@ -108,7 +108,7 @@ async def list_tenants(name: Optional[str] = None, desc: Optional[str] = None, s
         404: {"description": "Tenant not found"},
     }
 )
-async def update_tenant(tenant_id: str, payload: TenantCreateRequest, service: TenantService = Depends(get_tenant_service)):
+async def update_tenant(tenant_id: str, payload: TenantUpdateRequest, service: TenantService = Depends(get_tenant_service)):
     print("Update tenant endpoint called")
     try:
         updated_tenant = await service.update_tenant(tenant_id, payload)
@@ -131,10 +131,10 @@ async def update_tenant(tenant_id: str, payload: TenantCreateRequest, service: T
         404: {"description": "Tenant not found"}
     }
 )
-async def add_member_to_tenant(tenant_id: str, new_member: str, roles: Optional[List[TenantRole]] = None, service: TenantService = Depends(get_tenant_service)):
+async def add_member_to_tenant(tenant_id: str, payload: TenantAddMemberRequest, service: TenantService = Depends(get_tenant_service)):
     print("Add member to tenant endpoint called")
     try:
-        updated_tenant = await service.add_member_to_tenant(tenant_id, new_member, roles)
+        updated_tenant = await service.add_member_to_tenant(tenant_id, payload.new_member, payload.roles)
         print("Add member to tenant endpoint: Member added successfully")
         return updated_tenant
     except HTTPException as e:

@@ -48,3 +48,11 @@ class TenantResponse(Tenant):
 class TenantCreateRequest(BaseModel):
     name: str = Field(..., description="Name of the tenant")
     description: Optional[str] = Field(None, description="Description of the tenant")
+
+class TenantUpdateRequest(BaseModel):
+    name: Optional[str] = Field(None, description="Name of the tenant")
+    description: Optional[str] = Field(None, description="Description of the tenant")
+
+class TenantAddMemberRequest(BaseModel):
+    new_member: str = Field(..., description="User ID of the new member to be added to the tenant")
+    roles: Optional[List[TenantRole]] = Field(None, description="Roles to be assigned to the new member under the tenant")

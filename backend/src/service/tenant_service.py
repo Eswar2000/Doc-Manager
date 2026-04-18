@@ -1,6 +1,6 @@
 from typing import Optional, List
 from src.repository.tenant_repository import TenantRepository
-from src.model.tenants import TenantCreateRequest, Tenant, TenantRole
+from src.model.tenants import TenantCreateRequest, Tenant, TenantRole, TenantUpdateRequest
 
 class TenantService:
     def __init__(self, repo: TenantRepository):
@@ -18,7 +18,7 @@ class TenantService:
     async def list_my_tenants(self, current_user: dict) -> List[Tenant]:
         return await self.repo.list_my_tenants(current_user)
     
-    async def update_tenant(self, tenant_id: str, request: TenantCreateRequest) -> Tenant:
+    async def update_tenant(self, tenant_id: str, request: TenantUpdateRequest) -> Tenant:
         return await self.repo.update_tenant(tenant_id, request)
     
     async def add_member_to_tenant(self, tenant_id: str, new_member: str, roles: Optional[List[TenantRole]] = None) -> Tenant:

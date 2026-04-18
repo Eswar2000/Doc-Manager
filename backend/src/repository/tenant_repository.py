@@ -5,7 +5,7 @@ from typing import Optional, List
 import uuid
 from datetime import datetime, timezone
 from src.db.client import get_container
-from src.model.tenants import Tenant, TenantMember, TenantCreateRequest, TenantRole
+from src.model.tenants import Tenant, TenantMember, TenantCreateRequest, TenantRole, TenantUpdateRequest
 
 class TenantRepository:
     def __init__(self):
@@ -147,7 +147,7 @@ class TenantRepository:
             print(f"List_Tenants: Error occurred while listing tenants: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while listing tenants: {str(e)}")
 
-    async def update_tenant(self, tenant_id: str, data: TenantCreateRequest) -> Tenant:
+    async def update_tenant(self, tenant_id: str, data: TenantUpdateRequest) -> Tenant:
         print(f"Update_Tenant: Starting update for tenant ID {tenant_id}")
         container = await self._get_container()
 
