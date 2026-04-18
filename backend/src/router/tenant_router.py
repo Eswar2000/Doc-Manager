@@ -143,3 +143,27 @@ async def add_member_to_tenant(tenant_id: str, payload: TenantAddMemberRequest, 
     except Exception as e:
         print("Add member to tenant endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during adding member to tenant", "error": str(e)})
+    
+@router.delete(
+    "/{tenant_id}/members/{member_id}",
+    response_model=TenantResponse,
+    summary="Remove a member from a tenant",
+    responses={
+        200: {"description": "Member removed from tenant successfully"},
+        400: {"description": "User is not a member of the tenant"},
+        403: {"description": "Cannot remove the last admin from the tenant"},
+        404: {"description": "Tenant not found"}
+    }
+)
+async def remove_member_from_tenant(tenant_id: str, member_id: str, service: TenantService = Depends(get_tenant_service)):
+    print("Remove member from tenant endpoint called")
+    try:
+        updated_tenant = await service.remove_member_from_tenant(tenant_id, member_id)
+        print("Remove member from tenant endpoint: Member removed successfully")
+        return updated_tenant
+    except HTTPException as e:
+        print("Remove member from tenant endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Remove member from tenant endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during removing member from tenant", "error": str(e)})

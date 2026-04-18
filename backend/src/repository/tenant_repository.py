@@ -206,3 +206,28 @@ class TenantRepository:
         updated_tenant = await self.update_tenant_helper(tenant)
         print(f"Add_Member_To_Tenant: Member '{new_member}' added successfully to tenant ID {tenant_id}")
         return updated_tenant
+    
+    async def remove_member_from_tenant(self, tenant_id: str, member_to_remove: str) -> Tenant:
+        print(f"Remove_Member_From_Tenant: Starting to remove member '{member_to_remove}' from tenant ID {tenant_id}")
+        tenant = await self.get_tenant_by_id(tenant_id)
+        if not tenant:
+            print(f"Remove_Member_From_Tenant: No tenant found with ID {tenant_id} to remove member")
+            raise HTTPException(status_code=404, detail="Tenant not found")
+
+        if not any(member.userId == member_to_remove for member in tenant.members):
+            print(f"Remove_Member_From_Tenant: User '{member_to_remove}' is not a member of tenant ID {tenant_id}")
+            raise HTTPException(status_code=400, detail="User is not a member of the tenant")
+        
+        # Can not remove the last admin member from the tenant
+        admin_count = sum(1 for m in tenant.members if "admin" in m.roles)
+        is_last_admin = admin_count == 1 and any(m.userId == member_to_remove and "admin" in m.roles for m in tenant.members)
+
+        if is_last_admin:
+            print(f"Remove_Member_From_Tenant: Cannot remove the last admin member '{member_to_remove}' from tenant ID {tenant_id}")
+            raise HTTPException(status_code=403, detail="Cannot remove the last admin from the tenant")
+        
+        tenant.members = [member for member in tenant.members if member.userId != member_to_remove]
+
+        updated_tenant = await self.update_tenant_helper(tenant)
+        print(f"Remove_Member_From_Tenant: Member '{member_to_remove}' removed successfully from tenant ID {tenant_id}")
+        return updated_tenant

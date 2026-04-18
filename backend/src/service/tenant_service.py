@@ -23,3 +23,6 @@ class TenantService:
     
     async def add_member_to_tenant(self, tenant_id: str, new_member: str, roles: Optional[List[TenantRole]] = None) -> Tenant:
         return await self.repo.add_member_to_tenant(tenant_id, new_member, roles)
+    
+    async def remove_member_from_tenant(self, tenant_id: str, member_to_remove: str) -> Tenant:
+        return await self.repo.remove_member_from_tenant(tenant_id, member_to_remove)
