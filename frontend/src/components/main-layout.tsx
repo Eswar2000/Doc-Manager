@@ -42,16 +42,16 @@ export default function MainLayout() {
         return <Navigate to="/login" replace />;
     }
 
+    const isDisabled = isLoading || !!error;
+
     return (
         <div className="flex h-screen">
             <Sidebar>
-                <SidebarItem icon={<Boxes />} text="Attributes" to="/attributes" />
-                <SidebarItem icon={<Puzzle />} text="Snippets" to="/snippets" />
-                <SidebarItem icon={<Receipt />} text="Templates" to="/templates" />
+                <SidebarItem icon={<Boxes />} text="Attributes" to="/attributes" disabled={isDisabled} />
+                <SidebarItem icon={<Puzzle />} text="Snippets" to="/snippets" disabled={isDisabled} />
+                <SidebarItem icon={<Receipt />} text="Templates" to="/templates" disabled={isDisabled} />
                 <hr className="my-3 border-1 border-gray-100" />
-                {currentTenantId && (
-                    <SidebarItem icon={<Settings />} text="Settings" to="/settings" />
-                )}
+                <SidebarItem icon={<Settings />} text="Settings" to="/settings" disabled={isDisabled} />
                 <SidebarItem icon={<LogOut />} text="Logout" onClick={handleLogout} />
             </Sidebar>
             <main className="flex flex-1 justify-center">

@@ -3,21 +3,25 @@ import { NavLink } from "react-router-dom";
 import { SidebarContext } from "./sidebar";
 import type { SidebarItemProps } from "../../types/index";
 
-export function SidebarItem({ icon, text, active, alert, to, onClick }: SidebarItemProps) {
+export function SidebarItem({ icon, text, active, alert, to, onClick, disabled }: SidebarItemProps) {
     const { expanded } = useContext(SidebarContext);
+
+    const baseClasses = `
+        relative flex items-center py-2 px-3 my-1
+        font-medium rounded-md
+        transition-colors group text-left
+    `;
+    const enabledClasses = `cursor-pointer text-gray-600 hover:bg-indigo-50`;
+    const disabledClasses = `text-gray-500 cursor-not-allowed pointer-events-none`;
 
     if (onClick) {
         return (
             <button
                 onClick={onClick}
                 className={`
-        relative flex items-center py-2 px-3 my-1
-        font-medium rounded-md cursor-pointer
-        transition-colors group
-        text-gray-600
-        text-left
-        hover:bg-indigo-50 text-gray-600
-    `}
+          ${baseClasses}
+          ${disabled ? disabledClasses : enabledClasses}
+        `}
             >
                 {icon}
 
@@ -46,12 +50,14 @@ export function SidebarItem({ icon, text, active, alert, to, onClick }: SidebarI
                 className={({ isActive }) => {
                     const isItemActive = active ?? isActive;
                     return `
-          relative flex items-center py-2 px-3 my-1
-          font-medium rounded-md cursor-pointer
-          transition-colors group
-          ${isItemActive ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-                            : "hover:bg-indigo-50 text-gray-600"
-                        }`;
+          ${baseClasses}
+          ${disabled
+                            ? disabledClasses
+                            : isItemActive
+                                ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
+                                : enabledClasses
+                        }
+        `;
                 }}
             >
                 {icon}

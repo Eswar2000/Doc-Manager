@@ -7,6 +7,7 @@ export interface SidebarItemProps {
     alert?: boolean;
     to?: string;
     onClick?: () => void;
+    disabled?: boolean;
 }
 
 export interface SidebarChildrenProps {
