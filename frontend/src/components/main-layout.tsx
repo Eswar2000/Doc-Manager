@@ -38,24 +38,6 @@ export default function MainLayout() {
         });
     };
 
-    if (isLoading) {
-        return (
-            <Loader
-                screenHeader="Loading your workspaces"
-                screenMessage="Please wait till we fetch your workspaces"
-            />
-        )
-    }
-
-    if (error) {
-        return (
-            <ErrorState
-                title="Failed to load workspaces"
-                description="Please refresh the page or contact support if the issue persists."
-            />
-        )
-    }
-
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
@@ -73,7 +55,18 @@ export default function MainLayout() {
                 <SidebarItem icon={<LogOut />} text="Logout" onClick={handleLogout} />
             </Sidebar>
             <main className="flex flex-1 justify-center">
-                <Outlet />
+                {isLoading ? (
+                    <Loader
+                        screenHeader="Loading your workspaces"
+                        screenMessage="Please wait till we fetch your workspaces"
+                    />
+                ) : error ? (
+                    <ErrorState
+                        title="Failed to load workspaces"
+                        description="Please refresh the page or contact support if the issue persists."
+                    />
+                ) : <Outlet />}
+
             </main>
         </div>
     )
