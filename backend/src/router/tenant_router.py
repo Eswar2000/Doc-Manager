@@ -3,7 +3,7 @@ from typing import List, Optional
 from src.utils.auth_utils import get_current_user
 from src.repository.tenant_repository import TenantRepository
 from src.service.tenant_service import TenantService
-from src.model.tenants import TenantCreateRequest, TenantResponse, Tenant
+from src.model.tenants import TenantCreateRequest, TenantResponse, Tenant, TenantRole
 
 router = APIRouter(prefix="/tenants", tags=["tenants"], responses={500: {"description": "Internal Server Error"}})
 
@@ -120,3 +120,26 @@ async def update_tenant(tenant_id: str, payload: TenantCreateRequest, service: T
     except Exception as e:
         print("Update tenant endpoint: Unexpected error occurred:", str(e))
         raise HTTPException(status_code=500, detail={"message": "Unexpected error during tenant update", "error": str(e)})
+    
+@router.post(
+    "/{tenant_id}/members",
+    response_model=TenantResponse,
+    summary="Add a member to a tenant",
+    responses={
+        200: {"description": "Member added to tenant successfully"},
+        400: {"description": "User is already a member of the tenant"},
+        404: {"description": "Tenant not found"}
+    }
+)
+async def add_member_to_tenant(tenant_id: str, new_member: str, roles: Optional[List[TenantRole]] = None, service: TenantService = Depends(get_tenant_service)):
+    print("Add member to tenant endpoint called")
+    try:
+        updated_tenant = await service.add_member_to_tenant(tenant_id, new_member, roles)
+        print("Add member to tenant endpoint: Member added successfully")
+        return updated_tenant
+    except HTTPException as e:
+        print("Add member to tenant endpoint: HTTPException occurred:", e.detail)
+        raise e
+    except Exception as e:
+        print("Add member to tenant endpoint: Unexpected error occurred:", str(e))
+        raise HTTPException(status_code=500, detail={"message": "Unexpected error during adding member to tenant", "error": str(e)})

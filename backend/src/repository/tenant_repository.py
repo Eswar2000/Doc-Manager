@@ -5,7 +5,7 @@ from typing import Optional, List
 import uuid
 from datetime import datetime, timezone
 from src.db.client import get_container
-from src.model.tenants import Tenant, TenantMember, TenantCreateRequest
+from src.model.tenants import Tenant, TenantMember, TenantCreateRequest, TenantRole
 
 class TenantRepository:
     def __init__(self):
@@ -172,3 +172,37 @@ class TenantRepository:
             raise HTTPException(status_code=500, detail=f"Database error while updating tenant: {str(e)}")
 
         return Tenant(**updated_tenant)
+    
+    async def update_tenant_helper(self, tenant: Tenant) -> Tenant:
+        print(f"Update_Tenant_Helper: Starting helper update for tenant ID {tenant.id}")
+        container = await self._get_container()
+
+        tenant_to_update = tenant.model_dump(by_alias=True)
+        tenant_to_update["modifiedAt"] = datetime.now(timezone.utc).isoformat()
+
+        try:
+            updated_tenant = await container.replace_item(item=tenant.id, body=tenant_to_update)
+            print(f"Update_Tenant_Helper: Tenant with ID {tenant.id} updated successfully")
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Update_Tenant_Helper: Error occurred while updating tenant: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database error while updating tenant: {str(e)}")
+
+        return Tenant(**updated_tenant)
+    
+    async def add_member_to_tenant(self, tenant_id: str, new_member: str, roles: Optional[List[TenantRole]]) -> Tenant:
+        print(f"Add_Member_To_Tenant: Starting to add member '{new_member}' to tenant ID {tenant_id}")
+        tenant = await self.get_tenant_by_id(tenant_id)
+        if not tenant:
+            print(f"Add_Member_To_Tenant: No tenant found with ID {tenant_id} to add member")
+            raise HTTPException(status_code=404, detail="Tenant not found")
+
+        if any(member.userId == new_member for member in tenant.members):
+            print(f"Add_Member_To_Tenant: User '{new_member}' is already a member of tenant ID {tenant_id}")
+            raise HTTPException(status_code=400, detail="User is already a member of the tenant")
+        
+        tenant_member = TenantMember(userId=new_member, roles=roles or ["can_view"])
+        tenant.members.append(tenant_member)
+
+        updated_tenant = await self.update_tenant_helper(tenant)
+        print(f"Add_Member_To_Tenant: Member '{new_member}' added successfully to tenant ID {tenant_id}")
+        return updated_tenant
