@@ -9,6 +9,7 @@ import { ErrorState } from '@/components/error-state/error-state';
 import { tenantApi } from '@/api/tenants';
 import { useTenantStore } from '@/stores/tenant-store';
 import { useQuery } from '@tanstack/react-query';
+import { formatDateTime } from '@/lib/date';
 
 export default function WorkspacePage() {
     const { currentTenantId } = useTenantStore();
@@ -95,7 +96,7 @@ export default function WorkspacePage() {
                                 <div>
                                     <p className="text-base text-gray-600 font-medium">Created At</p>
                                     <p className="mt-1 text-gray-900">
-                                        {new Date(tenant?.createdAt).toLocaleString()}
+                                        {formatDateTime(tenant?.createdAt)}
                                     </p>
                                 </div>
 
@@ -103,9 +104,7 @@ export default function WorkspacePage() {
                                 <div>
                                     <p className="text-base text-gray-600 font-medium">Last Updated</p>
                                     <p className="mt-1 text-gray-900">
-                                        {tenant?.modifiedAt
-                                            ? new Date(tenant.modifiedAt).toLocaleString()
-                                            : "-"}
+                                        {formatDateTime(tenant?.modifiedAt)}
                                     </p>
                                 </div>
                             </div>

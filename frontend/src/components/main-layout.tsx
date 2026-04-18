@@ -20,7 +20,6 @@ export default function MainLayout() {
     const { instance } = useMsal();
 
     const { isLoading, error } = useMyTenants();
-    const { currentTenantId } = useTenantStore();
 
     const handleLogout = () => {
         // On logout, clean the tenants state from zustand
