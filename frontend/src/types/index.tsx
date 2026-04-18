@@ -111,6 +111,63 @@ export interface DocumentGenerationProps {
   attributeValues: Record<string, string>;
 }
 
+/* Tenant Props */
+
+export type TenantRole = "can_create" | "can_edit" | "can_delete" | "can_view" | "can_use" | "admin";
+
+export interface TenantMember {
+  userId: string;
+  roles: TenantRole[];
+}
+
+export interface TenantBranding {
+  header?: string;
+  footer?: string;
+  table?: string;
+}
+
+export interface TemplateMetadataField {
+  name: string;
+  type: "Text" | "Single Select" | "Multi Select";
+  options?: string[];
+}
+
+export interface TenantProps {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  modifiedAt?: string;
+  members: TenantMember[];
+  branding?: TenantBranding;
+  templateSettings?: {
+    metadata: TemplateMetadataField[];
+  };
+  attributeSettings?: {
+    mandatoryAttributes: string[];
+  };
+}
+
+export interface CreateTenantRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateTenantRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface AddMemberRequest {
+  userId: string;
+  roles: TenantRole[];
+}
+
+export interface UpdateMemberRolesRequest {
+  roles: TenantRole[];
+}
+
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
