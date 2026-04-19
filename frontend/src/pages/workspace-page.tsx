@@ -274,7 +274,7 @@ export default function WorkspacePage() {
                     defaultValue="basic"
                     className="w-full border border-gray-200 rounded-lg divide-y"
                 >
-                    <AccordionItem value="basic" className="border-none">
+                    <AccordionItem value="basic" className="border-b last:border-b-0">
                         <AccordionTrigger
                             className="px-6 py-5 hover:no-underline hover:bg-gray-50 transition-colors">
                             <div className="flex w-full items-center justify-between">
@@ -353,7 +353,7 @@ export default function WorkspacePage() {
 
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value="members" className="border-none">
+                    <AccordionItem value="members" className="border-b last:border-b-0">
                         <AccordionTrigger
                             className="px-6 py-5 hover:no-underline hover:bg-gray-50 transition-colors">
                             <div className="flex w-full items-center justify-between">
