@@ -26,9 +26,9 @@ export const tenantApi = {
         await api.post(`/tenants/${tenantId}/members`, memberData);
     },
     removeMember: async (tenantId: string, userId: string): Promise<void> => {
-        await api.delete(`/api/tenants/${tenantId}/members/${userId}`);
+        await api.delete(`/tenants/${tenantId}/members/${userId}`);
     },
     updateMemberRoles: async (tenantId: string, userId: string, roles: TenantRole[]): Promise<void> => {
-        await api.put(`/api/tenants/${tenantId}/members/${userId}`, { roles });
+        await api.put(`/tenants/${tenantId}/members/${encodeURIComponent(userId)}`, roles);
     }
 }

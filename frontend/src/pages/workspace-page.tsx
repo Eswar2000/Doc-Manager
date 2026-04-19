@@ -120,7 +120,28 @@ export default function WorkspacePage() {
     };
 
     const updateMemberRole = async (member: any) => {
-        console.log("Updating member role:", member);
+        try {
+            await tenantApi.updateMemberRoles(currentTenantId!, member.userId, member.roles);
+            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+
+            toast.success("Successfully updated member roles", {
+                description: "The member's roles have been updated successfully.",
+                duration: 2000,
+                closeButton: false,
+            });
+
+            setMemberDialog(false);
+        } catch (error) {
+            console.error("Failed to update member roles:", error);
+
+            toast.error("Failed to update member roles", {
+                description: error instanceof Error
+                    ? error.message
+                    : "Something went wrong. Please check and try again.",
+                duration: 3000,
+                closeButton: false,
+            });
+        }
     };
 
     const addMemberDialogFields: DynamicField[] = [
