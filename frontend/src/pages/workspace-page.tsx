@@ -5,6 +5,7 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { DataTable } from "@/components/data-table/data-table";
 import { getColumns } from "@/components/data-table/columns";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
@@ -29,6 +30,33 @@ export default function WorkspacePage() {
         refetchOnWindowFocus: false, // Don't refetch when coming back to tab
     });
 
+    const roleMeta: Record<string, { label: string; className: string }> = {
+        admin: {
+            label: "Admin",
+            className: "bg-red-50 text-red-700 border-red-200",
+        },
+        can_create: {
+            label: "Create",
+            className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+        },
+        can_edit: {
+            label: "Edit",
+            className: "bg-green-50 text-green-700 border-green-200",
+        },
+        can_delete: {
+            label: "Delete",
+            className: "bg-rose-50 text-rose-700 border-rose-200",
+        },
+        can_view: {
+            label: "View",
+            className: "bg-purple-100 text-purple-700 border-purple-200",
+        },
+        can_use: {
+            label: "Use",
+            className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        },
+    };
+
     const addNewMember = () => {
         console.log("Add new member clicked");
     }
@@ -51,9 +79,41 @@ export default function WorkspacePage() {
             header: ({ column }) => (
                 <DataTableColumnHeader column={column} title="Roles" />
             ),
-            cell: ({ row }) => (
-                <div className="w-[150px] font-medium">{row.getValue("roles")}</div>
-            ),
+            cell: ({ row }) => {
+                const roles = (row.getValue("roles") as string[]) || [];
+
+                const visibleRoles = roles.slice(0, 3);
+                const remaining = roles.length - 3;
+
+                return (
+                    <div className="flex flex-wrap items-center gap-2 min-w-[220px]">
+                        {visibleRoles.map((role) => {
+                            const meta = roleMeta[role] || {
+                                label: role,
+                                className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                            };
+
+                            return (
+                                <Badge
+                                    key={role}
+                                    variant="outline"
+                                    className={`text-xs font-medium ${meta.className}`}
+                                >
+                                    {meta.label}
+                                </Badge>
+                            );
+                        })}
+                        {remaining > 0 && (
+                            <span
+                                className="text-xs text-gray-500 cursor-default"
+                                title={roles.map(r => roleMeta[r]?.label || r).join(", ")}
+                            >
+                                +{remaining} more
+                            </span>
+                        )}
+                    </div>
+                );
+            },
         }
 
     ]);
