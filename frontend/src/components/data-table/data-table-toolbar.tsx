@@ -26,7 +26,7 @@ export function DataTableToolbar<TData>({
             onChange={(event) => {
               table.getColumn(filterColumnKey)?.setFilterValue(event.target.value);
             }}
-            className="h-8 w-[150px] lg:w-[250px]"
+            className="h-8 w-[150px] lg:w-[250px] focus-visible:ring-1 transition-colors duration-150 border-indigo-500 bg-indigo-50/50 shadow-sm focus-visible:ring-indigo-500"
           />
         )}
         {facetedFilters.map((filter) =>
