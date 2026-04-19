@@ -23,7 +23,9 @@ import { toast } from 'sonner';
 export default function WorkspacePage() {
     const { currentTenantId } = useTenantStore();
     const queryClient = useQueryClient();
-    const [addMemberOpen, setAddMemberOpen] = useState(false);
+
+    const [isCreate, setIsCreate] = useState(false);
+    const [memberDialog, setMemberDialog] = useState(false);
 
     const { data: tenant, isLoading, error } = useQuery({
         queryKey: ['tenant', currentTenantId],
@@ -62,6 +64,16 @@ export default function WorkspacePage() {
         },
     };
 
+    const onCreate = () => {
+        setIsCreate(true);
+        setMemberDialog(true);
+    }
+
+    const onUpdate = () => {
+        setIsCreate(false);
+        setMemberDialog(true);
+    }
+
     const addNewMember = async (member: any) => {
         const newMember: AddMemberRequest = {
             new_member: member.userId,
@@ -78,7 +90,7 @@ export default function WorkspacePage() {
                 closeButton: false,
             });
 
-            setAddMemberOpen(false);
+            setMemberDialog(false);
         } catch (error) {
             console.error("Failed to add member:", error);
 
@@ -92,10 +104,19 @@ export default function WorkspacePage() {
         }
     }
 
+    const updateMemberRole = async (member: any) => {
+        console.log("Updating member role:", member);
+    }
+
     const addMemberDialogFields: DynamicField[] = [
         { name: "userId", label: "User Email", type: "text", required: true },
         { name: "roles", label: "Roles", type: "multiselect", required: true, options: ["admin", "can_create", "can_edit", "can_delete", "can_view", "can_use"] },
-    ]
+    ];
+
+    const updateMemberRoleDialogFields: DynamicField[] = [
+        { name: "userId", label: "User Email", type: "text", required: true, disabled: true },
+        { name: "roles", label: "Roles", type: "multiselect", required: true, options: ["admin", "can_create", "can_edit", "can_delete", "can_view", "can_use"] },
+    ];
 
     const cols = getColumns<TenantMember>([
         {
@@ -267,24 +288,24 @@ export default function WorkspacePage() {
                                 data={tenant.members}
                                 filterColumnKey="userId"
                                 showCreateButton={true}
-                                onCreate={() => setAddMemberOpen(true)}
+                                onCreate={() => onCreate()}
                             />
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
             )}
             <DynamicDialog
-                open={addMemberOpen}
-                title="Add Member"
-                description="Invite a new member to this workspace and assign roles."
-                fields={addMemberDialogFields}
+                open={memberDialog}
+                title={isCreate ? "Add New Member" : "Update Member Roles"}
+                description={isCreate ? "Invite a new member to this workspace and assign roles." : "Update the roles of the member in your workspace."}
+                fields={isCreate ? addMemberDialogFields : updateMemberRoleDialogFields}
                 initialValues={{
                     userId: "",
                     roles: [],
                 }}
-                submitButtonText="Add"
-                onUpdate={addNewMember}
-                onCancel={() => setAddMemberOpen(false)}
+                submitButtonText={isCreate ? "Add" : "Update"}
+                onUpdate={isCreate ? addNewMember : updateMemberRole}
+                onCancel={() => setMemberDialog(false)}
             />
         </div>
     );
