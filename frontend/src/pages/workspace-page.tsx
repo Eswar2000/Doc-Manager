@@ -4,6 +4,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/loader/loader';
 import { ErrorState } from '@/components/error-state/error-state';
 import { tenantApi } from '@/api/tenants';
@@ -73,8 +74,8 @@ export default function WorkspacePage() {
                                     <p className="mt-1">
                                         <span
                                             className={`px-2 py-1 rounded-md text-xs font-medium ${tenant?.isActive
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-gray-100 text-gray-600"
+                                                ? "bg-green-100 text-green-700"
+                                                : "bg-gray-100 text-gray-600"
                                                 }`}
                                         >
                                             {tenant?.isActive ? "Active" : "Inactive"}
@@ -107,6 +108,19 @@ export default function WorkspacePage() {
                                         {formatDateTime(tenant?.modifiedAt)}
                                     </p>
                                 </div>
+                            </div>
+
+                            <div className="mt-8 flex justify-start">
+                                <Button
+                                    className="
+                                    bg-indigo-600 hover:bg-indigo-700
+                                    focus-visible:ring-indigo-500
+                                    text-white font-medium shadow-sm
+                                    px-5 py-2
+                                "
+                                >
+                                    Edit Workspace
+                                </Button>
                             </div>
 
                         </AccordionContent>
