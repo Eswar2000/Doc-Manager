@@ -32,7 +32,7 @@ export interface User {
 
 export type AttributeType = "number" | "text" | "date" | "email";
 
-export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions";
+export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions" | "multiselect";
 
 export type EditorMode = 'template' | 'snippet';
 

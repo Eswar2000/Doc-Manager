@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
     Accordion,
     AccordionContent,
@@ -15,10 +16,12 @@ import { tenantApi } from '@/api/tenants';
 import { useTenantStore } from '@/stores/tenant-store';
 import { useQuery } from '@tanstack/react-query';
 import { formatDateTime } from '@/lib/date';
-import type { TenantMember } from '@/types';
+import type { DynamicField, TenantMember } from '@/types';
+import DynamicDialog from '@/components/dialog-box/dynamic-dialog';
 
 export default function WorkspacePage() {
     const { currentTenantId } = useTenantStore();
+    const [addMemberOpen, setAddMemberOpen] = useState(false);
 
     const { data: tenant, isLoading, error } = useQuery({
         queryKey: ['tenant', currentTenantId],
@@ -57,9 +60,14 @@ export default function WorkspacePage() {
         },
     };
 
-    const addNewMember = () => {
-        console.log("Add new member clicked");
+    const addNewMember = (member: any) => {
+        console.log("Adding member:", member);
     }
+
+    const addMemberDialogFields: DynamicField[] = [
+        { name: "userId", label: "User Email", type: "text", required: true },
+        { name: "roles", label: "Roles", type: "multiselect", required: true, options: ["admin", "can_create", "can_edit", "can_delete", "can_view", "can_use"] },
+    ]
 
     const cols = getColumns<TenantMember>([
         {
@@ -231,12 +239,25 @@ export default function WorkspacePage() {
                                 data={tenant.members}
                                 filterColumnKey="userId"
                                 showCreateButton={true}
-                                onCreate={() => addNewMember()}
+                                onCreate={() => setAddMemberOpen(true)}
                             />
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
             )}
+            <DynamicDialog
+                open={addMemberOpen}
+                title="Add Member"
+                description="Invite a new member to this workspace and assign roles."
+                fields={addMemberDialogFields}
+                initialValues={{
+                    userId: "",
+                    roles: [],
+                }}
+                submitButtonText="Add"
+                onUpdate={addNewMember}
+                onCancel={() => setAddMemberOpen(false)}
+            />
         </div>
     );
 }
