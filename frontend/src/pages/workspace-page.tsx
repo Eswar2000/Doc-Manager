@@ -5,12 +5,16 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { DataTable } from "@/components/data-table/data-table";
+import { getColumns } from "@/components/data-table/columns";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Loader } from '@/components/loader/loader';
 import { ErrorState } from '@/components/error-state/error-state';
 import { tenantApi } from '@/api/tenants';
 import { useTenantStore } from '@/stores/tenant-store';
 import { useQuery } from '@tanstack/react-query';
 import { formatDateTime } from '@/lib/date';
+import type { TenantMember } from '@/types';
 
 export default function WorkspacePage() {
     const { currentTenantId } = useTenantStore();
@@ -25,6 +29,34 @@ export default function WorkspacePage() {
         refetchOnWindowFocus: false, // Don't refetch when coming back to tab
     });
 
+    const addNewMember = () => {
+        console.log("Add new member clicked");
+    }
+
+    const cols = getColumns<TenantMember>([
+        {
+            accessorKey: "userId",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="User" />
+            ),
+            cell: ({ row }) => (
+                <div className="w-[150px] font-medium">{row.getValue("userId")}</div>
+            ),
+            filterFn: (row, id, value) => {
+                return row.getValue(id).toLowerCase().includes(value.toLowerCase());
+            }
+        },
+        {
+            accessorKey: "roles",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Roles" />
+            ),
+            cell: ({ row }) => (
+                <div className="w-[150px] font-medium">{row.getValue("roles")}</div>
+            ),
+        }
+
+    ]);
 
 
     return (
@@ -44,12 +76,9 @@ export default function WorkspacePage() {
                     className="w-full border border-gray-200 rounded-lg divide-y"
                 >
                     <AccordionItem value="basic" className="border-none">
-
                         <AccordionTrigger
                             className="px-6 py-5 hover:no-underline hover:bg-gray-50 transition-colors">
                             <div className="flex w-full items-center justify-between">
-
-                                {/* Left: Title */}
                                 <div className="text-left">
                                     <h3 className="text-xl font-semibold text-gray-900">
                                         Basic Information
@@ -123,6 +152,27 @@ export default function WorkspacePage() {
                                 </Button>
                             </div>
 
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="members" className="border-none">
+                        <AccordionTrigger
+                            className="px-6 py-5 hover:no-underline hover:bg-gray-50 transition-colors">
+                            <div className="flex w-full items-center justify-between">
+                                <div className="text-left">
+                                    <h3 className="text-xl font-semibold text-gray-900">
+                                        Members
+                                    </h3>
+                                </div>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-6 py-6 border-t">
+                            <DataTable
+                                columns={cols}
+                                data={tenant.members}
+                                filterColumnKey="userId"
+                                showCreateButton={true}
+                                onCreate={() => addNewMember()}
+                            />
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
