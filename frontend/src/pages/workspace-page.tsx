@@ -14,13 +14,15 @@ import { Loader } from '@/components/loader/loader';
 import { ErrorState } from '@/components/error-state/error-state';
 import { tenantApi } from '@/api/tenants';
 import { useTenantStore } from '@/stores/tenant-store';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateTime } from '@/lib/date';
-import type { DynamicField, TenantMember } from '@/types';
+import type { DynamicField, TenantMember, AddMemberRequest } from '@/types';
 import DynamicDialog from '@/components/dialog-box/dynamic-dialog';
+import { toast } from 'sonner';
 
 export default function WorkspacePage() {
     const { currentTenantId } = useTenantStore();
+    const queryClient = useQueryClient();
     const [addMemberOpen, setAddMemberOpen] = useState(false);
 
     const { data: tenant, isLoading, error } = useQuery({
@@ -60,8 +62,34 @@ export default function WorkspacePage() {
         },
     };
 
-    const addNewMember = (member: any) => {
-        console.log("Adding member:", member);
+    const addNewMember = async (member: any) => {
+        const newMember: AddMemberRequest = {
+            new_member: member.userId,
+            roles: member.roles,
+        }
+
+        try {
+            await tenantApi.addMember(currentTenantId!, newMember);
+            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+
+            toast.success("Successfully added member", {
+                description: "The member has been added successfully.",
+                duration: 2000,
+                closeButton: false,
+            });
+
+            setAddMemberOpen(false);
+        } catch (error) {
+            console.error("Failed to add member:", error);
+
+            toast.error("Failed to add member", {
+                description: error instanceof Error
+                    ? error.message
+                    : "Something went wrong. Please check and try again.",
+                duration: 3000,
+                closeButton: false,
+            });
+        }
     }
 
     const addMemberDialogFields: DynamicField[] = [

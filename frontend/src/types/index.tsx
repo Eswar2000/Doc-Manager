@@ -161,7 +161,7 @@ export interface UpdateTenantRequest {
 }
 
 export interface AddMemberRequest {
-  userId: string;
+  new_member: string;
   roles: TenantRole[];
 }
 
