@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from "@/components/data-table/data-table";
 import { getColumns } from "@/components/data-table/columns";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { Loader } from '@/components/loader/loader';
 import { ErrorState } from '@/components/error-state/error-state';
 import { tenantApi } from '@/api/tenants';
@@ -18,6 +19,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateTime } from '@/lib/date';
 import type { DynamicField, TenantMember, AddMemberRequest } from '@/types';
 import DynamicDialog from '@/components/dialog-box/dynamic-dialog';
+import { Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function WorkspacePage() {
@@ -26,6 +28,7 @@ export default function WorkspacePage() {
 
     const [isCreate, setIsCreate] = useState(false);
     const [memberDialog, setMemberDialog] = useState(false);
+    const [selectedMember, setSelectedMember] = useState<TenantMember | null>(null);
 
     const { data: tenant, isLoading, error } = useQuery({
         queryKey: ['tenant', currentTenantId],
@@ -67,12 +70,24 @@ export default function WorkspacePage() {
     const onCreate = () => {
         setIsCreate(true);
         setMemberDialog(true);
-    }
+    };
 
-    const onUpdate = () => {
+    const onUpdate = (member: TenantMember) => {
         setIsCreate(false);
+        setSelectedMember(member);
         setMemberDialog(true);
-    }
+    };
+
+    const getDialogValues = () => {
+        if (isCreate) {
+            return { userId: "", roles: [] };
+        }
+
+        return {
+            userId: selectedMember?.userId ?? "",
+            roles: selectedMember?.roles ?? [],
+        };
+    };
 
     const addNewMember = async (member: any) => {
         const newMember: AddMemberRequest = {
@@ -102,11 +117,11 @@ export default function WorkspacePage() {
                 closeButton: false,
             });
         }
-    }
+    };
 
     const updateMemberRole = async (member: any) => {
         console.log("Updating member role:", member);
-    }
+    };
 
     const addMemberDialogFields: DynamicField[] = [
         { name: "userId", label: "User Email", type: "text", required: true },
@@ -171,6 +186,27 @@ export default function WorkspacePage() {
                     </div>
                 );
             },
+        },
+        {
+            id: "actions",
+            accessorKey: "actions",
+            cell: ({ row }) => <DataTableRowActions row={row}
+                actions={
+                    [
+                        {
+                            title: "Edit",
+                            icon: <Pencil className="h-4 w-4 text-indigo-500" />,
+                            variant: "secondary",
+                            onClick: () => onUpdate(row.original),
+                        },
+                        {
+                            title: "Delete",
+                            icon: <Trash2 className="h-4 w-4 text-destructive" />,
+                            variant: "destructive",
+                            onClick: async () => { console.log("Delete member:", row.original) }
+                        }
+                    ]
+                } />,
         }
 
     ]);
@@ -297,15 +333,18 @@ export default function WorkspacePage() {
             <DynamicDialog
                 open={memberDialog}
                 title={isCreate ? "Add New Member" : "Update Member Roles"}
-                description={isCreate ? "Invite a new member to this workspace and assign roles." : "Update the roles of the member in your workspace."}
+                description={isCreate
+                    ? "Invite a new member to this workspace and assign roles."
+                    : "Update the roles of the member in your workspace."
+                }
                 fields={isCreate ? addMemberDialogFields : updateMemberRoleDialogFields}
-                initialValues={{
-                    userId: "",
-                    roles: [],
-                }}
+                initialValues={getDialogValues()}
                 submitButtonText={isCreate ? "Add" : "Update"}
                 onUpdate={isCreate ? addNewMember : updateMemberRole}
-                onCancel={() => setMemberDialog(false)}
+                onCancel={() => {
+                    setMemberDialog(false);
+                    setSelectedMember(null);
+                }}
             />
         </div>
     );
