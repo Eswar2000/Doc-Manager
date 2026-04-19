@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { formatLabel } from "@/lib/label";
 
 interface MultiSelectProps {
   options: string[];
@@ -49,7 +50,7 @@ export function MultiSelect({
 
             {value.slice(0, 3).map((val) => (
               <Badge key={val} variant="secondary" className="text-xs">
-                {val.replace(/_/g, " ")}
+                {formatLabel(val)}
               </Badge>
             ))}
 
@@ -79,7 +80,7 @@ export function MultiSelect({
                   isSelected && "bg-indigo-100"
                 )}
               >
-                <span>{opt.replace(/_/g, " ")}</span>
+                <span>{formatLabel(opt)}</span>
 
                 {isSelected && (
                   <Check className="h-4 w-4 text-indigo-600" />
