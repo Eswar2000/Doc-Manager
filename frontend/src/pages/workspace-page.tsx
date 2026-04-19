@@ -144,6 +144,31 @@ export default function WorkspacePage() {
         }
     };
 
+    const deleteMember = async (member: TenantMember) => {
+        try {
+            await tenantApi.removeMember(currentTenantId!, member.userId);
+            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+
+            toast.success("Successfully removed member", {
+                description: "The member has been removed successfully.",
+                duration: 2000,
+                closeButton: false,
+            });
+
+            setMemberDialog(false);
+        } catch (error) {
+            console.error("Failed to remove member:", error);
+
+            toast.error("Failed to remove member", {
+                description: error instanceof Error
+                    ? error.message
+                    : "Something went wrong. Please check and try again.",
+                duration: 3000,
+                closeButton: false,
+            });
+        }
+    }
+
     const addMemberDialogFields: DynamicField[] = [
         { name: "userId", label: "User Email", type: "text", required: true },
         { name: "roles", label: "Roles", type: "multiselect", required: true, options: ["admin", "can_create", "can_edit", "can_delete", "can_view", "can_use"] },
@@ -224,7 +249,7 @@ export default function WorkspacePage() {
                             title: "Delete",
                             icon: <Trash2 className="h-4 w-4 text-destructive" />,
                             variant: "destructive",
-                            onClick: async () => { console.log("Delete member:", row.original) }
+                            onClick: async () => deleteMember(row.original),
                         }
                     ]
                 } />,
