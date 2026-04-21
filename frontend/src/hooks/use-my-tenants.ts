@@ -29,7 +29,7 @@ export const useMyTenants = () => {
                 setCurrentTenant(query.data[0].id);
             }
         }
-    }, [query.data, setTenants, setCurrentTenant, currentTenantId]);
+    }, [query.data]);
 
     return query;
 };

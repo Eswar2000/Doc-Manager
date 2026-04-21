@@ -9,7 +9,6 @@ interface TenantState {
     setTenants: (tenants: TenantProps[]) => void;
     setCurrentTenant: (tenantId: string) => void;
     updateTenant: (tenantId: string, updates: Partial<TenantProps>) => void;
-    addTenant: (tenant: TenantProps) => void;
     removeTenant: (tenantId: string) => void;
 
     clear: () => void;
@@ -33,10 +32,6 @@ export const useTenantStore = create<TenantState>((set) => ({
             tenants: state.tenants.map((t) =>
                 t.id === tenantId ? { ...t, ...updates } : t
             ),
-        })),
-    addTenant: (tenant) =>
-        set((state) => ({
-            tenants: [tenant, ...state.tenants],
         })),
     removeTenant: (tenantId) =>
         set((state) => {
