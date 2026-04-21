@@ -23,7 +23,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function WorkspacePage() {
-    const { currentTenantId } = useTenantStore();
+    const { currentTenantId, updateTenant } = useTenantStore();
     const queryClient = useQueryClient();
 
     const [isCreate, setIsCreate] = useState(false);
@@ -98,6 +98,12 @@ export default function WorkspacePage() {
 
         try {
             await tenantApi.updateTenant(currentTenantId!, tenantInfo);
+
+            // update tenant store for inline sync with UI
+            updateTenant(currentTenantId!, {
+                name: tenantInfo.name,
+                description: tenantInfo.description,
+            });
             queryClient.invalidateQueries({ queryKey: ['tenant'] });
 
             toast.success("Successfully updated", {
@@ -429,7 +435,7 @@ export default function WorkspacePage() {
                     setSelectedMember(null);
                 }}
             />
-            <DynamicDialog 
+            <DynamicDialog
                 open={basicInfoDialog}
                 title="Edit Tenant Information"
                 description="Update the basic information for your tenant."
