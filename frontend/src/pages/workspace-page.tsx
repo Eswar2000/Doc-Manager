@@ -17,7 +17,7 @@ import { tenantApi } from '@/api/tenants';
 import { useTenantStore } from '@/stores/tenant-store';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateTime } from '@/lib/date';
-import type { DynamicField, TenantMember, AddMemberRequest } from '@/types';
+import type { DynamicField, TenantMember, AddMemberRequest, UpdateTenantRequest } from '@/types';
 import DynamicDialog from '@/components/dialog-box/dynamic-dialog';
 import { Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -28,6 +28,7 @@ export default function WorkspacePage() {
 
     const [isCreate, setIsCreate] = useState(false);
     const [memberDialog, setMemberDialog] = useState(false);
+    const [basicInfoDialog, setBasicInfoDialog] = useState(false);
     const [selectedMember, setSelectedMember] = useState<TenantMember | null>(null);
 
     const { data: tenant, isLoading, error } = useQuery({
@@ -89,11 +90,41 @@ export default function WorkspacePage() {
         };
     };
 
+    const updateTenantInfo = async (data: any) => {
+        const tenantInfo: UpdateTenantRequest = {
+            name: data.name,
+            description: data.description
+        };
+
+        try {
+            await tenantApi.updateTenant(currentTenantId!, tenantInfo);
+            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+
+            toast.success("Successfully updated", {
+                description: "The workspace basic info has been updated successfully.",
+                duration: 2000,
+                closeButton: false,
+            });
+
+            setBasicInfoDialog(false);
+        } catch (error) {
+            console.error("Failed to update basic info:", error);
+
+            toast.error("Failed to update basic info", {
+                description: error instanceof Error
+                    ? error.message
+                    : "Something went wrong. Please check and try again.",
+                duration: 3000,
+                closeButton: false,
+            });
+        }
+    }
+
     const addNewMember = async (member: any) => {
         const newMember: AddMemberRequest = {
             new_member: member.userId,
             roles: member.roles,
-        }
+        };
 
         try {
             await tenantApi.addMember(currentTenantId!, newMember);
@@ -177,6 +208,11 @@ export default function WorkspacePage() {
     const updateMemberRoleDialogFields: DynamicField[] = [
         { name: "userId", label: "User Email", type: "text", required: true, disabled: true },
         { name: "roles", label: "Roles", type: "multiselect", required: true, options: ["admin", "can_create", "can_edit", "can_delete", "can_view", "can_use"] },
+    ];
+
+    const updateBasicInfoDialogFields: DynamicField[] = [
+        { name: "name", label: "Tenant Name", type: "text", required: true },
+        { name: "description", label: "Description", type: "textarea", required: false }
     ];
 
     const cols = getColumns<TenantMember>([
@@ -345,9 +381,10 @@ export default function WorkspacePage() {
                                     focus-visible:ring-indigo-500
                                     text-white font-medium shadow-sm
                                     px-5 py-2
-                                "
+                                    "
+                                    onClick={() => setBasicInfoDialog(true)}
                                 >
-                                    Edit Workspace
+                                    Edit Tenant Information
                                 </Button>
                             </div>
 
@@ -390,6 +427,21 @@ export default function WorkspacePage() {
                 onCancel={() => {
                     setMemberDialog(false);
                     setSelectedMember(null);
+                }}
+            />
+            <DynamicDialog 
+                open={basicInfoDialog}
+                title="Edit Tenant Information"
+                description="Update the basic information for your tenant."
+                fields={updateBasicInfoDialogFields}
+                initialValues={{
+                    name: tenant?.name || "",
+                    description: tenant?.description || "",
+                }}
+                submitButtonText="Update"
+                onUpdate={updateTenantInfo}
+                onCancel={() => {
+                    setBasicInfoDialog(false);
                 }}
             />
         </div>
