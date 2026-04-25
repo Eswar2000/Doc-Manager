@@ -50,7 +50,7 @@ export default function MainLayout() {
                 <SidebarItem icon={<Puzzle />} text="Snippets" to="/snippets" disabled={isDisabled} />
                 <SidebarItem icon={<Receipt />} text="Templates" to="/templates" disabled={isDisabled} />
                 <hr className="my-3 border-1 border-gray-100" />
-                <SidebarItem icon={<Settings />} text="Workspace Settings" to="/workspace" disabled={isDisabled} />
+                <SidebarItem icon={<Settings />} text="Workspace" to="/workspace" disabled={isDisabled} />
                 <SidebarItem icon={<LogOut />} text="Logout" onClick={handleLogout} />
             </Sidebar>
             <main className="flex flex-1 justify-center">
