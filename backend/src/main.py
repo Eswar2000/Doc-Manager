@@ -1,5 +1,6 @@
 from src.router.attribute_router import router as attribute_router
 from src.router.template_router import router as template_router
+from src.router.tenant_router import router as tenant_router
 from src.config.auth_config import azure_scheme
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +36,7 @@ app.add_middleware(
 # Include routers with authentication dependency
 app.include_router(template_router, dependencies=[Depends(azure_scheme)])
 app.include_router(attribute_router, dependencies=[Depends(azure_scheme)])
+app.include_router(tenant_router, dependencies=[Depends(azure_scheme)])
 
 # Health check endpoint, no authentication required
 @app.get("/health", dependencies=[])

@@ -13,6 +13,7 @@ import { Loader } from "@/components/loader/loader";
 import { ErrorState } from "@/components/error-state/error-state";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
+import { formatDateTime } from "@/lib/date";
 
 export default function AttributesPage() {
   const queryClient = useQueryClient();
@@ -88,19 +89,9 @@ export default function AttributesPage() {
         <DataTableColumnHeader column={column} title="Created At" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("createdAt"));
-        const formattedDate = date.toLocaleDateString("en-US", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        });
-        const formattedTime = date.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
         return (
           <div className="flex w-[160px] items-center">
-            <span className="capitalize">{formattedDate} {formattedTime}</span>
+            <span>{formatDateTime(row.getValue("createdAt"))}</span>
           </div>
         );
       },
@@ -111,20 +102,9 @@ export default function AttributesPage() {
         <DataTableColumnHeader column={column} title="Modified At" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("modifiedAt"));
-        const formattedDate = date.toLocaleDateString("en-US", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        });
-        const formattedTime = date.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
         return (
           <div className="flex w-[160px] items-center">
-            {row.getValue("modifiedAt") && <span className="capitalize">{formattedDate} {formattedTime}</span>}
-            {!row.getValue("modifiedAt") && <span className="text-muted-foreground">-</span>}
+            <span>{formatDateTime(row.getValue("modifiedAt"))}</span>
           </div>
         );
       },

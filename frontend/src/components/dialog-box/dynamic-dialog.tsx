@@ -12,6 +12,7 @@ import type { DynamicDialogProps } from "@/types/index";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { MultiSelect } from "../multiselect/multi-select";
 import { Plus, Trash } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircleIcon } from "lucide-react";
@@ -96,6 +97,13 @@ export default function DynamicDialog({
                 // Number validations
                 if (field.type === "number" && value !== "" && isNaN(Number(value))) {
                     newErrors.push(`${field.label} must be a valid number.`);
+                }
+
+                // Multiselect validation
+                if (field.type === "multiselect") {
+                    if (field.required && (!value || value.length === 0)) {
+                        newErrors.push(`${field.label} requires at least one selection.`);
+                    }
                 }
             } else {
                 // conditions field validation
@@ -200,6 +208,16 @@ export default function DynamicDialog({
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            )}
+
+                            {/* Multiselect */}
+                            {field.type === "multiselect" && (
+                                <MultiSelect
+                                    options={field.options ?? []}
+                                    value={formValues[field.name] ?? []}
+                                    onChange={(val) => handleChange(field.name, val)}
+                                    disabled={field.disabled}
+                                />
                             )}
 
                             {/* Conditions group */}

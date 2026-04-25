@@ -7,6 +7,7 @@ export interface SidebarItemProps {
     alert?: boolean;
     to?: string;
     onClick?: () => void;
+    disabled?: boolean;
 }
 
 export interface SidebarChildrenProps {
@@ -25,14 +26,13 @@ export interface CurrentUser {
 }
 
 export interface User {
-  userId: string;
   name: string;
   email: string;
 }
 
 export type AttributeType = "number" | "text" | "date" | "email";
 
-export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions";
+export type FormFieldType = "text" | "textarea" | "select" | "number" | "conditions" | "multiselect";
 
 export type EditorMode = 'template' | 'snippet';
 
@@ -110,6 +110,63 @@ export interface TemplateRollbackProps {
 export interface DocumentGenerationProps {
   templateId: string;
   attributeValues: Record<string, string>;
+}
+
+/* Tenant Props */
+
+export type TenantRole = "can_create" | "can_edit" | "can_delete" | "can_view" | "can_use" | "admin";
+
+export interface TenantMember {
+  userId: string;
+  roles: TenantRole[];
+}
+
+export interface TenantBranding {
+  header?: string;
+  footer?: string;
+  table?: string;
+}
+
+export interface TemplateMetadataField {
+  name: string;
+  type: "Text" | "Single Select" | "Multi Select";
+  options?: string[];
+}
+
+export interface TenantProps {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  modifiedAt?: string;
+  members: TenantMember[];
+  branding?: TenantBranding;
+  templateSettings?: {
+    metadata: TemplateMetadataField[];
+  };
+  attributeSettings?: {
+    mandatoryAttributes: string[];
+  };
+}
+
+export interface CreateTenantRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateTenantRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface AddMemberRequest {
+  new_member: string;
+  roles: TenantRole[];
+}
+
+export interface UpdateMemberRolesRequest {
+  roles: TenantRole[];
 }
 
 export interface DataTableProps<TData, TValue> {

@@ -12,6 +12,7 @@ import { Loader } from "@/components/loader/loader";
 import { OverlayLoader } from "@/components/overlay-loader/overlay-loader";
 import { ErrorState } from "@/components/error-state/error-state";
 import type { ColumnFiltersState } from "@tanstack/table-core";
+import { formatDateTime } from "@/lib/date";
 import { toast } from "sonner";
 
 export default function TemplatesPage() {
@@ -174,19 +175,9 @@ export default function TemplatesPage() {
                 <DataTableColumnHeader column={column} title="Created At" />
             ),
             cell: ({ row }) => {
-                const date = new Date(row.getValue("createdAt"));
-                const formattedDate = date.toLocaleDateString("en-US", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                });
-                const formattedTime = date.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                });
                 return (
                     <div className="flex w-[160px] items-center">
-                        <span className="capitalize">{formattedDate} {formattedTime}</span>
+                        <span>{formatDateTime(row.getValue("createdAt"))}</span>
                     </div>
                 );
             },
