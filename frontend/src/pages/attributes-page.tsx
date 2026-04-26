@@ -9,7 +9,7 @@ import DynamicDialog from "@/components/dialog-box/dynamic-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { attributeApi } from "@/api/attributes";
-import { Loader } from "@/components/loader/loader";
+import { Loader } from "@/components/loader";
 import { ErrorState } from "@/components/error-state/error-state";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
