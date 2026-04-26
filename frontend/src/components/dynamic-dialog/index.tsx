@@ -34,7 +34,7 @@ import { MultiSelect } from "@/components/multiselect";
 import { cn } from "@/lib/utils";
 import type { DynamicDialogProps } from "@/types";
 
-export default function DynamicDialog({
+export function DynamicDialog({
     open,
     title,
     description,

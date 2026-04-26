@@ -1,19 +1,24 @@
-
-import { DataTable } from "@/components/data-table/data-table";
-import { getColumns } from "@/components/data-table/columns";
-import type { AttributeProps, DynamicField } from "@/types/index";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useState } from "react";
-import DynamicDialog from "@/components/dialog-box/dynamic-dialog";
+import {
+  Pencil,
+  Trash2
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { attributeApi } from "@/api/attributes";
+import { DataTable } from "@/components/data-table/data-table";
+import { getColumns } from "@/components/data-table/columns";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { DynamicDialog } from "@/components/dynamic-dialog";
 import { Loader } from "@/components/loader";
 import { ErrorState } from "@/components/error-state";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { attributeApi } from "@/api/attributes";
 import { formatDateTime } from "@/lib/date";
+import type {
+  AttributeProps,
+  DynamicField
+} from "@/types";
 
 export default function AttributesPage() {
   const queryClient = useQueryClient();

@@ -10,7 +10,7 @@ import {
 import type { DynamicField } from "@/types";
 import { toast } from "sonner";
 import { tenantApi } from "@/api/tenants";
-import DynamicDialog from "../dialog-box/dynamic-dialog";
+import { DynamicDialog } from "@/components/dynamic-dialog";
 
 export default function SidebarUserProfile({ expanded }: { expanded: boolean }) {
     const queryClient = useQueryClient();
