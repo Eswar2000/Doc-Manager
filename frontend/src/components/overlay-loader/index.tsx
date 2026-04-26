@@ -1,5 +1,5 @@
 import { Spinner } from "@/components/ui/spinner";
-import type { OverlayLoaderProps } from "../../types/index";
+import type { OverlayLoaderProps } from "@/types";
 
 export function OverlayLoader({ show, message = "Loading..." }: OverlayLoaderProps) {
   if (!show) return null;

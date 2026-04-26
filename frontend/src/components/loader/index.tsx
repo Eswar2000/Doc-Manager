@@ -4,9 +4,9 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
-import type { LoaderProps } from "../../types/index";
-import { Spinner } from "@/components/ui/spinner"
+} from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
+import type { LoaderProps } from "@/types";
 
 export function Loader({screenHeader, screenMessage}: LoaderProps) {
   return (

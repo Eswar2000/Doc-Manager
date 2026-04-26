@@ -14,7 +14,7 @@ import { CalendarIcon, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/loader";
 import { ErrorState } from "@/components/error-state";
-import { OverlayLoader } from "@/components/overlay-loader/overlay-loader";
+import { OverlayLoader } from "@/components/overlay-loader";
 
 export default function DocGenerationPage() {
     const { templateId } = useParams<{ templateId: string }>();
