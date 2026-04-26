@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { DataTableViewOptions } from "./data-table-view-options";
-
+import { formatLabel } from "@/lib/label";
 
 
 export function DataTableToolbar<TData>({
@@ -21,7 +21,7 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 flex-wrap items-center gap-2">
         {filterColumnKey && (
           <Input
-            placeholder={`Filter by ${filterColumnKey} column...`}
+            placeholder={`Filter by "${formatLabel(filterColumnKey)}" column...`}
             value={(table.getColumn(filterColumnKey)?.getFilterValue() as string) ?? ""}
             onChange={(event) => {
               table.getColumn(filterColumnKey)?.setFilterValue(event.target.value);
