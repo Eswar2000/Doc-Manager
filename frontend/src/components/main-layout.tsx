@@ -3,7 +3,7 @@ import { useIsAuthenticated } from "@azure/msal-react";
 import { useMsal } from "@azure/msal-react";
 import Sidebar from './sidebar/sidebar';
 import { Loader } from "@/components/loader";
-import { ErrorState } from "@/components/error-state/error-state";
+import { ErrorState } from "@/components/error-state";
 import {
     Puzzle,
     Receipt,

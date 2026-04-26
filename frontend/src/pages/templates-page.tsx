@@ -10,7 +10,7 @@ import { Trash2, Pencil, Eye, FileStack } from "lucide-react";
 import { templateApi } from "@/api/templates";
 import { Loader } from "@/components/loader";
 import { OverlayLoader } from "@/components/overlay-loader/overlay-loader";
-import { ErrorState } from "@/components/error-state/error-state";
+import { ErrorState } from "@/components/error-state";
 import type { ColumnFiltersState } from "@tanstack/table-core";
 import { formatDateTime } from "@/lib/date";
 import { toast } from "sonner";
