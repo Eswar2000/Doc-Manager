@@ -1,6 +1,8 @@
 import React from "react";
+import { useTenantStore } from "@/stores/tenant-store";
 import Editor from "@/components/editor/editor";
 import { DynamicDialog } from "@/components/dynamic-dialog";
+import { Loader } from "@/components/loader";
 import type { Placeholder, EditorInitialData, DynamicField, AttributeProps, AttributeType } from "@/types/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -39,11 +41,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import { TextSelection } from "prosemirror-state";
 
-
 export default function EditorPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentTenantId } = useTenantStore();
 
   const initialData = location.state?.initialData as EditorInitialData | undefined;
   const mode = location.state?.mode || "template";
@@ -54,9 +56,10 @@ export default function EditorPage() {
     // isError: isAttributesError,
     // error: attributesError,
   } = useQuery<AttributeProps[]>({
-    queryKey: ['attributes'],
+    queryKey: ['attributes', currentTenantId],
     queryFn: attributeApi.fetchAttributes,
     staleTime: 3000 * 60,
+    enabled: !!currentTenantId,
     retry: false,
     refetchOnWindowFocus: true,
     refetchOnReconnect: false,
@@ -498,6 +501,17 @@ export default function EditorPage() {
       recalculateFieldCounts();
     }
   };
+
+  if (!currentTenantId) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader 
+          screenHeader="Loading workspace" 
+          screenMessage="Please wait till we set your workspace details" 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
