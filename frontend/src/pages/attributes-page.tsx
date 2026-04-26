@@ -3,6 +3,7 @@ import {
   Pencil,
   Trash2
 } from "lucide-react";
+import { useTenantStore } from "@/stores/tenant-store";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table/data-table";
@@ -22,6 +23,7 @@ import type {
 
 export default function AttributesPage() {
   const queryClient = useQueryClient();
+  const { currentTenantId } = useTenantStore();
 
   const {
     data: data = [],
@@ -30,9 +32,10 @@ export default function AttributesPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['attributes'], // unique cache key
+    queryKey: ['attributes', currentTenantId], // unique cache key
     queryFn: attributeApi.fetchAttributes,
     staleTime: 1000 * 60, // 1 minute stale time
+    enabled: !!currentTenantId, // only run if tenant ID is available
 
     // Disable automatic refetching on failures
     retry: false,
@@ -181,7 +184,7 @@ export default function AttributesPage() {
     };
     try {
       await attributeApi.createAttribute(newAttr);
-      queryClient.invalidateQueries({ queryKey: ['attributes'] });
+      queryClient.invalidateQueries({ queryKey: ['attributes', currentTenantId] });
 
       toast.success("Successfully created", {
         description: "The attribute has been created successfully.",
@@ -212,7 +215,7 @@ export default function AttributesPage() {
 
     try {
       await attributeApi.updateAttribute(editingItem.id, updatedAttr);
-      queryClient.invalidateQueries({ queryKey: ['attributes'] });
+      queryClient.invalidateQueries({ queryKey: ['attributes', currentTenantId] });
 
       toast.success("Successfully updated", {
         description: "The attribute has been updated successfully.",
@@ -237,7 +240,7 @@ export default function AttributesPage() {
   const deleteRow = async (deleted: any) => {
     try {
       await attributeApi.deleteAttribute(deleted.id);
-      queryClient.invalidateQueries({ queryKey: ['attributes'] });
+      queryClient.invalidateQueries({ queryKey: ['attributes', currentTenantId] });
 
       toast.success("Successfully deleted", {
         description: "The attribute has been deleted successfully.",
@@ -256,6 +259,17 @@ export default function AttributesPage() {
       });
     }
   };
+
+  if (!currentTenantId) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader
+          screenHeader="Loading workspace"
+          screenMessage="Please wait till we set your workspace details"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex-1 flex-col space-y-2 p-8 md:flex">
