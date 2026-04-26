@@ -35,6 +35,7 @@ export default function AttributesPage() {
     queryKey: ['attributes', currentTenantId], // unique cache key
     queryFn: attributeApi.fetchAttributes,
     staleTime: 1000 * 60, // 1 minute stale time
+    gcTime: 1000 * 60 * 5, // 5 minutes garbage collection time
     enabled: !!currentTenantId, // only run if tenant ID is available
 
     // Disable automatic refetching on failures

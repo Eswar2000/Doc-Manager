@@ -31,6 +31,7 @@ export default function TemplatesPage() {
         queryKey: ['templates', currentTenantId], // unique cache key
         queryFn: templateApi.fetchTemplates,
         staleTime: 1000 * 60, // 1 minute stale time
+        gcTime: 1000 * 60 * 5, // 5 minutes garbage collection time
         enabled: !!currentTenantId, // only run if tenant ID is available
 
         // Disable automatic refetching on failures
