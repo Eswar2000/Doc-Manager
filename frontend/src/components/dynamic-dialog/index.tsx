@@ -367,7 +367,17 @@ export function DynamicDialog({
                 )}
                 <DialogFooter className="mt-2">
                     <Button variant="outline" onClick={onCancel}>{cancelButtonText}</Button>
-                    <Button onClick={handleSubmit}>{submitButtonText}</Button>
+                    <Button 
+                        onClick={handleSubmit}
+                        className="
+                        bg-indigo-600 hover:bg-indigo-700
+                        focus-visible:ring-indigo-500
+                        text-white font-medium shadow-sm
+                        px-5 py-2
+                        "
+                    >
+                        {submitButtonText}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
