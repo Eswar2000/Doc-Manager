@@ -44,7 +44,7 @@ export default function MainLayout() {
     const isDisabled = isLoading || !!error;
 
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen overflow-hidden">
             <Sidebar>
                 <SidebarItem icon={<Boxes />} text="Attributes" to="/attributes" disabled={isDisabled} />
                 <SidebarItem icon={<Puzzle />} text="Snippets" to="/snippets" disabled={isDisabled} />
@@ -53,7 +53,7 @@ export default function MainLayout() {
                 <SidebarItem icon={<Settings />} text="Workspace" to="/workspace" disabled={isDisabled} />
                 <SidebarItem icon={<LogOut />} text="Logout" onClick={handleLogout} />
             </Sidebar>
-            <main className="flex flex-1 justify-center">
+            <main className="flex flex-1 justify-center overflow-y-auto">
                 {isLoading ? (
                     <Loader
                         screenHeader="Loading your workspaces"
