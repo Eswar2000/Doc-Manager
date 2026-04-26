@@ -169,6 +169,13 @@ export interface UpdateMemberRolesRequest {
   roles: TenantRole[];
 }
 
+export interface MultiSelectProps {
+  options: string[];
+  value: string[];
+  onChange: (value: string[]) => void;
+  disabled?: boolean;
+}
+
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];

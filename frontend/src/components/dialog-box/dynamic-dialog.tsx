@@ -1,4 +1,12 @@
-import { useState, useEffect } from "react";
+import { 
+    useState,
+    useEffect
+} from "react";
+import {
+    Plus,
+    Trash,
+    AlertCircleIcon
+} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -7,16 +15,24 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
+import {
+    Alert,
+    AlertDescription,
+    AlertTitle
+} from "@/components/ui/alert";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import type { DynamicDialogProps } from "@/types/index";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { MultiSelect } from "../multiselect/multi-select";
-import { Plus, Trash } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { AlertCircleIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { MultiSelect } from "@/components/multiselect";
 import { cn } from "@/lib/utils";
+import type { DynamicDialogProps } from "@/types";
 
 export default function DynamicDialog({
     open,
