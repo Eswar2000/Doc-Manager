@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { msalInstance } from '../auth/msal-instance';
+import { useTenantStore } from '@/stores/tenant-store';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:8000';
 
@@ -11,7 +12,7 @@ export const api = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor to add Authorization header with access token
+// Request interceptor to add authorization header with access token & tenant ID with store value
 msalInstance.initialize().then(() => {
   api.interceptors.request.use(
     async (config) => {
@@ -25,6 +26,14 @@ msalInstance.initialize().then(() => {
       } else {
         console.warn('No active account found. User might not be logged in.');
       }
+
+      const { currentTenantId } = useTenantStore.getState();
+      if (currentTenantId) {
+        config.headers['X-Tenant-Id'] = currentTenantId;
+      } else {
+        console.warn('currentTenantId not found in store. API call may fail.');
+      }
+
       return config;
     }, (error) => Promise.reject(error)
   )
