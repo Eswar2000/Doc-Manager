@@ -2,8 +2,8 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { useMsal } from "@azure/msal-react";
 import Sidebar from './sidebar/sidebar';
-import { Loader } from "@/components/loader/loader";
-import { ErrorState } from "@/components/error-state/error-state";
+import { Loader } from "@/components/loader";
+import { ErrorState } from "@/components/error-state";
 import {
     Puzzle,
     Receipt,
@@ -44,16 +44,16 @@ export default function MainLayout() {
     const isDisabled = isLoading || !!error;
 
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen overflow-hidden">
             <Sidebar>
                 <SidebarItem icon={<Boxes />} text="Attributes" to="/attributes" disabled={isDisabled} />
                 <SidebarItem icon={<Puzzle />} text="Snippets" to="/snippets" disabled={isDisabled} />
                 <SidebarItem icon={<Receipt />} text="Templates" to="/templates" disabled={isDisabled} />
                 <hr className="my-3 border-1 border-gray-100" />
-                <SidebarItem icon={<Settings />} text="Workspace Settings" to="/workspace" disabled={isDisabled} />
+                <SidebarItem icon={<Settings />} text="Workspace" to="/workspace" disabled={isDisabled} />
                 <SidebarItem icon={<LogOut />} text="Logout" onClick={handleLogout} />
             </Sidebar>
-            <main className="flex flex-1 justify-center">
+            <main className="flex flex-1 justify-center overflow-y-auto">
                 {isLoading ? (
                     <Loader
                         screenHeader="Loading your workspaces"

@@ -1,4 +1,12 @@
-import { useState, useEffect } from "react";
+import { 
+    useState,
+    useEffect
+} from "react";
+import {
+    Plus,
+    Trash,
+    AlertCircleIcon
+} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -7,18 +15,26 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
+import {
+    Alert,
+    AlertDescription,
+    AlertTitle
+} from "@/components/ui/alert";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import type { DynamicDialogProps } from "@/types/index";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { MultiSelect } from "../multiselect/multi-select";
-import { Plus, Trash } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { AlertCircleIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { MultiSelect } from "@/components/multiselect";
 import { cn } from "@/lib/utils";
+import type { DynamicDialogProps } from "@/types";
 
-export default function DynamicDialog({
+export function DynamicDialog({
     open,
     title,
     description,
@@ -351,7 +367,17 @@ export default function DynamicDialog({
                 )}
                 <DialogFooter className="mt-2">
                     <Button variant="outline" onClick={onCancel}>{cancelButtonText}</Button>
-                    <Button onClick={handleSubmit}>{submitButtonText}</Button>
+                    <Button 
+                        onClick={handleSubmit}
+                        className="
+                        bg-indigo-600 hover:bg-indigo-700
+                        focus-visible:ring-indigo-500
+                        text-white font-medium shadow-sm
+                        px-5 py-2
+                        "
+                    >
+                        {submitButtonText}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

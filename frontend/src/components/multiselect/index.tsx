@@ -1,20 +1,17 @@
-import { Check, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { 
+  Check, 
+  ChevronDown,
+} from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatLabel } from "@/lib/label";
-
-interface MultiSelectProps {
-  options: string[];
-  value: string[];
-  onChange: (value: string[]) => void;
-  disabled?: boolean;
-}
+import type { MultiSelectProps } from "@/types";
 
 export function MultiSelect({
   options,

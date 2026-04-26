@@ -1,6 +1,6 @@
 import React from "react";
 import Editor from "@/components/editor/editor";
-import DynamicDialog from "@/components/dialog-box/dynamic-dialog";
+import { DynamicDialog } from "@/components/dynamic-dialog";
 import type { Placeholder, EditorInitialData, DynamicField, AttributeProps, AttributeType } from "@/types/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

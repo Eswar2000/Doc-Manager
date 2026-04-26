@@ -1,5 +1,13 @@
 import { useState } from 'react';
 import {
+    useQuery,
+    useQueryClient
+} from '@tanstack/react-query';
+import {
+    Pencil,
+    Trash2
+} from 'lucide-react';
+import {
     Accordion,
     AccordionContent,
     AccordionItem,
@@ -11,16 +19,19 @@ import { DataTable } from "@/components/data-table/data-table";
 import { getColumns } from "@/components/data-table/columns";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
-import { Loader } from '@/components/loader/loader';
-import { ErrorState } from '@/components/error-state/error-state';
+import { Loader } from '@/components/loader';
+import { ErrorState } from '@/components/error-state';
+import { DynamicDialog } from '@/components/dynamic-dialog';
 import { tenantApi } from '@/api/tenants';
 import { useTenantStore } from '@/stores/tenant-store';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateTime } from '@/lib/date';
-import type { DynamicField, TenantMember, AddMemberRequest, UpdateTenantRequest } from '@/types';
-import DynamicDialog from '@/components/dialog-box/dynamic-dialog';
-import { Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import type {
+    DynamicField,
+    TenantMember,
+    AddMemberRequest,
+    UpdateTenantRequest
+} from '@/types';
 
 export default function WorkspacePage() {
     const { currentTenantId, updateTenant } = useTenantStore();

@@ -4,10 +4,10 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
-import { Button } from "@/components/ui/button"
-import { AlertCircle } from "lucide-react"
-import type { ErrorStateProps } from "@/types/index"
+} from "@/components/ui/empty";
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
+import type { ErrorStateProps } from "@/types";
 
 export function ErrorState({
   title = "Something went wrong",
