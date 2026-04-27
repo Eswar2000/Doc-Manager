@@ -162,7 +162,6 @@ export default function AttributesPage() {
     { name: "name", label: "Name", type: "text" },
     { name: "description", label: "Description", type: "textarea" },
     { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"], disabled: true },
-    { name: "tenantId", label: "Tenant ID", type: "text" }
   ]
 
   const createFormFields: DynamicField[] = [
@@ -209,8 +208,7 @@ export default function AttributesPage() {
   const updateRow = async (updated: any) => {
     const updatedAttr = {
       name: updated.name,
-      description: updated.description,
-      tenantId: updated.tenantId
+      description: updated.description
     };
 
     try {

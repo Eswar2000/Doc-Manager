@@ -17,7 +17,7 @@ export const attributeApi = {
     deleteAttribute: async (attributeId: string): Promise<void> => {
         await api.delete(`/attributes/${attributeId}`);
     },
-    updateAttribute: async (attributeId: string, attributeData: Partial<Omit<AttributeProps, 'id' | 'createdAt' | 'modifiedAt' | 'createdBy' | 'modifiedBy' | 'type'>>): Promise<AttributeProps> => {
+    updateAttribute: async (attributeId: string, attributeData: Partial<Omit<AttributeProps, 'id' | 'createdAt' | 'modifiedAt' | 'createdBy' | 'modifiedBy' | 'tenantId' | 'type'>>): Promise<AttributeProps> => {
         const updated_attribute = await api.put<AttributeProps>(`/attributes/${attributeId}`, attributeData);
         return updated_attribute.data;
     }
