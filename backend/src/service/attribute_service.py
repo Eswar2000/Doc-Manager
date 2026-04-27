@@ -7,8 +7,8 @@ class AttributeService:
     def __init__(self, repo: AttributeRepository):
         self.repo = repo
 
-    async def create_new_attribute(self, request: AttributeCreateRequest, current_user: User) -> Attribute:
-        return await self.repo.create_attribute(request, current_user)
+    async def create_new_attribute(self, request: AttributeCreateRequest, current_user: User, tenant_id: str) -> Attribute:
+        return await self.repo.create_attribute(request, current_user, tenant_id)
     
     async def list_attributes(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
         return await self.repo.list_attribute(name_contains, desc_contains, type, limit, offset)

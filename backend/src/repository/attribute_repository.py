@@ -15,7 +15,7 @@ class AttributeRepository:
     async def _get_container(self) -> ContainerProxy:
         return await get_container(container_name="attributes")
 
-    async def create_attribute(self, data: AttributeCreateRequest, current_user: User) -> Attribute:
+    async def create_attribute(self, data: AttributeCreateRequest, current_user: User, tenant_id: str) -> Attribute:
         print("Create_Attribute: Starting attribute creation process")
         container = await self._get_container()
         now = datetime.now(timezone.utc).isoformat()
@@ -27,7 +27,7 @@ class AttributeRepository:
             type=data.type,
             createdAt=now,
             createdBy=current_user,
-            tenantId=data.tenantId if data.tenantId else "default"
+            tenantId=tenant_id.strip()
         )
 
         print(f"Create_Attribute: Prepared attribute data: {attribute}")
