@@ -39,7 +39,6 @@ class AttributeCreateRequest(BaseModel):
 class AttributeUpdateRequest(BaseModel):
     name: str = Field(None, description="Display name of the attribute", min_length=1, max_length=50)
     description: Optional[str] = Field(None, description="Description of the attribute", max_length=150)
-    tenantId: str = Field(None, description="Identifier for the tenant to which the attribute belongs")
 
 class AttributeFilterByTenantRequest(BaseModel):
     attributeIds: list[str] = Field(..., description="List of attribute IDs to filter")

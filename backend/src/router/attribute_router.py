@@ -112,14 +112,16 @@ async def delete_attribute(attribute_id: str, service: AttributeService = Depend
     summary="Update an attribute",
     responses={
         200: {"description": "Attribute updated successfully"},
-        404: {"description": "Attribute not found"},
+        400: {"description": "Validation error - invalid input data or tenant ID missing"},
+        404: {"description": "Tenant or attribute not found"},
+        403: {"description": "Not allowed to update attribute from a different tenant"},
         500: {"description": "Unexpected server error"}
     }
 )
-async def update_attribute(attribute_id: str, payload: AttributeUpdateRequest, current_user: User = Depends(get_current_user), service: AttributeService = Depends(get_attribute_service)):
+async def update_attribute(attribute_id: str, payload: AttributeUpdateRequest, current_user: User = Depends(get_current_user), service: AttributeService = Depends(get_attribute_service), tenant_id: str = Depends(get_current_tenant_id)):
     print("Update attribute endpoint called")
     try:
-        updated_attribute = await service.update_attribute(attribute_id, payload, current_user)
+        updated_attribute = await service.update_attribute(attribute_id, payload, current_user, tenant_id)
         print("Update attribute endpoint: Attribute updated successfully")
         return updated_attribute
     except HTTPException as e:

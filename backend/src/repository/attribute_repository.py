@@ -138,7 +138,7 @@ class AttributeRepository:
             print(f"Delete_Attribute_By_ID: Error occurred while deleting attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while deleting attribute: {str(e)}")
         
-    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest, current_user: User) -> Attribute:
+    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest, current_user: User, tenant_id: str) -> Attribute:
         print("Update_Attribute: Starting attribute update process")
         container = await self._get_container()
 
@@ -146,14 +146,16 @@ class AttributeRepository:
         if not attr:
             print(f"Update_Attribute: No attribute found with ID {attribute_id} to update")
             raise HTTPException(status_code=404, detail="Attribute not found")
+        
+        if attr.tenantId != tenant_id:
+            print(f"Update_Attribute: Tenant ID mismatch for attribute {attribute_id}")
+            raise HTTPException(status_code=403, detail="Not allowed to update attribute from a different tenant")
 
         updated_data = attr.model_dump()
         if data.name is not None:
             updated_data["name"] = data.name.strip()
         if data.description is not None:
             updated_data["description"] = data.description.strip()
-        if data.tenantId is not None:
-            updated_data["tenantId"] = data.tenantId
         updated_data["modifiedAt"] = datetime.now(timezone.utc).isoformat()
         updated_data["modifiedBy"] = current_user
 
