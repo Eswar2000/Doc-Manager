@@ -10,7 +10,7 @@ export const attributeApi = {
         const attribute = await api.get<AttributeProps>(`/attributes/${attributeId}`);
         return attribute.data;
     },
-    createAttribute: async (attributeData: Omit<AttributeProps, 'id' | 'createdAt' | 'modifiedAt' | 'createdBy' | 'modifiedBy'>): Promise<AttributeProps> => {
+    createAttribute: async (attributeData: Omit<AttributeProps, 'id' | 'createdAt' | 'modifiedAt' | 'createdBy' | 'modifiedBy' | 'tenantId'>): Promise<AttributeProps> => {
         const new_attribute = await api.post<AttributeProps>('/attributes', attributeData);
         return new_attribute.data;
     },

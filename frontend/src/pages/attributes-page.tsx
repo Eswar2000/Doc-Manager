@@ -168,8 +168,7 @@ export default function AttributesPage() {
   const createFormFields: DynamicField[] = [
     { name: "name", label: "Name", type: "text", required: true, maxLength: 16 },
     { name: "description", label: "Description", type: "textarea", maxLength: 64 },
-    { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"], required: true },
-    { name: "tenantId", label: "Tenant ID", type: "text", required: false }
+    { name: "type", label: "Type", type: "select", options: ["text", "number", "date", "email"], required: true }
   ]
 
   const openEdit = (item: AttributeProps) => {
