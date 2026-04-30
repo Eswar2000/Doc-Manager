@@ -90,23 +90,15 @@ class AttributeRepository:
             print(f"List_Attributes: Error occurred while listing attributes: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while listing attributes: {str(e)}")
         
-    async def get_attribute_by_id(self, attribute_id: str) -> Optional[Attribute]:
+    async def get_attribute_by_id(self, attribute_id: str, tenant_id: str) -> Optional[Attribute]:
         print("Get_Attribute_By_ID: Starting attribute retrieval process")
         container = await self._get_container()
 
         try:
-            query = "SELECT * FROM c WHERE c.id = @attribute_id"
-            parameters = [{"name": "@attribute_id", "value": attribute_id}]
-            items = container.query_items(
-                query=query,
-                parameters=parameters,
-                partition_key=None
-            )
-
-            results = [item async for item in items]
-            if results:
+            result = await container.read_item(item=attribute_id, partition_key=tenant_id)
+            if result:
                 print(f"Get_Attribute_By_ID: Attribute found with ID {attribute_id}")
-                return Attribute(**results[0])
+                return Attribute(**result)
             else:
                 print(f"Get_Attribute_By_ID: No attribute found with ID {attribute_id}")
                 return None

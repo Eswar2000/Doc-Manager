@@ -69,13 +69,15 @@ async def list_attributes(name: Optional[str] = None, desc: Optional[str] = None
     summary="Get an attribute by ID",
     responses={
         200: {"description": "Attribute retrieved successfully"},
-        404: {"description": "Attribute not found"}
+        400: {"description": "Validation error - tenant ID missing"},
+        403: {"description": "Tenant is not active or user does not have permission"},
+        404: {"description": "Attribute or tenant not found"}
     }
 )
-async def get_attribute_by_id(attribute_id: str, service: AttributeService = Depends(get_attribute_service)):
+async def get_attribute_by_id(attribute_id: str, service: AttributeService = Depends(get_attribute_service), tenant_id: str = Depends(get_current_tenant_id)):
     print("Get attribute endpoint called")
     try:
-        attribute = await service.get_attribute_by_id(attribute_id)
+        attribute = await service.get_attribute_by_id(attribute_id, tenant_id)
         if attribute:
             print("Get attribute endpoint: Attribute retrieved successfully")
             return attribute

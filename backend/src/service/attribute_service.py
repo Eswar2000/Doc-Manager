@@ -13,8 +13,8 @@ class AttributeService:
     async def list_attributes(self, tenant_id: str, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
         return await self.repo.list_attribute(tenant_id, name_contains, desc_contains, type, limit, offset)
     
-    async def get_attribute_by_id(self, attribute_id: str) -> Optional[Attribute]:
-        return await self.repo.get_attribute_by_id(attribute_id)
+    async def get_attribute_by_id(self, attribute_id: str, tenant_id: str) -> Optional[Attribute]:
+        return await self.repo.get_attribute_by_id(attribute_id, tenant_id)
     
     async def delete_attribute_by_id(self, attribute_id: str) -> bool:
         return await self.repo.delete_attribute_by_id(attribute_id)
