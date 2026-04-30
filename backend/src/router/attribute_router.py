@@ -43,12 +43,17 @@ async def create_attribute(payload: AttributeCreateRequest, current_user: User =
     "/",
     response_model=List[Attribute],
     summary="List attributes with filters",
-    responses={200: {"description": "List of attributes"}}
+    responses={
+        200: {"description": "List of attributes"},
+        400: {"description": "Validation error - tenant ID missing"},
+        403: {"description": "Tenant is not active or user does not have permission"},
+        404: {"description": "Tenant not found"},
+    }
 )
-async def list_attributes(name: Optional[str] = None, desc: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0, service: AttributeService = Depends(get_attribute_service)):
+async def list_attributes(name: Optional[str] = None, desc: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0, service: AttributeService = Depends(get_attribute_service), tenant_id: str = Depends(get_current_tenant_id)):
     print("List attributes endpoint called")
     try:
-        attributes = await service.list_attributes(name_contains=name, desc_contains=desc, type=type, limit=limit, offset=offset)
+        attributes = await service.list_attributes(tenant_id, name_contains=name, desc_contains=desc, type=type, limit=limit, offset=offset)
         print(f"List attributes endpoint: Retrieved {len(attributes)} attributes")
         return attributes
     except HTTPException as e:

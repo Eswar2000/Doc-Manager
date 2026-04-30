@@ -46,13 +46,13 @@ class AttributeRepository:
             print("Create_Attribute: End of attribute creation process with error")
             raise HTTPException(status_code=500, detail=f"Database error while creating attribute: {str(e)}")
     
-    async def list_attribute(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
+    async def list_attribute(self, tenant_id: str, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
         print("List_Attributes: Starting to list all attributes")
         container = await self._get_container()
         
         query = "SELECT * FROM c"
-        parameters = []
-        conditions = []
+        parameters = [{"name": "@tenantId", "value": tenant_id}]
+        conditions = ["c.tenantId = @tenantId"]
 
         if name_contains:
             print(f"List_Attributes: Filtering attributes with name containing '{name_contains}'")
@@ -69,8 +69,7 @@ class AttributeRepository:
             conditions.append("c.type = @type")
             parameters.append({"name": "@type", "value": type})
 
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
+        query += " WHERE " + " AND ".join(conditions)
         
         query += " ORDER BY c.createdAt DESC OFFSET @offset LIMIT @limit"
         parameters.append({"name": "@offset", "value": offset})
