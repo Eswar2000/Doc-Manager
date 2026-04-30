@@ -3,6 +3,16 @@ import { msalInstance } from '../auth/msal-instance';
 import { useTenantStore } from '@/stores/tenant-store';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:8000';
+const EXCLUDED_TENANT_ROUTES = ["/tenants"];
+
+const getPathname = (config: any) => {
+  try {
+    return new URL(config.url ?? "", config.baseURL).pathname;
+  } catch {
+    return config.url ?? "";
+  }
+};
+
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -27,11 +37,21 @@ msalInstance.initialize().then(() => {
         console.warn('No active account found. User might not be logged in.');
       }
 
+      // Check if the request URL is in the excluded routes list
+      const pathname = getPathname(config);
+      const isExcluded = EXCLUDED_TENANT_ROUTES.some(route =>
+        pathname.startsWith(route)
+      );
+
+      if (isExcluded) {
+        return config;
+      }
+
       const { currentTenantId } = useTenantStore.getState();
       if (currentTenantId) {
         config.headers['X-Tenant-Id'] = currentTenantId;
       } else {
-        console.warn('currentTenantId not found in store. API call may fail.');
+        console.warn('Current tenant ID not found. API call may fail.');
       }
 
       return config;
