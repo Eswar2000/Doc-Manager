@@ -109,12 +109,12 @@ class AttributeRepository:
             print(f"Get_Attribute_By_ID: Error occurred while retrieving attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while retrieving attribute: {str(e)}")
         
-    async def delete_attribute_by_id(self, attribute_id: str) -> bool:
+    async def delete_attribute_by_id(self, attribute_id: str, tenant_id: str) -> bool:
         print("Delete_Attribute_By_ID: Starting attribute deletion process")
         container = await self._get_container()
 
         try:
-            attr = await self.get_attribute_by_id(attribute_id)
+            attr = await self.get_attribute_by_id(attribute_id, tenant_id)
             if not attr:
                 return False
 
@@ -129,7 +129,7 @@ class AttributeRepository:
             print(f"Delete_Attribute_By_ID: Error occurred while deleting attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while deleting attribute: {str(e)}")
         
-    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest, current_user: User, tenant_id: str) -> Attribute:
+    async def update_attribute(self, attribute_id: str, data: AttributeUpdateRequest, current_user: User, tenant_id: str) -> Attribute:
         print("Update_Attribute: Starting attribute update process")
         container = await self._get_container()
 

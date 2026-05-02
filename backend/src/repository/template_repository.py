@@ -319,3 +319,29 @@ class TemplateRepository:
         # Apply rule-based transformations (remove or keep sections) before returning
         html_content = apply_rules_to_html(template.rules, html_content, resolved)
         return html_content
+    
+    async def get_attribute_usage(self, attribute_id: str) -> bool:
+        print(f"Get_Attribute_Usage: Checking usage for attribute ID {attribute_id}")
+        container = await self._get_container()
+
+        query = "SELECT c.id, c.name FROM c JOIN a IN c.attributes WHERE a.attributeId = @attributeId"
+        parameters = [{"name": "@attributeId", "value": attribute_id}]
+
+        try:
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+            if results:
+                print(f"Get_Attribute_Usage: Attribute {attribute_id} used in {len(results)} template(s)")
+                return True
+            else:
+                print(f"Get_Attribute_Usage: Attribute {attribute_id} not being used in any templates")
+                return False
+        except exceptions.CosmosHttpResponseError as e:
+            # Avoid downstream activities like deletion if query returns failure
+            print(f"Get_Attribute_Usage: Error identifying attribute {attribute_id} usage. Safer to return True")
+            return True

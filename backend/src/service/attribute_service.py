@@ -16,8 +16,8 @@ class AttributeService:
     async def get_attribute_by_id(self, attribute_id: str, tenant_id: str) -> Optional[Attribute]:
         return await self.repo.get_attribute_by_id(attribute_id, tenant_id)
     
-    async def delete_attribute_by_id(self, attribute_id: str) -> bool:
-        return await self.repo.delete_attribute_by_id(attribute_id)
+    async def delete_attribute_by_id(self, attribute_id: str, tenant_id: str) -> bool:
+        return await self.repo.delete_attribute_by_id(attribute_id, tenant_id)
     
     async def update_attribute(self, attribute_id: str, data: AttributeUpdateRequest, current_user: User, tenant_id: str) -> Attribute:
         return await self.repo.update_attribute(attribute_id, data, current_user, tenant_id)

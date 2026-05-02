@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from src.repository.attribute_repository import AttributeRepository
 from src.service.attribute_service import AttributeService
+from src.service.template_service import TemplateService
+from src.repository.template_repository import TemplateRepository
 from src.model.common import User
 from src.model.attributes import AttributeCreateRequest, AttributeFilterByTenantRequest, AttributeResponse, Attribute, AttributeType, AttributeUpdateRequest
 from src.utils.auth_utils import get_current_user
@@ -12,6 +14,10 @@ router = APIRouter(prefix="/attributes", tags=["attributes"], responses={500: {"
 async def get_attribute_service():
     repo = AttributeRepository()
     return AttributeService(repo)
+
+async def get_template_service():
+    repo = TemplateRepository()
+    return TemplateService(repo)
 
 @router.post(
     "/",
@@ -101,10 +107,14 @@ async def get_attribute_by_id(attribute_id: str, service: AttributeService = Dep
         500: {"description": "Unexpected server error"}
     }
 )
-async def delete_attribute(attribute_id: str, service: AttributeService = Depends(get_attribute_service)):
+async def delete_attribute(attribute_id: str, service: AttributeService = Depends(get_attribute_service), template_service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print(f"Delete attribute endpoint called for ID: {attribute_id}")
-
-    deleted = await service.delete_attribute_by_id(attribute_id)
+    is_used = await template_service.get_attribute_usage(attribute_id)
+    if is_used:
+        print(f"Delete attribute endpoint: Cannot delete attribute {attribute_id} because it is used in templates")
+        raise HTTPException(status_code=400, detail="Cannot delete attribute because it is used in templates")
+    
+    deleted = await service.delete_attribute_by_id(attribute_id, tenant_id)
 
     if not deleted:
         print(f"Delete attribute endpoint: Attribute not found: {attribute_id}")
