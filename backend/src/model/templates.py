@@ -50,6 +50,7 @@ class Template(BaseModel):
     modifiedAt: Optional[str] = Field(None, description="Timestamp (UTC timestamp in ISO format) when the template was last modified")
     createdBy: User = Field(..., description="User information of the creator")
     modifiedBy: Optional[User] = Field(None, description="User information of the last modifier")
+    tenantId: str = Field(None, description="Tenant ID for multi-tenancy support")
 
     class Config:
         from_attributes = True
