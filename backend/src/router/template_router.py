@@ -115,10 +115,10 @@ async def update_template(template_id: str, payload: TemplateCreateRequest, curr
         404: {"description": "Template not found"},
     }
 )
-async def get_version_history(template_id: str, service: TemplateService = Depends(get_template_service)):
+async def get_version_history(template_id: str, service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print("Get version history endpoint called")
     try:
-        version_history = await service.get_version_history(template_id)
+        version_history = await service.get_version_history(template_id, tenant_id)
         print(f"Get version history endpoint: Retrieved {len(version_history)} versions")
         return version_history
     except HTTPException as e:

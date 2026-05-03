@@ -201,11 +201,11 @@ class TemplateRepository:
         print(f"Update_Template: Successfully created new version {new_version} with ID {updated_template.id}")
         return updated_template
 
-    async def get_version_history(self, template_id: str) -> list[TemplateVersionInfo]:
+    async def get_version_history(self, template_id: str, tenant_id: str) -> list[TemplateVersionInfo]:
         print(f"Get_Version_History: Fetching version history for template ID {template_id}")
         container = await self._get_container()
 
-        current_template = await self.get_template_by_id(template_id)
+        current_template = await self.get_template_by_id(template_id, tenant_id)
         if not current_template:
             print(f"Get_Version_History: No template found with ID {template_id}")
             raise HTTPException(status_code=404, detail="Template not found")
