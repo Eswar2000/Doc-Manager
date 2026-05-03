@@ -65,23 +65,15 @@ class TemplateRepository:
         except exceptions.CosmosHttpResponseError as e:
             raise HTTPException(status_code=500, detail=f"Database error while creating template version: {str(e)}")
 
-    async def get_template_by_id(self, template_id: str) -> Optional[Template]:
+    async def get_template_by_id(self, template_id: str, tenant_id: str) -> Optional[Template]:
         print("Get_Template_By_ID: Starting template fetch process")
         container = await self._get_container()
 
         try:
-            query = "SELECT * FROM c WHERE c.id = @template_id"
-            parameters = [{"name": "@template_id", "value": template_id}]
-            items = container.query_items(
-                query=query,
-                parameters=parameters,
-                partition_key=None
-            )
-
-            results = [item async for item in items]
-            if results:
+            item = await container.read_item(item=template_id, partition_key=tenant_id)
+            if item:
                 print(f"Get_Template_By_ID: Template found with ID {template_id}")
-                return Template(**results[0])
+                return Template(**item)
             else:
                 print(f"Get_Template_By_ID: No template found with ID {template_id}")
                 return None

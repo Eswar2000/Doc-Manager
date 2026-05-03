@@ -10,8 +10,8 @@ class TemplateService:
     async def create_new_template(self, request: TemplateCreateRequest, current_user: dict, tenant_id: str) -> Template:
         return await self.repo.create_template(request, current_user, tenant_id)
 
-    async def get_template_by_id(self, template_id: str) -> Template:
-        return await self.repo.get_template_by_id(template_id)
+    async def get_template_by_id(self, template_id: str, tenant_id: str) -> Template:
+        return await self.repo.get_template_by_id(template_id, tenant_id)
     
     async def list_templates(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0) -> list[Template]:
         return await self.repo.list_templates(name_contains, desc_contains, state, limit, offset)
