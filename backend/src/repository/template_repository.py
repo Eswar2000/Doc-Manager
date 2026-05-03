@@ -18,7 +18,7 @@ class TemplateRepository:
         return await get_container(container_name="templates")
 
 
-    async def create_template(self, data: TemplateCreateRequest, current_user: dict) -> Template:
+    async def create_template(self, data: TemplateCreateRequest, current_user: dict, tenant_id: str) -> Template:
         print("Create_Template: Starting template creation process")
         container = await self._get_container()
         now = datetime.now(timezone.utc).isoformat()
@@ -35,7 +35,8 @@ class TemplateRepository:
             state="active",
             parentTemplateId=None,
             createdAt=now,
-            createdBy=current_user
+            createdBy=current_user,
+            tenantId=tenant_id
         )
 
         print(f"Create_Template: Prepared template data: {template}")

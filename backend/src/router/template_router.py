@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from src.utils.pdf_utils import html_to_pdf_bytes
 from src.utils.auth_utils import get_current_user
+from src.utils.tenant_utils import get_current_tenant_id
 from src.repository.template_repository import TemplateRepository
 from src.service.template_service import TemplateService
 from src.model.templates import TemplateCreateRequest, DocumentGenerationRequest, TemplateResponse, Template, TemplateRollbackRequest, TemplateVersionInfo
@@ -24,10 +25,10 @@ async def get_template_service():
         422: {"description": "Pydantic validation error"}
     }
 )
-async def create_template(payload: TemplateCreateRequest, current_user: dict = Depends(get_current_user), service: TemplateService = Depends(get_template_service)):
+async def create_template(payload: TemplateCreateRequest, current_user: dict = Depends(get_current_user), service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print("Create template endpoint called")
     try:
-        created_template = await service.create_new_template(payload, current_user)
+        created_template = await service.create_new_template(payload, current_user, tenant_id)
         print("Create template endpoint: Template created successfully")
         return created_template
     except HTTPException as e:
