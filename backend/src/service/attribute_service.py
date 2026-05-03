@@ -21,6 +21,3 @@ class AttributeService:
     
     async def update_attribute(self, attribute_id: str, data: AttributeUpdateRequest, current_user: User, tenant_id: str) -> Attribute:
         return await self.repo.update_attribute(attribute_id, data, current_user, tenant_id)
-    
-    async def filter_attributes_by_tenant(self, attribute_ids: list[str], tenant_id: Optional[str]) -> list[str]:
-        return await self.repo.filter_attributes_by_tenant(attribute_ids, tenant_id)
