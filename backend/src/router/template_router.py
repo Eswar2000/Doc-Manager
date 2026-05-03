@@ -93,10 +93,10 @@ async def list_templates(name: Optional[str] = None, desc: Optional[str] = None,
         404: {"description": "Template not found"},
     }
 )
-async def update_template(template_id: str, payload: TemplateCreateRequest, current_user: dict = Depends(get_current_user), service: TemplateService = Depends(get_template_service)):
+async def update_template(template_id: str, payload: TemplateCreateRequest, current_user: dict = Depends(get_current_user), service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print("Update template endpoint called")
     try:
-        updated_template = await service.update_template(template_id, payload, current_user)
+        updated_template = await service.update_template(template_id, payload, current_user, tenant_id)
         print("Update template endpoint: Template updated successfully")
         return updated_template
     except HTTPException as e:

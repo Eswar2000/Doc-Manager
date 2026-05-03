@@ -155,10 +155,10 @@ class TemplateRepository:
                 raise HTTPException(status_code=409, detail="Concurrency conflict — template updated by another process")
             return False
         
-    async def update_template(self, template_id: str, payload: TemplateCreateRequest, current_user: dict) -> Template:
+    async def update_template(self, template_id: str, payload: TemplateCreateRequest, current_user: dict, tenant_id: str) -> Template:
         print(f"Update_Template: Starting update for template ID {template_id}")
 
-        existing_template = await self.get_template_by_id(template_id)
+        existing_template = await self.get_template_by_id(template_id, tenant_id)
         if not existing_template:
             print(f"Update_Template: No template found with ID {template_id} to update")
             raise HTTPException(status_code=404, detail="Template not found")
@@ -192,7 +192,8 @@ class TemplateRepository:
             state="active",
             parentTemplateId=root_v1_id,
             createdAt=now,
-            createdBy=current_user
+            createdBy=current_user,
+            tenantId=tenant_id
         )
 
         print(f"Update_Template: Preparing new version {new_version} with ID {new_template.id}")

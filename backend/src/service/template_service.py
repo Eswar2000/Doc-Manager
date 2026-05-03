@@ -16,8 +16,8 @@ class TemplateService:
     async def list_templates(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0) -> list[Template]:
         return await self.repo.list_templates(name_contains, desc_contains, state, limit, offset)
     
-    async def update_template(self, template_id: str, request: TemplateCreateRequest, current_user: dict) -> Template:
-        return await self.repo.update_template(template_id, request, current_user)
+    async def update_template(self, template_id: str, request: TemplateCreateRequest, current_user: dict, tenant_id: str) -> Template:
+        return await self.repo.update_template(template_id, request, current_user, tenant_id)
 
     async def get_version_history(self, template_id: str) -> list[TemplateVersionInfo]:
         return await self.repo.get_version_history(template_id)
