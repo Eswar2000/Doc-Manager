@@ -183,11 +183,11 @@ async def delete_template_by_id(template_id: str, service: TemplateService = Dep
         404: {"description": "Template not found"},
     }
 )
-async def generate_document(request: DocumentGenerationRequest, service: TemplateService = Depends(get_template_service)):
+async def generate_document(request: DocumentGenerationRequest, service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print("Generate document endpoint called")
     try:
         # Generate HTML from template + values
-        generated_html = await service.generate_document(request.templateId, request.attributeValues)
+        generated_html = await service.generate_document(request.templateId, request.attributeValues, tenant_id)
         print("Generate document endpoint: HTML generated successfully")
 
         # Convert HTML to PDF bytes

@@ -284,9 +284,9 @@ class TemplateRepository:
         print(f"Delete_Template_By_ID: Starting deletion process for template ID {template_id}")
         return await self.rollback_template_version(tenant_id, template_id)
         
-    async def generate_document(self, template_id: str, attribute_values: dict) -> str:
+    async def generate_document(self, template_id: str, attribute_values: dict, tenant_id: str) -> str:
         print(f"Generate_Document: Starting document generation for template ID {template_id}")
-        template = await self.get_template_by_id(template_id)
+        template = await self.get_template_by_id(template_id, tenant_id)
         if not template:
             print(f"Generate_Document: No template found with ID {template_id}")
             raise HTTPException(status_code=404, detail="Template not found")
