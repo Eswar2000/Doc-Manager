@@ -135,14 +135,14 @@ async def get_version_history(template_id: str, service: TemplateService = Depen
     responses={
         204: {"description": "Template rolled back successfully"},
         400: {"description": "Invalid rollback request"},
-        404: {"description": "Template not found"},
+        404: {"description": "Template or tenant not found"},
         500: {"description": "Unexpected server error"}
     }
 )
-async def rollback_template_version(request: TemplateRollbackRequest, service: TemplateService = Depends(get_template_service)):
+async def rollback_template_version(request: TemplateRollbackRequest, service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print(f"Rollback template version endpoint called for ID: {request.srcTemplateId}")
 
-    rolled_back = await service.rollback_template_version(request.srcTemplateId, request.destTemplateId)
+    rolled_back = await service.rollback_template_version(tenant_id, request.srcTemplateId, request.destTemplateId)
 
     if not rolled_back:
         print(f"Rollback template version endpoint: Template not found: {request.srcTemplateId}")

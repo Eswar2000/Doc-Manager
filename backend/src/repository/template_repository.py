@@ -224,17 +224,17 @@ class TemplateRepository:
             print(f"Get_Version_History: Error occurred while fetching version history: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while fetching version history: {str(e)}")
 
-    async def rollback_template_version(self, template_id: str, dest_template_id: Optional[str] = None) -> bool:
+    async def rollback_template_version(self, tenant_id: str, template_id: str, dest_template_id: Optional[str] = None) -> bool:
         print("Rollback_Template_Version: Starting template rollback process")
         container = await self._get_container()
         try:
-            current_template = await self.get_template_by_id(template_id)
+            current_template = await self.get_template_by_id(template_id, tenant_id)
             if not current_template:
                 print(f"Rollback_Template_Version: No template found with ID {template_id} to rollback")
                 return False
             
             # By default, this method returns template versions in increasing order of version number
-            template_history = await self.get_version_history(template_id)
+            template_history = await self.get_version_history(template_id, tenant_id)
 
             # Confirm if the dest_template_id is part of template version, if it is not None
             match = None
@@ -260,7 +260,7 @@ class TemplateRepository:
             for item in reversed(template_history):
                 if item.templateId == next_latest_template_id:
                     break
-                await container.delete_item(item=item.templateId, partition_key=current_template.name)
+                await container.delete_item(item=item.templateId, partition_key=current_template.tenantId)
                 print(f"Rollback_Template_Version: Deleted template version with ID {item.templateId} during rollback process")
 
             # delete the latest version to rollback to previous version
@@ -268,7 +268,7 @@ class TemplateRepository:
 
             # promote the next latest version to active if it exists and is not already active
             if next_latest_template_id:
-                next_latest_template = await self.get_template_by_id(next_latest_template_id)
+                next_latest_template = await self.get_template_by_id(next_latest_template_id, tenant_id)
                 if next_latest_template and next_latest_template.state != "active":
                     await container.replace_item(item=next_latest_template_id, body={**next_latest_template.model_dump(by_alias=True), "state": "active"})
                     print(f"Rollback_Template_Version: Promoted template with ID {next_latest_template_id} to active state")
