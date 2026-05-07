@@ -161,10 +161,10 @@ async def rollback_template_version(request: TemplateRollbackRequest, service: T
         500: {"description": "Unexpected server error"}
     }
 )
-async def delete_template_by_id(template_id: str, service: TemplateService = Depends(get_template_service)):
+async def delete_template_by_id(template_id: str, service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print(f"Delete template endpoint called for ID: {template_id}")
 
-    deleted = await service.delete_template_by_id(template_id)
+    deleted = await service.delete_template_by_id(template_id, tenant_id)
 
     if not deleted:
         print(f"Delete template endpoint: Template not found: {template_id}")

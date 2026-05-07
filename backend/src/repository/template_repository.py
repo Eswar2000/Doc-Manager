@@ -280,9 +280,9 @@ class TemplateRepository:
             print(f"Rollback_Template_Version: Error occurred while rolling back template: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while rolling back template: {str(e)}")
 
-    async def delete_template_by_id(self, template_id: str) -> bool:
+    async def delete_template_by_id(self, template_id: str, tenant_id: str) -> bool:
         print(f"Delete_Template_By_ID: Starting deletion process for template ID {template_id}")
-        return await self.rollback_template_version(template_id)
+        return await self.rollback_template_version(tenant_id, template_id)
         
     async def generate_document(self, template_id: str, attribute_values: dict) -> str:
         print(f"Generate_Document: Starting document generation for template ID {template_id}")

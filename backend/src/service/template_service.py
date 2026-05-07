@@ -25,8 +25,8 @@ class TemplateService:
     async def rollback_template_version(self, tenant_id: str, src_template_id: str, dest_template_id: Optional[str]) -> bool:
         return await self.repo.rollback_template_version(tenant_id, src_template_id, dest_template_id)
     
-    async def delete_template_by_id(self, template_id: str) -> bool:
-        return await self.repo.delete_template_by_id(template_id)
+    async def delete_template_by_id(self, template_id: str, tenant_id: str) -> bool:
+        return await self.repo.delete_template_by_id(template_id, tenant_id)
     
     async def generate_document(self, template_id: str, attribute_values: dict) -> str:
         return await self.repo.generate_document(template_id, attribute_values)
