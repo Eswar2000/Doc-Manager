@@ -84,13 +84,13 @@ class TemplateRepository:
             print(f"Get_Template_By_ID: Error occurred while retrieving template: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while retrieving template: {str(e)}")
 
-    async def list_templates(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0) -> list[Template]:
+    async def list_templates(self, tenant_id: str, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0) -> list[Template]:
         print("List_Templates: Starting to list all templates")
         container = await self._get_container()
         
         query = "SELECT * FROM c"
-        parameters = []
-        conditions = []
+        parameters = [{"name": "@tenantId", "value": tenant_id}]
+        conditions = ["c.tenantId = @tenantId"]
 
         if name_contains:
             print(f"List_Templates: Filtering templates with name containing '{name_contains}'")
@@ -107,8 +107,7 @@ class TemplateRepository:
             conditions.append("c.state = @state")
             parameters.append({"name": "@state", "value": state})
 
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
+        query += " WHERE " + " AND ".join(conditions)
         
         query += " ORDER BY c.createdAt DESC OFFSET @offset LIMIT @limit"
         parameters.append({"name": "@offset", "value": offset})

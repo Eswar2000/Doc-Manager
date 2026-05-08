@@ -70,10 +70,10 @@ async def get_template_by_id(template_id: str, service: TemplateService = Depend
     summary="List templates with filters",
     responses={200: {"description": "List of templates"}}
 )
-async def list_templates(name: Optional[str] = None, desc: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0, service: TemplateService = Depends(get_template_service)):
+async def list_templates(tenant_id: str = Depends(get_current_tenant_id), name: Optional[str] = None, desc: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0, service: TemplateService = Depends(get_template_service)):
     print("List templates endpoint called")
     try:
-        templates = await service.list_templates(name_contains=name, desc_contains=desc, state=state, limit=limit, offset=offset)
+        templates = await service.list_templates(tenant_id, name_contains=name, desc_contains=desc, state=state, limit=limit, offset=offset)
         print(f"List templates endpoint: Retrieved {len(templates)} templates")
         return templates
     except HTTPException as e:
