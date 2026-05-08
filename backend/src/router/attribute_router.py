@@ -109,6 +109,11 @@ async def get_attribute_by_id(attribute_id: str, service: AttributeService = Dep
 )
 async def delete_attribute(attribute_id: str, service: AttributeService = Depends(get_attribute_service), template_service: TemplateService = Depends(get_template_service), tenant_id: str = Depends(get_current_tenant_id)):
     print(f"Delete attribute endpoint called for ID: {attribute_id}")
+    attr = await service.get_attribute_by_id(attribute_id, tenant_id)
+    if not attr:
+        print(f"Delete attribute endpoint: Attribute not found: {attribute_id}")
+        raise HTTPException(status_code=404, detail="Attribute not found")
+    
     is_used = await template_service.get_attribute_usage(attribute_id)
     if is_used:
         print(f"Delete attribute endpoint: Cannot delete attribute {attribute_id} because it is used in templates")

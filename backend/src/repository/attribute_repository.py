@@ -114,11 +114,7 @@ class AttributeRepository:
         container = await self._get_container()
 
         try:
-            attr = await self.get_attribute_by_id(attribute_id, tenant_id)
-            if not attr:
-                return False
-
-            await container.delete_item(item=attribute_id, partition_key=attr.tenantId)
+            await container.delete_item(item=attribute_id, partition_key=tenant_id)
             print(f"Delete_Attribute_By_ID: Attribute with ID {attribute_id} deleted successfully")
 
             return True
@@ -133,7 +129,7 @@ class AttributeRepository:
         print("Update_Attribute: Starting attribute update process")
         container = await self._get_container()
 
-        attr = await self.get_attribute_by_id(attribute_id)
+        attr = await self.get_attribute_by_id(attribute_id, tenant_id)
         if not attr:
             print(f"Update_Attribute: No attribute found with ID {attribute_id} to update")
             raise HTTPException(status_code=404, detail="Attribute not found")
