@@ -18,7 +18,7 @@ class TemplateRepository:
         return await get_container(container_name="templates")
 
 
-    async def create_template(self, data: TemplateCreateRequest, current_user: dict) -> Template:
+    async def create_template(self, data: TemplateCreateRequest, current_user: dict, tenant_id: str) -> Template:
         print("Create_Template: Starting template creation process")
         container = await self._get_container()
         now = datetime.now(timezone.utc).isoformat()
@@ -35,7 +35,8 @@ class TemplateRepository:
             state="active",
             parentTemplateId=None,
             createdAt=now,
-            createdBy=current_user
+            createdBy=current_user,
+            tenantId=tenant_id
         )
 
         print(f"Create_Template: Prepared template data: {template}")
@@ -64,23 +65,15 @@ class TemplateRepository:
         except exceptions.CosmosHttpResponseError as e:
             raise HTTPException(status_code=500, detail=f"Database error while creating template version: {str(e)}")
 
-    async def get_template_by_id(self, template_id: str) -> Optional[Template]:
+    async def get_template_by_id(self, template_id: str, tenant_id: str) -> Optional[Template]:
         print("Get_Template_By_ID: Starting template fetch process")
         container = await self._get_container()
 
         try:
-            query = "SELECT * FROM c WHERE c.id = @template_id"
-            parameters = [{"name": "@template_id", "value": template_id}]
-            items = container.query_items(
-                query=query,
-                parameters=parameters,
-                partition_key=None
-            )
-
-            results = [item async for item in items]
-            if results:
+            item = await container.read_item(item=template_id, partition_key=tenant_id)
+            if item:
                 print(f"Get_Template_By_ID: Template found with ID {template_id}")
-                return Template(**results[0])
+                return Template(**item)
             else:
                 print(f"Get_Template_By_ID: No template found with ID {template_id}")
                 return None
@@ -91,13 +84,13 @@ class TemplateRepository:
             print(f"Get_Template_By_ID: Error occurred while retrieving template: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while retrieving template: {str(e)}")
 
-    async def list_templates(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0) -> list[Template]:
+    async def list_templates(self, tenant_id: str, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, state: Optional[Literal["active", "archived"]] = None, limit: int = 50, offset: int = 0) -> list[Template]:
         print("List_Templates: Starting to list all templates")
         container = await self._get_container()
         
         query = "SELECT * FROM c"
-        parameters = []
-        conditions = []
+        parameters = [{"name": "@tenantId", "value": tenant_id}]
+        conditions = ["c.tenantId = @tenantId"]
 
         if name_contains:
             print(f"List_Templates: Filtering templates with name containing '{name_contains}'")
@@ -114,8 +107,7 @@ class TemplateRepository:
             conditions.append("c.state = @state")
             parameters.append({"name": "@state", "value": state})
 
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
+        query += " WHERE " + " AND ".join(conditions)
         
         query += " ORDER BY c.createdAt DESC OFFSET @offset LIMIT @limit"
         parameters.append({"name": "@offset", "value": offset})
@@ -162,10 +154,10 @@ class TemplateRepository:
                 raise HTTPException(status_code=409, detail="Concurrency conflict — template updated by another process")
             return False
         
-    async def update_template(self, template_id: str, payload: TemplateCreateRequest, current_user: dict) -> Template:
+    async def update_template(self, template_id: str, payload: TemplateCreateRequest, current_user: dict, tenant_id: str) -> Template:
         print(f"Update_Template: Starting update for template ID {template_id}")
 
-        existing_template = await self.get_template_by_id(template_id)
+        existing_template = await self.get_template_by_id(template_id, tenant_id)
         if not existing_template:
             print(f"Update_Template: No template found with ID {template_id} to update")
             raise HTTPException(status_code=404, detail="Template not found")
@@ -199,7 +191,8 @@ class TemplateRepository:
             state="active",
             parentTemplateId=root_v1_id,
             createdAt=now,
-            createdBy=current_user
+            createdBy=current_user,
+            tenantId=tenant_id
         )
 
         print(f"Update_Template: Preparing new version {new_version} with ID {new_template.id}")
@@ -207,11 +200,11 @@ class TemplateRepository:
         print(f"Update_Template: Successfully created new version {new_version} with ID {updated_template.id}")
         return updated_template
 
-    async def get_version_history(self, template_id: str) -> list[TemplateVersionInfo]:
+    async def get_version_history(self, template_id: str, tenant_id: str) -> list[TemplateVersionInfo]:
         print(f"Get_Version_History: Fetching version history for template ID {template_id}")
         container = await self._get_container()
 
-        current_template = await self.get_template_by_id(template_id)
+        current_template = await self.get_template_by_id(template_id, tenant_id)
         if not current_template:
             print(f"Get_Version_History: No template found with ID {template_id}")
             raise HTTPException(status_code=404, detail="Template not found")
@@ -230,17 +223,17 @@ class TemplateRepository:
             print(f"Get_Version_History: Error occurred while fetching version history: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while fetching version history: {str(e)}")
 
-    async def rollback_template_version(self, template_id: str, dest_template_id: Optional[str] = None) -> bool:
+    async def rollback_template_version(self, tenant_id: str, template_id: str, dest_template_id: Optional[str] = None) -> bool:
         print("Rollback_Template_Version: Starting template rollback process")
         container = await self._get_container()
         try:
-            current_template = await self.get_template_by_id(template_id)
+            current_template = await self.get_template_by_id(template_id, tenant_id)
             if not current_template:
                 print(f"Rollback_Template_Version: No template found with ID {template_id} to rollback")
                 return False
             
             # By default, this method returns template versions in increasing order of version number
-            template_history = await self.get_version_history(template_id)
+            template_history = await self.get_version_history(template_id, tenant_id)
 
             # Confirm if the dest_template_id is part of template version, if it is not None
             match = None
@@ -266,7 +259,7 @@ class TemplateRepository:
             for item in reversed(template_history):
                 if item.templateId == next_latest_template_id:
                     break
-                await container.delete_item(item=item.templateId, partition_key=current_template.name)
+                await container.delete_item(item=item.templateId, partition_key=current_template.tenantId)
                 print(f"Rollback_Template_Version: Deleted template version with ID {item.templateId} during rollback process")
 
             # delete the latest version to rollback to previous version
@@ -274,7 +267,7 @@ class TemplateRepository:
 
             # promote the next latest version to active if it exists and is not already active
             if next_latest_template_id:
-                next_latest_template = await self.get_template_by_id(next_latest_template_id)
+                next_latest_template = await self.get_template_by_id(next_latest_template_id, tenant_id)
                 if next_latest_template and next_latest_template.state != "active":
                     await container.replace_item(item=next_latest_template_id, body={**next_latest_template.model_dump(by_alias=True), "state": "active"})
                     print(f"Rollback_Template_Version: Promoted template with ID {next_latest_template_id} to active state")
@@ -286,23 +279,13 @@ class TemplateRepository:
             print(f"Rollback_Template_Version: Error occurred while rolling back template: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while rolling back template: {str(e)}")
 
-    async def delete_template_by_id(self, template_id: str) -> bool:
+    async def delete_template_by_id(self, template_id: str, tenant_id: str) -> bool:
         print(f"Delete_Template_By_ID: Starting deletion process for template ID {template_id}")
-        return await self.rollback_template_version(template_id)
-
-    async def get_template_content(self, template_id: str) -> str:
-        print(f"Get_Template_Content: Fetching content for template ID {template_id}")
-        template = await self.get_template_by_id(template_id)
-        if not template:
-            print(f"Get_Template_Content: No template found with ID {template_id}")
-            raise HTTPException(status_code=404, detail="Template not found")
+        return await self.rollback_template_version(tenant_id, template_id)
         
-        print(f"Get_Template_Content: Successfully retrieved content for template ID {template_id}")
-        return template.htmlContent
-        
-    async def generate_document(self, template_id: str, attribute_values: dict) -> str:
+    async def generate_document(self, template_id: str, attribute_values: dict, tenant_id: str) -> str:
         print(f"Generate_Document: Starting document generation for template ID {template_id}")
-        template = await self.get_template_by_id(template_id)
+        template = await self.get_template_by_id(template_id, tenant_id)
         if not template:
             print(f"Generate_Document: No template found with ID {template_id}")
             raise HTTPException(status_code=404, detail="Template not found")
@@ -319,3 +302,29 @@ class TemplateRepository:
         # Apply rule-based transformations (remove or keep sections) before returning
         html_content = apply_rules_to_html(template.rules, html_content, resolved)
         return html_content
+    
+    async def get_attribute_usage(self, attribute_id: str) -> bool:
+        print(f"Get_Attribute_Usage: Checking usage for attribute ID {attribute_id}")
+        container = await self._get_container()
+
+        query = "SELECT c.id, c.name FROM c JOIN a IN c.attributes WHERE a.attributeId = @attributeId"
+        parameters = [{"name": "@attributeId", "value": attribute_id}]
+
+        try:
+            items = container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=None
+            )
+
+            results = [item async for item in items]
+            if results:
+                print(f"Get_Attribute_Usage: Attribute {attribute_id} used in {len(results)} template(s)")
+                return True
+            else:
+                print(f"Get_Attribute_Usage: Attribute {attribute_id} not being used in any templates")
+                return False
+        except exceptions.CosmosHttpResponseError as e:
+            # Avoid downstream activities like deletion if query returns failure
+            print(f"Get_Attribute_Usage: Error identifying attribute {attribute_id} usage. Safer to return True")
+            return True

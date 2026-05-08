@@ -1,3 +1,4 @@
+import { useTenantStore } from "@/stores/tenant-store";
 import { DataTable } from "@/components/data-table/data-table";
 import { getColumns } from "@/components/data-table/columns";
 import type { TemplateProps, TableAction, EditorInitialData } from "@/types/index";
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 export default function TemplatesPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { currentTenantId } = useTenantStore();
     const [loading, setLoading] = useState(false);
 
     const {
@@ -26,9 +28,11 @@ export default function TemplatesPage() {
         isError,
         error,
     } = useQuery({
-        queryKey: ['templates'], // unique cache key
+        queryKey: ['templates', currentTenantId], // unique cache key
         queryFn: templateApi.fetchTemplates,
         staleTime: 1000 * 60, // 1 minute stale time
+        gcTime: 1000 * 60 * 5, // 5 minutes garbage collection time
+        enabled: !!currentTenantId, // only run if tenant ID is available
 
         // Disable automatic refetching on failures
         retry: false,
@@ -75,7 +79,7 @@ export default function TemplatesPage() {
         try {
             setLoading(true);
             await templateApi.deleteTemplate(template.id);
-            await queryClient.invalidateQueries({ queryKey: ['templates'] });
+            await queryClient.invalidateQueries({ queryKey: ['templates', currentTenantId] });
 
             toast.success("Successfully deleted", {
                 description: `"${template.name}" has been deleted.`,
@@ -248,6 +252,17 @@ export default function TemplatesPage() {
 
     const createNewTemplate = () => {
         navigate('/editor', { state: { mode: 'template' } })
+    }
+
+    if (!currentTenantId) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <Loader
+                    screenHeader="Loading workspace"
+                    screenMessage="Please wait till we set your workspace details"
+                />
+            </div>
+        );
     }
 
     return (

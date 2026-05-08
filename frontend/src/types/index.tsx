@@ -77,6 +77,7 @@ export interface TemplateProps {
   modifiedAt?: string,
   createdBy: User,
   modifiedBy?: User,
+  tenantId?: string,
   attributes: Array<{
     attributeId: string;
     label: string;

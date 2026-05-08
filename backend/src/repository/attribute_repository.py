@@ -15,7 +15,7 @@ class AttributeRepository:
     async def _get_container(self) -> ContainerProxy:
         return await get_container(container_name="attributes")
 
-    async def create_attribute(self, data: AttributeCreateRequest, current_user: User) -> Attribute:
+    async def create_attribute(self, data: AttributeCreateRequest, current_user: User, tenant_id: str) -> Attribute:
         print("Create_Attribute: Starting attribute creation process")
         container = await self._get_container()
         now = datetime.now(timezone.utc).isoformat()
@@ -27,7 +27,7 @@ class AttributeRepository:
             type=data.type,
             createdAt=now,
             createdBy=current_user,
-            tenantId=data.tenantId if data.tenantId else "default"
+            tenantId=tenant_id.strip()
         )
 
         print(f"Create_Attribute: Prepared attribute data: {attribute}")
@@ -46,13 +46,13 @@ class AttributeRepository:
             print("Create_Attribute: End of attribute creation process with error")
             raise HTTPException(status_code=500, detail=f"Database error while creating attribute: {str(e)}")
     
-    async def list_attribute(self, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
+    async def list_attribute(self, tenant_id: str, name_contains: Optional[str] = None, desc_contains: Optional[str] = None, type: Optional[AttributeType] = None, limit: int = 50, offset: int = 0) -> list[Attribute]:
         print("List_Attributes: Starting to list all attributes")
         container = await self._get_container()
         
         query = "SELECT * FROM c"
-        parameters = []
-        conditions = []
+        parameters = [{"name": "@tenantId", "value": tenant_id}]
+        conditions = ["c.tenantId = @tenantId"]
 
         if name_contains:
             print(f"List_Attributes: Filtering attributes with name containing '{name_contains}'")
@@ -69,8 +69,7 @@ class AttributeRepository:
             conditions.append("c.type = @type")
             parameters.append({"name": "@type", "value": type})
 
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
+        query += " WHERE " + " AND ".join(conditions)
         
         query += " ORDER BY c.createdAt DESC OFFSET @offset LIMIT @limit"
         parameters.append({"name": "@offset", "value": offset})
@@ -91,23 +90,15 @@ class AttributeRepository:
             print(f"List_Attributes: Error occurred while listing attributes: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while listing attributes: {str(e)}")
         
-    async def get_attribute_by_id(self, attribute_id: str) -> Optional[Attribute]:
+    async def get_attribute_by_id(self, attribute_id: str, tenant_id: str) -> Optional[Attribute]:
         print("Get_Attribute_By_ID: Starting attribute retrieval process")
         container = await self._get_container()
 
         try:
-            query = "SELECT * FROM c WHERE c.id = @attribute_id"
-            parameters = [{"name": "@attribute_id", "value": attribute_id}]
-            items = container.query_items(
-                query=query,
-                parameters=parameters,
-                partition_key=None
-            )
-
-            results = [item async for item in items]
-            if results:
+            result = await container.read_item(item=attribute_id, partition_key=tenant_id)
+            if result:
                 print(f"Get_Attribute_By_ID: Attribute found with ID {attribute_id}")
-                return Attribute(**results[0])
+                return Attribute(**result)
             else:
                 print(f"Get_Attribute_By_ID: No attribute found with ID {attribute_id}")
                 return None
@@ -118,16 +109,12 @@ class AttributeRepository:
             print(f"Get_Attribute_By_ID: Error occurred while retrieving attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while retrieving attribute: {str(e)}")
         
-    async def delete_attribute_by_id(self, attribute_id: str) -> bool:
+    async def delete_attribute_by_id(self, attribute_id: str, tenant_id: str) -> bool:
         print("Delete_Attribute_By_ID: Starting attribute deletion process")
         container = await self._get_container()
 
         try:
-            attr = await self.get_attribute_by_id(attribute_id)
-            if not attr:
-                return False
-
-            await container.delete_item(item=attribute_id, partition_key=attr.tenantId)
+            await container.delete_item(item=attribute_id, partition_key=tenant_id)
             print(f"Delete_Attribute_By_ID: Attribute with ID {attribute_id} deleted successfully")
 
             return True
@@ -138,22 +125,24 @@ class AttributeRepository:
             print(f"Delete_Attribute_By_ID: Error occurred while deleting attribute: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Database error while deleting attribute: {str(e)}")
         
-    async def update_attribute(self, attribute_id, data: AttributeUpdateRequest, current_user: User) -> Attribute:
+    async def update_attribute(self, attribute_id: str, data: AttributeUpdateRequest, current_user: User, tenant_id: str) -> Attribute:
         print("Update_Attribute: Starting attribute update process")
         container = await self._get_container()
 
-        attr = await self.get_attribute_by_id(attribute_id)
+        attr = await self.get_attribute_by_id(attribute_id, tenant_id)
         if not attr:
             print(f"Update_Attribute: No attribute found with ID {attribute_id} to update")
             raise HTTPException(status_code=404, detail="Attribute not found")
+        
+        if attr.tenantId != tenant_id:
+            print(f"Update_Attribute: Tenant ID mismatch for attribute {attribute_id}")
+            raise HTTPException(status_code=403, detail="Not allowed to update attribute from a different tenant")
 
         updated_data = attr.model_dump()
         if data.name is not None:
             updated_data["name"] = data.name.strip()
         if data.description is not None:
             updated_data["description"] = data.description.strip()
-        if data.tenantId is not None:
-            updated_data["tenantId"] = data.tenantId
         updated_data["modifiedAt"] = datetime.now(timezone.utc).isoformat()
         updated_data["modifiedBy"] = current_user
 
@@ -165,30 +154,3 @@ class AttributeRepository:
             raise HTTPException(status_code=500, detail=f"Database error while updating attribute: {str(e)}")
 
         return Attribute(**updated_attr)
-
-    async def filter_attributes_by_tenant(self, attribute_ids: List[str], tenant_id: Optional[str]) -> list[str]:
-        print("Filter_Attributes_By_Tenant: Starting to filter attributes by tenant")
-        if not tenant_id:
-            tenant_id = "default"
-        
-        container = await self._get_container()
-
-        query = "SELECT VALUE c.id FROM c WHERE ARRAY_CONTAINS(@attrIds, c.id) AND c.tenantId = @tenantId"
-        parameters = [
-            {"name": "@attrIds", "value": attribute_ids},
-            {"name": "@tenantId", "value": tenant_id}
-        ]
-
-        try:
-            items = container.query_items(
-                query=query,
-                parameters=parameters,
-                partition_key=None
-            )
-
-            results = [item async for item in items]
-            print(f"Filter_Attributes_By_Tenant: Retrieved {len(results)} attributes")
-            return results
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Filter_Attributes_By_Tenant: Error occurred while filtering attributes: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Database error while filtering attributes: {str(e)}")
