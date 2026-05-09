@@ -12,6 +12,7 @@ It supports:
 - Conditional content rendering
 - Template versioning
 - Document generation
+- Isolated workspaces
 - Reusable snippets (upcoming)
 - AI assisted template creation (upcoming)
 
