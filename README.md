@@ -12,6 +12,7 @@ It supports:
 - Conditional content rendering
 - Template versioning
 - Document generation
+- Isolated workspaces
 - Reusable snippets (upcoming)
 - AI assisted template creation (upcoming)
 
@@ -26,28 +27,32 @@ It supports:
 - Create and edit document templates
 - Structured template storage
 
-### 3. Conditional Rendering
+### 3. Multi-Tenant Workspace Management
+- Create and manage multiple isolated workspaces for different teams & use cases
+- Templates and placeholdrs are fully isolated per wokspace
+
+### 4. Conditional Rendering
 - Add logic-based rules to control content visibility  
 - Example:
   - Render Clause A if `salary > 100000`
   - Render Clause B if `employment_type == "contract"`
 
-### 4. Versioning
+### 5. Versioning
 - Every update to a template creates a new version
 - Latest version is marked as **active**
 - Older versions are **archived** for traceability
 
-### 5. Placeholder System
+### 6. Placeholder System
 - Strongly structured input fields
 - Supports multiple data types (string, number, boolean, etc.)
 - Drives both rendering and validation
 
-### 6. Document Generation
+### 7. Document Generation
 - Generate final documents by filling placeholder values
 - Form-driven input system
 - Currently supporting PDF export
 
-### 7. Authentication
+### 8. Authentication
 - Secure login using Microsoft Entra ID (OAuth 2.0 with MSAL)
 - Access tokens are automatically attached to all API requests
 - Backend validates tokens to ensure only authenticated users can access APIs
