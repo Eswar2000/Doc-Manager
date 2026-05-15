@@ -5,7 +5,8 @@ import {
 } from '@tanstack/react-query';
 import {
     Pencil,
-    Trash2
+    Trash2,
+    Users
 } from 'lucide-react';
 import {
     Accordion,
@@ -425,6 +426,12 @@ export default function WorkspacePage() {
                                 filterColumnKey="userId"
                                 showCreateButton={true}
                                 onCreate={() => onCreate()}
+                                emptyState={{
+                                    icon: <Users className="h-6 w-6" />,
+                                    title: "No members yet",
+                                    description: "Invite teammates to this workspace and assign roles to control what they can do.",
+                                    actionLabel: "Add your first member",
+                                }}
                             />
                         </AccordionContent>
                     </AccordionItem>

@@ -14,6 +14,7 @@ import type {
   SortingState,
   VisibilityState
 } from "@tanstack/react-table";
+import { SearchX } from "lucide-react";
 import type { DataTableProps } from "@/types/index";
 import {
   Table,
@@ -23,6 +24,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Button } from "@/components/ui/button";
 
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
@@ -34,6 +44,7 @@ export function DataTable<TData, TValue>({
   facetedFilters,
   showCreateButton,
   onCreate,
+  emptyState,
   columnFilters: controlledColumnFilters,
   onColumnFiltersChange,
 }: DataTableProps<TData, TValue>) {
@@ -123,12 +134,79 @@ export function DataTable<TData, TValue>({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="p-0"
                 >
-                  No results.
+                  {(() => {
+                    const totalRows = table.getCoreRowModel().rows.length;
+                    const isFiltered = table.getState().columnFilters.length > 0;
+
+                    // Filters are active but no matching rows — offer to reset.
+                    if (totalRows > 0 && isFiltered) {
+                      return (
+                        <Empty className="border-0 py-12">
+                          <EmptyHeader>
+                            <EmptyMedia variant="icon">
+                              <SearchX className="h-6 w-6" />
+                            </EmptyMedia>
+                            <EmptyTitle>No matching results</EmptyTitle>
+                            <EmptyDescription>
+                              Try adjusting your search or filter to find what you're looking for.
+                            </EmptyDescription>
+                          </EmptyHeader>
+                          <EmptyContent>
+                            <Button
+                              variant="outline"
+                              onClick={() => table.resetColumnFilters()}
+                            >
+                              Reset filters
+                            </Button>
+                          </EmptyContent>
+                        </Empty>
+                      );
+                    }
+
+                    // No data at all — show CTA empty state when provided.
+                    if (totalRows === 0 && emptyState) {
+                      const handleAction = emptyState.onAction ?? onCreate;
+                      return (
+                        <Empty className="border-0 py-12">
+                          <EmptyHeader>
+                            {emptyState.icon && (
+                              <EmptyMedia variant="icon">
+                                {emptyState.icon}
+                              </EmptyMedia>
+                            )}
+                            <EmptyTitle>{emptyState.title}</EmptyTitle>
+                            {emptyState.description && (
+                              <EmptyDescription>
+                                {emptyState.description}
+                              </EmptyDescription>
+                            )}
+                          </EmptyHeader>
+                          {emptyState.actionLabel && handleAction && (
+                            <EmptyContent>
+                              <Button
+                                onClick={handleAction}
+                                className="bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500 text-white font-medium shadow-sm"
+                              >
+                                {emptyState.actionLabel}
+                              </Button>
+                            </EmptyContent>
+                          )}
+                        </Empty>
+                      );
+                    }
+
+                    // Fallback — preserves prior behavior.
+                    return (
+                      <div className="h-24 flex items-center justify-center text-sm text-muted-foreground">
+                        No results.
+                      </div>
+                    );
+                  })()}
                 </TableCell>
               </TableRow>
             )}

@@ -177,6 +177,14 @@ export interface MultiSelectProps {
   disabled?: boolean;
 }
 
+export interface DataTableEmptyState {
+  icon?: React.ReactNode;
+  title: string;
+  description?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -184,6 +192,7 @@ export interface DataTableProps<TData, TValue> {
   facetedFilters?: FacetedFilterConfig[];
   showCreateButton?: boolean;
   onCreate?: () => void;
+  emptyState?: DataTableEmptyState;
 
   // Optional - only needed when you want controlled filters
   columnFilters?: ColumnFiltersState;

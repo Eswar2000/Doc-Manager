@@ -1,7 +1,8 @@
 import { useState } from "react";
 import {
   Pencil,
-  Trash2
+  Trash2,
+  Boxes
 } from "lucide-react";
 import { useTenantStore } from "@/stores/tenant-store";
 import { useQueryClient } from "@tanstack/react-query";
@@ -276,7 +277,22 @@ export default function AttributesPage() {
           <span>Manage Attributes</span>
         </h2>
       </div>
-      {!isLoading && !isError && <DataTable data={data} columns={cols} filterColumnKey="name" facetedFilters={filterConfigs} showCreateButton={true} onCreate={() => setCreateDialogOpen(true)} />}
+      {!isLoading && !isError && (
+        <DataTable
+          data={data}
+          columns={cols}
+          filterColumnKey="name"
+          facetedFilters={filterConfigs}
+          showCreateButton={true}
+          onCreate={() => setCreateDialogOpen(true)}
+          emptyState={{
+            icon: <Boxes className="h-6 w-6" />,
+            title: "No attributes yet",
+            description: "Attributes are reusable, typed placeholders you can drop into templates and reference in conditional rules.",
+            actionLabel: "Create your first attribute",
+          }}
+        />
+      )}
       {isLoading && <Loader screenHeader="Loading your attributes" screenMessage="Please wait till we fetch your attributes" />}
       {isError && <ErrorState title="Failed to load attributes" description={error?.message || "We couldn't load the attributes right now."} onRetry={() => refetch()} />}
 
