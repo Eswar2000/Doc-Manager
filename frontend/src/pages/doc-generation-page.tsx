@@ -35,18 +35,32 @@ export default function DocGenerationPage() {
         setFormValues(prev => ({ ...prev, [key]: value }));
     };
 
+    const MAX_FILE_NAME_LENGTH = 50;
+    // Unicode letters/marks/digits plus a curated set of safe punctuation.
+    const FILE_NAME_ALLOWED = /^[\p{L}\p{M}\p{N} ._\-()[\]]+$/u;
+    // Windows reserved device names (case-insensitive), with or without extension.
+    const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+
+    const validateFileName = (raw: string): string | null => {
+        const name = raw.trim();
+        if (!name) return "File name is required";
+        if (name.length > MAX_FILE_NAME_LENGTH)
+            return `File name should not exceed ${MAX_FILE_NAME_LENGTH} characters`;
+        if (!FILE_NAME_ALLOWED.test(name))
+            return "Only letters, numbers, spaces, and . _ - ( ) [ ] are allowed";
+        if (name.endsWith("."))
+            return "File name cannot end with a dot";
+        if (WINDOWS_RESERVED_NAMES.test(name))
+            return `"${name}" is a reserved file name. Please choose a different name`;
+        return null;
+    };
+
     const validateForm = () => {
         if (!template) return;
 
         const errors: Record<string, string> = {};
-        const FILE_NAME_REGEX = /^[a-zA-Z0-9 _-]+$/;
-        if (!fileName || fileName.trim() === "") {
-            errors["fileName"] = "File name is required";
-        } else if (!FILE_NAME_REGEX.test(fileName)) {
-            errors["fileName"] = "File name contains invalid characters";
-        } else if (fileName.length > 50) {
-            errors["fileName"] = "File name should not exceed 50 characters";
-        }
+        const fileNameError = validateFileName(fileName);
+        if (fileNameError) errors["fileName"] = fileNameError;
 
         template.attributes?.forEach((attr: any) => {
             const value = formValues[attr.attributeId];
@@ -157,7 +171,7 @@ export default function DocGenerationPage() {
                     />
 
                     <p className="text-xs text-gray-600 mt-1">
-                        Only letters, numbers, spaces, hyphens, and underscores allowed
+                        Letters, numbers, spaces, and <code>. _ - ( ) [ ]</code> are allowed (up to 50 characters)
                     </p>
                 </div>
 
