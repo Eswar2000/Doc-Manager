@@ -124,10 +124,19 @@ export default function DocGenerationPage() {
             link.click();
             link.remove();
 
-            toast.success("Document generated and downloaded successfully!");
+            toast.success("Document generated successfully!", {
+                description: "Generated document is being downloaded.",
+                duration: 2000,
+                closeButton: false,
+            });
             navigate('/templates');
         } catch (err) {
-            toast.error("Failed to generate document. Please try again.");
+            console.error("Document generation failed: ", err);
+            toast.error("Failed to generate document", {
+                description: "An error occurred while generating the document.",
+                duration: 3000,
+                closeButton: false,
+            });
         } finally {
             setIsGenerating(false);
         }
