@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 msalInstance.removeEventCallback(callbackId);
             }
         };
-    })
+    }, [])
 
     if (!isInitialized) {
         return (
