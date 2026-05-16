@@ -364,9 +364,7 @@ export default function EditorPage() {
       console.error("Save failed: ", err);
 
       toast.error("Failed to save", {
-        description: err instanceof Error
-          ? err.message
-          : "Something went wrong. Please check and try again.",
+        description: "Something went wrong while saving. Please check and try again.",
         duration: 3000,
         closeButton: false,
       });
@@ -948,12 +946,20 @@ export default function EditorPage() {
           const { name, conditions, action } = values;
 
           if (!name || String(name).trim() === "") {
-            toast.error("Rule name is required");
+            toast.error("Rule name is required", {
+              description: "Please provide a name for this rule.",
+              duration: 3000,
+              closeButton: false,
+            });
             return;
           }
 
           if (!conditions || !Array.isArray(conditions.items) || conditions.items.length === 0 || !action) {
-            toast.error("Please fill all required fields");
+            toast.error("Please fill all required fields", {
+              description: "Ensure all essential fields are filled.",
+              duration: 3000,
+              closeButton: false,
+            });
             return;
           }
 
@@ -969,7 +975,11 @@ export default function EditorPage() {
             // Update the existing conditional block node at the saved position
             const idToFind = editingRule.id;
             if (!idToFind) {
-              toast.error("Failed to update rule: missing id");
+              toast.error("Failed to update rule", {
+                description: "The rule being edited does not have an identifier.",
+                duration: 3000,
+                closeButton: false,
+              });
             } else if (editor) {
               // Prefer locating node by id (more robust than stored pos)
               let foundPos: number | null = null;
@@ -982,7 +992,11 @@ export default function EditorPage() {
               });
 
               if (foundPos === null) {
-                toast.error('Failed to update rule: block not found in document');
+                toast.error('Failed to update rule', {
+                  description: "The conditional block associated with this rule could not be found. It may have been deleted or modified.",
+                  duration: 3000,
+                  closeButton: false,
+                });
               } else {
                 try {
                   const node = editor.state.doc.nodeAt(foundPos);
@@ -999,7 +1013,11 @@ export default function EditorPage() {
                     closeButton: false,
                   });
                 } catch (err: any) {
-                  toast.error('Failed to update rule: ' + (err?.message || String(err)));
+                  toast.error('Failed to update rule', {
+                    description: "An error occurred while updating the conditional block.",
+                    duration: 3000,
+                    closeButton: false,
+                  });
                 }
               }
             }
