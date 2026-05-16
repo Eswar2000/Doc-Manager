@@ -333,17 +333,18 @@ export default function EditorPage() {
 
     try {
       const isCreate = initialData?.id ? false : true;
-      console.log("Action:", isCreate ? "Create New" : "Update Existing");
       if (isCreate) {
         if (mode === 'template') {
           await templateApi.createTemplate(savedData);
         } else {
+          // TODO: implement snippet creation API call
           console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
         }
       } else {
         if (mode === 'template' && initialData?.id) {
           await templateApi.updateTemplate(initialData.id, savedData);
         } else {
+          // TODO: implement snippet update API call
           console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
         }
       }
@@ -360,7 +361,7 @@ export default function EditorPage() {
 
       navigate(mode === 'template' ? '/templates' : '/snippets');
     } catch (err) {
-      console.log("Save failed: ", err);
+      console.error("Save failed: ", err);
 
       toast.error("Failed to save", {
         description: err instanceof Error
@@ -992,7 +993,11 @@ export default function EditorPage() {
                   let tr2 = editor.state.tr.replaceWith(foundPos, foundPos + node.nodeSize, newNode);
                   tr2 = tr2.setSelection(TextSelection.create(tr2.doc, foundPos + 1));
                   editor.view.dispatch(tr2);
-                  toast.success('Rule updated');
+                  toast.success('Rule updated', {
+                    description: "The conditional block has been updated.",
+                    duration: 2000,
+                    closeButton: false,
+                  });
                 } catch (err: any) {
                   toast.error('Failed to update rule: ' + (err?.message || String(err)));
                 }
@@ -1005,7 +1010,11 @@ export default function EditorPage() {
               action: action as "show" | "hide",
               name: name,
             } as any).run();
-            toast.success("Conditional rule applied to selected content");
+            toast.success("Conditional rule applied", {
+              description: "The conditional block has been applied to the selected content.",
+              duration: 2000,
+              closeButton: false,
+            });
           } else {
             // No selection - insert new block
             editor.chain().focus().insertConditionalBlock({
@@ -1013,7 +1022,11 @@ export default function EditorPage() {
               action: action as "show" | "hide",
               name: name,
             } as any).run();
-            toast.success("New conditional block added");
+            toast.success("New conditional block added", {
+              description: "A new conditional block has been added to the document.",
+              duration: 2000,
+              closeButton: false,
+            });
           }
 
           setRuleDialogOpen(false);

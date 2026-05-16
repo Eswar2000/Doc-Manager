@@ -42,6 +42,7 @@ export default function TemplatesPage() {
     });
 
     const handleViewDetails = (template: TemplateProps) => {
+        // TODO: Implement view details screen
         console.log("viewing details of template: " + template.name);
     }
 
