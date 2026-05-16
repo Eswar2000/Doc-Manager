@@ -53,7 +53,7 @@ export interface EditorInitialData {
 }
 
 export interface AttributeProps {
-  id: number,
+  id: string,
   name: string,
   description: string,
   type: AttributeType,
