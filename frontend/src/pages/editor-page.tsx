@@ -350,7 +350,7 @@ export default function EditorPage() {
       }
 
       if (mode === 'template') {
-        queryClient.invalidateQueries({ queryKey: ['templates'] });
+        queryClient.invalidateQueries({ queryKey: ['templates', currentTenantId] });
       }
 
       toast.success(isCreate ? "Successfully created" : "Successfully updated", {
