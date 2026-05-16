@@ -514,9 +514,9 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-1 min-w-0 h-screen bg-gray-50">
       {/* Main Editor */}
-      <div className="flex-[3] p-8 overflow-auto">
+      <div className="flex-[3] min-w-0 p-8 overflow-auto">
         <Editor
           onEditorReady={setEditor}
         />
