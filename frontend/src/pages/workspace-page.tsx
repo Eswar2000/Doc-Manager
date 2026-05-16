@@ -116,7 +116,7 @@ export default function WorkspacePage() {
                 name: tenantInfo.name,
                 description: tenantInfo.description,
             });
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully updated", {
                 description: "The workspace basic info has been updated successfully.",
@@ -146,7 +146,7 @@ export default function WorkspacePage() {
 
         try {
             await tenantApi.addMember(currentTenantId!, newMember);
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully added member", {
                 description: "The member has been added successfully.",
@@ -171,7 +171,7 @@ export default function WorkspacePage() {
     const updateMemberRole = async (member: any) => {
         try {
             await tenantApi.updateMemberRoles(currentTenantId!, member.userId, member.roles);
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully updated member roles", {
                 description: "The member's roles have been updated successfully.",
@@ -196,7 +196,7 @@ export default function WorkspacePage() {
     const deleteMember = async (member: TenantMember) => {
         try {
             await tenantApi.removeMember(currentTenantId!, member.userId);
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully removed member", {
                 description: "The member has been removed successfully.",
