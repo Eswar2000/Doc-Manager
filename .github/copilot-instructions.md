@@ -192,7 +192,7 @@ frontend/
   Stick to this unless there's a reason. Always gate tenant-scoped queries on `!!currentTenantId`.
 
 ### Mutations
-- Mutations use `try / await api… / queryClient.invalidateQueries({ queryKey: [...] }) / toast.success` then `catch` → `toast.error` with `description = err instanceof Error ? err.message : "..."`.
+- Mutations use `try / await api… / queryClient.invalidateQueries({ queryKey: [...] }) / toast.success` then `catch` → `toast.error` with `description = "..."`.
 - Toast durations: `2000` for success (no close button), `3000` for errors (no close button) — match the existing pattern.
 - Toaster is mounted **once** in `App.tsx` (`richColors`, `position="bottom-left"`, `closeButton`, `duration={3000}`). Do not add a second `<Toaster/>`.
 

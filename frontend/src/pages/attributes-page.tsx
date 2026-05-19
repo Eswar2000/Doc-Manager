@@ -197,9 +197,7 @@ export default function AttributesPage() {
       console.error("Failed to create attribute:", error);
 
       toast.error("Failed to create attribute", {
-        description: error instanceof Error
-          ? error.message
-          : "Something went wrong. Please check and try again.",
+        description: "Something went wrong. Please check and try again.",
         duration: 3000,
         closeButton: false,
       });
@@ -227,9 +225,7 @@ export default function AttributesPage() {
       console.error("Failed to update attribute:", error);
 
       toast.error("Failed to update attribute", {
-        description: error instanceof Error
-          ? error.message
-          : "Something went wrong. Please check and try again.",
+        description: "Something went wrong. Please check and try again.",
         duration: 3000,
         closeButton: false,
       });
@@ -250,9 +246,7 @@ export default function AttributesPage() {
       console.error("Failed to delete attribute:", error);
 
       toast.error("Failed to delete attribute", {
-        description: error instanceof Error
-          ? error.message
-          : "Something went wrong. Please check and try again.",
+        description: "Something went wrong. Please check and try again.",
         duration: 3000,
         closeButton: false,
       });

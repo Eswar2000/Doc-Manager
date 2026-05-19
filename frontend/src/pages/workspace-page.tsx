@@ -129,9 +129,7 @@ export default function WorkspacePage() {
             console.error("Failed to update basic info:", error);
 
             toast.error("Failed to update basic info", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
@@ -159,9 +157,7 @@ export default function WorkspacePage() {
             console.error("Failed to add member:", error);
 
             toast.error("Failed to add member", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
@@ -184,9 +180,7 @@ export default function WorkspacePage() {
             console.error("Failed to update member roles:", error);
 
             toast.error("Failed to update member roles", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
@@ -209,9 +203,7 @@ export default function WorkspacePage() {
             console.error("Failed to remove member:", error);
 
             toast.error("Failed to remove member", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
