@@ -8,6 +8,7 @@ import FontFamily from "@tiptap/extension-font-family";
 import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table";
 import Typography from "@tiptap/extension-typography";
 import { Mark } from "@tiptap/core";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -184,7 +185,11 @@ const Editor: React.FC<EditorProps> = ({
 
   const handleImageUpload = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image");
+      toast.error("Invalid file type", {
+        description: "Please select an image file (PNG, JPG, GIF, etc.).",
+        duration: 3000,
+        closeButton: false,
+      });
       return;
     }
 

@@ -7,7 +7,7 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Pencil, Eye, FileStack } from "lucide-react";
+import { Trash2, Pencil, Eye, FileStack, Receipt } from "lucide-react";
 import { templateApi } from "@/api/templates";
 import { Loader } from "@/components/loader";
 import { OverlayLoader } from "@/components/overlay-loader";
@@ -42,6 +42,7 @@ export default function TemplatesPage() {
     });
 
     const handleViewDetails = (template: TemplateProps) => {
+        // TODO: Implement view details screen
         console.log("viewing details of template: " + template.name);
     }
 
@@ -283,6 +284,12 @@ export default function TemplatesPage() {
                     onCreate={() => createNewTemplate()}
                     columnFilters={columnFilters}
                     onColumnFiltersChange={setColumnFilters}
+                    emptyState={{
+                        icon: <Receipt className="h-6 w-6" />,
+                        title: "No templates yet",
+                        description: "Templates are reusable document blueprints. Author one in the editor and generate documents by filling in its attributes.",
+                        actionLabel: "Create your first template",
+                    }}
                 />
             )}
             {isLoading && <Loader screenHeader="Loading your templates" screenMessage="Please wait till we fetch your templates" />}

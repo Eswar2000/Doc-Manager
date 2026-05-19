@@ -5,7 +5,8 @@ import {
 } from '@tanstack/react-query';
 import {
     Pencil,
-    Trash2
+    Trash2,
+    Users
 } from 'lucide-react';
 import {
     Accordion,
@@ -115,7 +116,7 @@ export default function WorkspacePage() {
                 name: tenantInfo.name,
                 description: tenantInfo.description,
             });
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully updated", {
                 description: "The workspace basic info has been updated successfully.",
@@ -128,9 +129,7 @@ export default function WorkspacePage() {
             console.error("Failed to update basic info:", error);
 
             toast.error("Failed to update basic info", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
@@ -145,7 +144,7 @@ export default function WorkspacePage() {
 
         try {
             await tenantApi.addMember(currentTenantId!, newMember);
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully added member", {
                 description: "The member has been added successfully.",
@@ -158,9 +157,7 @@ export default function WorkspacePage() {
             console.error("Failed to add member:", error);
 
             toast.error("Failed to add member", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
@@ -170,7 +167,7 @@ export default function WorkspacePage() {
     const updateMemberRole = async (member: any) => {
         try {
             await tenantApi.updateMemberRoles(currentTenantId!, member.userId, member.roles);
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully updated member roles", {
                 description: "The member's roles have been updated successfully.",
@@ -183,9 +180,7 @@ export default function WorkspacePage() {
             console.error("Failed to update member roles:", error);
 
             toast.error("Failed to update member roles", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
@@ -195,7 +190,7 @@ export default function WorkspacePage() {
     const deleteMember = async (member: TenantMember) => {
         try {
             await tenantApi.removeMember(currentTenantId!, member.userId);
-            queryClient.invalidateQueries({ queryKey: ['tenant'] });
+            queryClient.invalidateQueries({ queryKey: ['tenant', currentTenantId] });
 
             toast.success("Successfully removed member", {
                 description: "The member has been removed successfully.",
@@ -208,9 +203,7 @@ export default function WorkspacePage() {
             console.error("Failed to remove member:", error);
 
             toast.error("Failed to remove member", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
@@ -425,6 +418,12 @@ export default function WorkspacePage() {
                                 filterColumnKey="userId"
                                 showCreateButton={true}
                                 onCreate={() => onCreate()}
+                                emptyState={{
+                                    icon: <Users className="h-6 w-6" />,
+                                    title: "No members yet",
+                                    description: "Invite teammates to this workspace and assign roles to control what they can do.",
+                                    actionLabel: "Add your first member",
+                                }}
                             />
                         </AccordionContent>
                     </AccordionItem>

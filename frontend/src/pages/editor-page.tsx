@@ -333,23 +333,24 @@ export default function EditorPage() {
 
     try {
       const isCreate = initialData?.id ? false : true;
-      console.log("Action:", isCreate ? "Create New" : "Update Existing");
       if (isCreate) {
         if (mode === 'template') {
           await templateApi.createTemplate(savedData);
         } else {
+          // TODO: implement snippet creation API call
           console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
         }
       } else {
         if (mode === 'template' && initialData?.id) {
           await templateApi.updateTemplate(initialData.id, savedData);
         } else {
+          // TODO: implement snippet update API call
           console.log(`Saved ${mode}:`, JSON.stringify(savedData, null, 2));
         }
       }
 
       if (mode === 'template') {
-        queryClient.invalidateQueries({ queryKey: ['templates'] });
+        queryClient.invalidateQueries({ queryKey: ['templates', currentTenantId] });
       }
 
       toast.success(isCreate ? "Successfully created" : "Successfully updated", {
@@ -360,12 +361,10 @@ export default function EditorPage() {
 
       navigate(mode === 'template' ? '/templates' : '/snippets');
     } catch (err) {
-      console.log("Save failed: ", err);
+      console.error("Save failed: ", err);
 
       toast.error("Failed to save", {
-        description: err instanceof Error
-          ? err.message
-          : "Something went wrong. Please check and try again.",
+        description: "Something went wrong while saving. Please check and try again.",
         duration: 3000,
         closeButton: false,
       });
@@ -514,9 +513,9 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-1 min-w-0 h-screen bg-gray-50">
       {/* Main Editor */}
-      <div className="flex-[3] p-8 overflow-auto">
+      <div className="flex-[3] min-w-0 p-8 overflow-auto">
         <Editor
           onEditorReady={setEditor}
         />
@@ -947,12 +946,20 @@ export default function EditorPage() {
           const { name, conditions, action } = values;
 
           if (!name || String(name).trim() === "") {
-            toast.error("Rule name is required");
+            toast.error("Rule name is required", {
+              description: "Please provide a name for this rule.",
+              duration: 3000,
+              closeButton: false,
+            });
             return;
           }
 
           if (!conditions || !Array.isArray(conditions.items) || conditions.items.length === 0 || !action) {
-            toast.error("Please fill all required fields");
+            toast.error("Please fill all required fields", {
+              description: "Ensure all essential fields are filled.",
+              duration: 3000,
+              closeButton: false,
+            });
             return;
           }
 
@@ -968,7 +975,11 @@ export default function EditorPage() {
             // Update the existing conditional block node at the saved position
             const idToFind = editingRule.id;
             if (!idToFind) {
-              toast.error("Failed to update rule: missing id");
+              toast.error("Failed to update rule", {
+                description: "The rule being edited does not have an identifier.",
+                duration: 3000,
+                closeButton: false,
+              });
             } else if (editor) {
               // Prefer locating node by id (more robust than stored pos)
               let foundPos: number | null = null;
@@ -981,7 +992,11 @@ export default function EditorPage() {
               });
 
               if (foundPos === null) {
-                toast.error('Failed to update rule: block not found in document');
+                toast.error('Failed to update rule', {
+                  description: "The conditional block associated with this rule could not be found. It may have been deleted or modified.",
+                  duration: 3000,
+                  closeButton: false,
+                });
               } else {
                 try {
                   const node = editor.state.doc.nodeAt(foundPos);
@@ -992,9 +1007,17 @@ export default function EditorPage() {
                   let tr2 = editor.state.tr.replaceWith(foundPos, foundPos + node.nodeSize, newNode);
                   tr2 = tr2.setSelection(TextSelection.create(tr2.doc, foundPos + 1));
                   editor.view.dispatch(tr2);
-                  toast.success('Rule updated');
+                  toast.success('Rule updated', {
+                    description: "The conditional block has been updated.",
+                    duration: 2000,
+                    closeButton: false,
+                  });
                 } catch (err: any) {
-                  toast.error('Failed to update rule: ' + (err?.message || String(err)));
+                  toast.error('Failed to update rule', {
+                    description: "An error occurred while updating the conditional block.",
+                    duration: 3000,
+                    closeButton: false,
+                  });
                 }
               }
             }
@@ -1005,7 +1028,11 @@ export default function EditorPage() {
               action: action as "show" | "hide",
               name: name,
             } as any).run();
-            toast.success("Conditional rule applied to selected content");
+            toast.success("Conditional rule applied", {
+              description: "The conditional block has been applied to the selected content.",
+              duration: 2000,
+              closeButton: false,
+            });
           } else {
             // No selection - insert new block
             editor.chain().focus().insertConditionalBlock({
@@ -1013,7 +1040,11 @@ export default function EditorPage() {
               action: action as "show" | "hide",
               name: name,
             } as any).run();
-            toast.success("New conditional block added");
+            toast.success("New conditional block added", {
+              description: "A new conditional block has been added to the document.",
+              duration: 2000,
+              closeButton: false,
+            });
           }
 
           setRuleDialogOpen(false);

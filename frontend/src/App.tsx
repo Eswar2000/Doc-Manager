@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import { loginRequest } from './auth/msal-config';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import './App.css';
@@ -20,6 +21,12 @@ export default function App() {
       await instance.loginRedirect(loginRequest);
     } catch (error) {
       console.error('Login failed:', error);
+
+      toast.error("Login failed", {
+        description: "We couldn't sign you in. Please try again.",
+        duration: 3000,
+        closeButton: false,
+      });
     }
   };
 

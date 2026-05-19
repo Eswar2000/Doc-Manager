@@ -53,7 +53,7 @@ export default function MainLayout() {
                 <SidebarItem icon={<Settings />} text="Workspace" to="/workspace" disabled={isDisabled} />
                 <SidebarItem icon={<LogOut />} text="Logout" onClick={handleLogout} />
             </Sidebar>
-            <main className="flex flex-1 justify-center overflow-y-auto">
+            <main className="flex flex-1 min-w-0 overflow-y-auto">
                 {isLoading ? (
                     <Loader
                         screenHeader="Loading your workspaces"

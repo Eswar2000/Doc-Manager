@@ -18,7 +18,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <CardTitle className="text-4xl font-semibold tracking-tight text-white">
             Template Studio
           </CardTitle>
-          <CardDescription className="text-md mt-3 text-indigo-300">
+          <CardDescription className="text-base mt-3 text-indigo-300">
             Your go-to contract building partner
           </CardDescription>
         </CardHeader>

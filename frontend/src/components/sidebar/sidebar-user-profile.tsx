@@ -56,9 +56,7 @@ export default function SidebarUserProfile({ expanded }: { expanded: boolean }) 
             console.error("Failed to create workspace:", error);
 
             toast.error("Failed to create workspace", {
-                description: error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please check and try again.",
+                description: "Something went wrong. Please check and try again.",
                 duration: 3000,
                 closeButton: false,
             });
